@@ -1,0 +1,10 @@
+<view class="guard-banner profile" wx:if="{{show && type === 'profile'}}" bindtap="goToSetProfile">
+  <text class="guard-banner-icon">👤</text>
+  <text class="guard-banner-text">请先设置头像和昵称</text>
+  <view class="guard-banner-btn">去设置</view>
+</view>
+<view class="guard-banner bind" wx:elif="{{show && type === 'bind'}}" bindtap="goToBind">
+  <text class="guard-banner-icon">🔗</text>
+  <text class="guard-banner-text">还未绑定伴侣</text>
+  <view class="guard-banner-btn">去绑定</view>
+</view>
