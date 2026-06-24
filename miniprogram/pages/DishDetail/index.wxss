@@ -1,13 +1,9 @@
-/* 菜品详情页样式 */
+/* 菜品详情页样式 - 蜜桃奶油系 */
 
-.container {
-  padding-bottom: 40rpx;
-}
+.container { padding-bottom: 40rpx; }
 
 /* 菜品图片 */
-.dish-image-wrapper {
-  width: 100%;
-}
+.dish-image-wrapper { width: 100%; }
 
 .dish-image {
   width: 100%;
@@ -27,13 +23,13 @@
   padding: 40rpx;
   background: white;
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 40rpx rgba(124, 179, 66, 0.15);
+  box-shadow: 0 8rpx 40rpx rgba(255, 122, 158, 0.15);
 }
 
 .dish-name {
   font-size: 44rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 40rpx;
   text-align: center;
 }
@@ -42,12 +38,10 @@
   display: flex;
   align-items: flex-start;
   padding: 20rpx 0;
-  border-bottom: 2rpx solid #F5F9F0;
+  border-bottom: 2rpx solid var(--bg-color);
 }
 
-.info-row:last-child {
-  border-bottom: none;
-}
+.info-row:last-child { border-bottom: none; }
 
 .info-icon {
   font-size: 32rpx;
@@ -56,14 +50,14 @@
 
 .info-label {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-hint);
   width: 140rpx;
 }
 
 .info-value {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* 操作按钮 */
@@ -76,7 +70,7 @@
 
 .btn-edit {
   padding: 28rpx;
-  background: linear-gradient(135deg, #6FCF97 0%, #5AC476 100%);
+  background: var(--gradient-primary);
   border-radius: 50rpx;
   text-align: center;
 }

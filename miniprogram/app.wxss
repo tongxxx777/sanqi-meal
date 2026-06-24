@@ -1,25 +1,6 @@
-/* 叁柒食绿色主题 */
+/* 蜜桃奶油系 - 轻甜情侣风主题 */
+@import './theme.wxss';
 @import './miniprogram_npm/weui-miniprogram/weui-wxss/dist/style/weui.wxss';
-
-/* 主题色变量 */
-page {
-  --primary-color: #6FCF97;
-  --primary-light: #B8E6C1;
-  --primary-dark: #5AC476;
-  --bg-color: #F5F9F0;
-  --card-bg: #FFFFFF;
-  --text-primary: #333333;
-  --text-secondary: #666666;
-  --text-hint: #999999;
-  --border-color: #E8F5E9;
-  --success-color: #6FCF97;
-  --warning-color: #FFB74D;
-
-  --footer-height: 10vh;
-  --button-size: 16vw;
-  --button-color: #6FCF97;
-  --button-icon-size: 6vw;
-}
 
 page {
   background: var(--bg-color);
@@ -41,16 +22,16 @@ page {
   background-color: var(--card-bg);
 }
 
-/* 卡片样式 */
+/* ---- 卡片 ---- */
 .card {
   background: var(--card-bg);
   border-radius: 20rpx;
   margin: 20rpx;
   padding: 30rpx;
-  box-shadow: 0 4rpx 20rpx rgba(124, 179, 66, 0.1);
+  box-shadow: var(--shadow-card);
 }
 
-/* 按钮样式 */
+/* ---- 按钮重置 ---- */
 button {
   background: initial;
 }
@@ -63,31 +44,33 @@ button::after {
   border: none;
 }
 
+/* 主按钮 */
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  background: var(--gradient-primary);
   color: white;
   border-radius: 50rpx;
   padding: 24rpx 60rpx;
   font-size: 32rpx;
   font-weight: 500;
-  box-shadow: 0 8rpx 24rpx rgba(124, 179, 66, 0.3);
+  box-shadow: var(--shadow-button);
 }
 
+/* 次要按钮 */
 .btn-secondary {
   background: var(--border-color);
-  color: var(--primary-dark);
+  color: var(--primary-color);
   border-radius: 50rpx;
   padding: 24rpx 60rpx;
   font-size: 32rpx;
 }
 
-/* 表单样式 */
+/* ---- 表单 ---- */
 .form-group {
   width: calc(100% - 40px);
   margin: 10px 20px;
   border-radius: 20rpx;
   background: var(--card-bg);
-  box-shadow: 0 4rpx 20rpx rgba(124, 179, 66, 0.08);
+  box-shadow: var(--shadow-card-light);
 }
 
 .form-group_label {
@@ -117,7 +100,7 @@ button::after {
   align-items: center;
 }
 
-/* 列表项样式 */
+/* ---- 列表项 ---- */
 .list-item {
   display: flex;
   align-items: center;
@@ -125,7 +108,7 @@ button::after {
   background: var(--card-bg);
   margin: 16rpx 24rpx;
   border-radius: 20rpx;
-  box-shadow: 0 4rpx 16rpx rgba(124, 179, 66, 0.08);
+  box-shadow: var(--shadow-card-light);
 }
 
 .list-item-image {
@@ -152,7 +135,7 @@ button::after {
   color: var(--text-hint);
 }
 
-/* 空状态 */
+/* ---- 空状态 ---- */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -173,7 +156,7 @@ button::after {
   text-align: center;
 }
 
-/* 悬浮按钮 */
+/* ---- FAB 悬浮按钮 ---- */
 .fab {
   position: fixed;
   right: 40rpx;
@@ -181,11 +164,11 @@ button::after {
   width: 110rpx;
   height: 110rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 30rpx rgba(124, 179, 66, 0.4);
+  box-shadow: var(--shadow-fab);
   z-index: 999;
 }
 
@@ -194,7 +177,7 @@ button::after {
   height: 50rpx;
 }
 
-/* 标签样式 */
+/* ---- 标签 ---- */
 .tag {
   display: inline-block;
   padding: 8rpx 20rpx;
@@ -205,7 +188,7 @@ button::after {
 
 .tag-green {
   background: var(--border-color);
-  color: var(--primary-dark);
+  color: var(--primary-color);
 }
 
 .tag-orange {
@@ -213,7 +196,7 @@ button::after {
   color: #F57C00;
 }
 
-/* 动画 */
+/* ---- 动画 ---- */
 @keyframes animation-blur {
   from { filter: blur(7px); }
   to { filter: blur(0px); }
@@ -228,14 +211,14 @@ button::after {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* 叁柒食装饰元素 */
+/* ---- 装饰 ---- */
 .pochacco-decoration {
   position: absolute;
   opacity: 0.1;
   pointer-events: none;
 }
 
-/* slideview 按钮样式 */
+/* ---- Slideview 按钮 ---- */
 .weui-slideview__btn__wrp.mark-btn {
   background-color: #FFB74D !important;
 }
@@ -252,7 +235,7 @@ button::after {
   background-color: #E57373 !important;
 }
 
-/* 非阻断式顶部提醒横条 */
+/* ---- 顶部提醒横条 ---- */
 .guard-banner {
   position: fixed;
   top: 0;
@@ -266,7 +249,7 @@ button::after {
 }
 
 .guard-banner.profile {
-  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  background: linear-gradient(135deg, var(--border-color) 0%, var(--primary-light) 100%);
 }
 
 .guard-banner.bind {
@@ -280,13 +263,13 @@ button::after {
 
 .guard-banner-text {
   flex: 1;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .guard-banner-btn {
   padding: 8rpx 28rpx;
-  background: linear-gradient(135deg, #6FCF97 0%, #5AC476 100%);
+  background: var(--gradient-primary);
   border-radius: 30rpx;
   font-size: 24rpx;
   color: white;

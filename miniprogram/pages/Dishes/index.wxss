@@ -1,13 +1,11 @@
-/* 菜品库样式 */
+/* 菜品库样式 - 蜜桃奶油系 */
 
-.container {
-  padding-bottom: 180rpx;
-}
+.container { padding-bottom: 180rpx; }
 
 /* 页面头部 */
 .page-header {
   padding: 40rpx 30rpx 30rpx;
-  background: linear-gradient(135deg, #6FCF97 0%, #B8E6C1 100%);
+  background: var(--gradient-header);
 }
 
 .page-title {
@@ -35,7 +33,7 @@
   background: white;
   border-radius: 50rpx;
   padding: 20rpx 30rpx;
-  box-shadow: 0 4rpx 20rpx rgba(124, 179, 66, 0.15);
+  box-shadow: var(--shadow-card-medium);
 }
 
 .search-icon {
@@ -46,7 +44,7 @@
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* 空状态 */
@@ -57,33 +55,31 @@
   padding: 100rpx 60rpx;
 }
 
-.empty-image {
+.empty-image,
+.empty-emoji {
   width: 300rpx;
   height: 300rpx;
   margin-bottom: 40rpx;
 }
 
-.empty-emoji {
-  font-size: 150rpx;
-  margin-bottom: 40rpx;
-}
+.empty-emoji { font-size: 150rpx; }
 
 .empty-title {
   font-size: 34rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 16rpx;
 }
 
 .empty-desc {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-hint);
   margin-bottom: 40rpx;
 }
 
 .btn-primary {
   padding: 24rpx 60rpx;
-  background: linear-gradient(135deg, #6FCF97 0%, #5AC476 100%);
+  background: var(--gradient-primary);
   border-radius: 50rpx;
   font-size: 30rpx;
   color: white;
@@ -102,24 +98,22 @@
   background: white;
   border-radius: 20rpx;
   overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(124, 179, 66, 0.08);
+  box-shadow: var(--shadow-card-light);
 }
 
 .dish-card-image {
   width: 100%;
   height: 280rpx;
-  background: #F5F9F0;
+  background: var(--bg-color);
 }
 
-.dish-card-info {
-  padding: 20rpx;
-}
+.dish-card-info { padding: 20rpx; }
 
 .dish-card-name {
   display: block;
   font-size: 30rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -128,7 +122,7 @@
 
 .dish-card-time {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-hint);
 }
 
 /* 无搜索结果 */
@@ -139,7 +133,7 @@
 
 .no-result-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-hint);
 }
 
 /* 悬浮按钮 */
@@ -150,11 +144,11 @@
   width: 110rpx;
   height: 110rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6FCF97 0%, #5AC476 100%);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 30rpx rgba(124, 179, 66, 0.4);
+  box-shadow: var(--shadow-fab);
   z-index: 999;
 }
 

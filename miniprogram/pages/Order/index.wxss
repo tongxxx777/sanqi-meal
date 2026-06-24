@@ -1,4 +1,4 @@
-/* 点菜页样式 - 美团风格 */
+/* 点菜页样式 - 蜜桃奶油系 */
 
 .container {
   height: 100vh;
@@ -10,7 +10,7 @@
 /* 页面头部 */
 .page-header {
   padding: 30rpx 24rpx 20rpx;
-  background: linear-gradient(135deg, #6FCF97 0%, #B8E6C1 100%);
+  background: var(--gradient-header);
 }
 
 .page-title {
@@ -44,12 +44,12 @@
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .search-clear {
   font-size: 28rpx;
-  color: #999;
+  color: var(--text-hint);
   padding: 0 10rpx;
 }
 
@@ -72,13 +72,13 @@
 .empty-title {
   font-size: 32rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 12rpx;
 }
 
 .empty-desc {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-hint);
   margin-bottom: 30rpx;
 }
 
@@ -108,7 +108,7 @@
 
 .category-item.active {
   background: white;
-  border-left-color: #6FCF97;
+  border-left-color: var(--primary-color);
 }
 
 .category-icon {
@@ -118,12 +118,12 @@
 
 .category-name {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-secondary);
   text-align: center;
 }
 
 .category-item.active .category-name {
-  color: #6FCF97;
+  color: var(--primary-color);
   font-weight: 500;
 }
 
@@ -137,7 +137,7 @@
   text-align: center;
   font-size: 20rpx;
   color: white;
-  background: #6FCF97;
+  background: var(--primary-color);
   border-radius: 16rpx;
   padding: 0 8rpx;
 }
@@ -167,7 +167,7 @@
 .category-header-name {
   font-size: 26rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .dish-item {
@@ -178,7 +178,7 @@
 }
 
 .dish-item.selected {
-  background: #F5FBF0;
+  background: var(--selected-bg);
 }
 
 .dish-image {
@@ -195,7 +195,7 @@
 
 .dish-name {
   font-size: 30rpx;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -209,13 +209,13 @@
 
 .dish-count {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-hint);
 }
 
 .dish-desc {
   font-size: 22rpx;
-  color: #6FCF97;
-  background: #F0F7E6;
+  color: var(--primary-color);
+  background: var(--highlight-bg);
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
 }
@@ -233,8 +233,8 @@
 }
 
 .dish-check.checked {
-  background: #6FCF97;
-  border-color: #6FCF97;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .list-bottom {
@@ -293,32 +293,27 @@
   text-align: center;
   font-size: 22rpx;
   color: white;
-  background: #6FCF97;
+  background: var(--primary-color);
   border-radius: 18rpx;
   padding: 0 8rpx;
 }
 
 .cart-hint {
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* 已选菜品面板 */
 .cart-panel-mask {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 200;
 }
 
 .cart-panel {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 0; right: 0; bottom: 0;
   background: white;
   border-radius: 32rpx 32rpx 0 0;
   z-index: 201;
@@ -332,9 +327,7 @@
   box-sizing: border-box;
 }
 
-.cart-panel.show {
-  transform: translateY(0);
-}
+.cart-panel.show { transform: translateY(0); }
 
 .cart-panel-header {
   display: flex;
@@ -347,7 +340,7 @@
 .cart-panel-title {
   font-size: 36rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .cart-clear {
@@ -370,7 +363,7 @@
 .cart-empty {
   text-align: center;
   padding: 80rpx;
-  color: #999;
+  color: var(--text-hint);
   font-size: 30rpx;
 }
 
@@ -400,7 +393,7 @@
 .cart-item-name {
   display: block;
   font-size: 32rpx;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -416,15 +409,15 @@
 
 .cart-item-desc {
   font-size: 24rpx;
-  color: #6FCF97;
-  background: #F0F7E6;
+  color: var(--primary-color);
+  background: var(--highlight-bg);
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
 }
 
 .cart-item-count {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-hint);
 }
 
 .cart-item-remove {
@@ -444,7 +437,7 @@
   justify-content: center;
   min-width: 44rpx;
   height: 44rpx;
-  background: #6FCF97;
+  background: var(--primary-color);
   color: white;
   font-size: 26rpx;
   font-weight: 600;
@@ -463,16 +456,13 @@
 }
 
 .btn-order.active {
-  background: linear-gradient(135deg, #6FCF97 0%, #5AC476 100%);
+  background: var(--gradient-primary);
 }
 
 /* 备注弹窗 */
 .remark-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -498,14 +488,14 @@
   line-height: 50rpx;
   text-align: center;
   font-size: 36rpx;
-  color: #999;
+  color: var(--text-hint);
 }
 
 .remark-title {
   display: block;
   font-size: 36rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   text-align: center;
   margin-bottom: 10rpx;
 }
@@ -513,7 +503,7 @@
 .remark-hint {
   display: block;
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-hint);
   text-align: center;
   margin-bottom: 30rpx;
 }
@@ -521,18 +511,18 @@
 .remark-input {
   width: 100%;
   height: 160rpx;
-  background: #F5F9F0;
+  background: var(--bg-color);
   border-radius: 16rpx;
   padding: 20rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-primary);
   box-sizing: border-box;
 }
 
 .remark-counter {
   text-align: right;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-hint);
   margin-top: 10rpx;
   margin-bottom: 30rpx;
 }
@@ -547,7 +537,7 @@
   text-align: center;
   padding: 24rpx;
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-secondary);
   background: #F5F5F5;
   border-radius: 44rpx;
 }
@@ -558,7 +548,7 @@
   padding: 24rpx;
   font-size: 28rpx;
   color: white;
-  background: linear-gradient(135deg, #6FCF97 0%, #5AC476 100%);
+  background: var(--gradient-primary);
   border-radius: 44rpx;
   font-weight: 500;
 }
@@ -566,10 +556,7 @@
 /* 成功弹窗 */
 .success-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -597,20 +584,20 @@
 .success-title {
   font-size: 36rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 12rpx;
 }
 
 .success-desc {
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 30rpx;
 }
 
 /* 通用按钮 */
 .btn-primary {
   padding: 22rpx 50rpx;
-  background: linear-gradient(135deg, #6FCF97 0%, #5AC476 100%);
+  background: var(--gradient-primary);
   border-radius: 44rpx;
   font-size: 28rpx;
   color: white;
@@ -620,20 +607,14 @@
 /* 菜品详情面板 */
 .detail-panel-mask {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 300;
 }
 
 .detail-panel {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  top: 0;
+  left: 0; right: 0; bottom: 0; top: 0;
   background: white;
   z-index: 301;
   transform: translateY(100%);
@@ -643,13 +624,8 @@
   overflow: hidden;
 }
 
-.detail-panel.show {
-  transform: translateY(0);
-}
-
-.detail-panel.dragging {
-  transition: none;
-}
+.detail-panel.show { transform: translateY(0); }
+.detail-panel.dragging { transition: none; }
 
 .detail-panel-content {
   flex: 1;
@@ -658,9 +634,7 @@
   flex-direction: column;
 }
 
-.detail-image-wrapper {
-  position: relative;
-}
+.detail-image-wrapper { position: relative; }
 
 .detail-pull-hint {
   position: absolute;
@@ -689,15 +663,13 @@
   display: block;
 }
 
-.detail-dish-info {
-  padding: 30rpx;
-}
+.detail-dish-info { padding: 30rpx; }
 
 .detail-dish-name {
   display: block;
   font-size: 40rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 16rpx;
 }
 
@@ -709,12 +681,12 @@
 
 .detail-dish-count {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-hint);
 }
 
 .detail-dish-desc {
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 
@@ -733,7 +705,7 @@
 }
 
 .btn-detail-toggle.add {
-  background: linear-gradient(135deg, #6FCF97 0%, #5AC476 100%);
+  background: var(--gradient-primary);
   color: white;
 }
 

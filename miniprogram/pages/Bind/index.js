@@ -168,7 +168,7 @@ Page({
     const { inviteCode, nickname } = this.data
     return {
       title: `${nickname || '我'}邀请你一起使用叁柒食`,
-      path: `/pages/MainPage/index?inviteCode=${inviteCode}`,
+      path: `/pages/Index/index?inviteCode=${inviteCode}`,
       imageUrl: '/images/123.jpg'
     }
   },

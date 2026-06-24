@@ -29,18 +29,22 @@ Page({
   },
 
   async onShow() {
+    const showSeq = (this._showSeq || 0) + 1
+    this._showSeq = showSeq
     // 首次进入显示 loading，之后直接显示页面
     if (!this.hasLoaded) {
       this.setData({ pageLoading: true })
     }
-    // 每次进入首页都强制刷新用户信息，确保绑定状态及时更新
-    await app.loadUserInfo(true)
+    // 先用缓存/基础用户信息渲染首屏，避免等待统计、分类等慢请求
     await this.loadUserInfo()
+    if (showSeq !== this._showSeq) return
     app.setKitchenTitle()
     if (!this.hasLoaded) {
       this.setData({ pageLoading: false })
       this.hasLoaded = true
     }
+    this.loadHomeData()
+    this.refreshUserInfoInBackground(showSeq)
   },
 
   // 加载用户信息
@@ -67,13 +71,34 @@ Page({
       profileComplete
     })
 
-    // 已绑定，加载其他数据
-    if (isBound) {
-      await Promise.all([
-        this.loadTodayOrder(),
-        this.loadStats()
-      ])
+    if (!isBound) {
+      this.setData({
+        todayOrder: null,
+        dishCount: 0,
+        orderCount: 0,
+        togetherDays: 0
+      })
     }
+  },
+
+  async refreshUserInfoInBackground(showSeq) {
+    try {
+      await app.loadUserInfo(true)
+      if (showSeq !== this._showSeq) return
+      await this.loadUserInfo()
+      app.setKitchenTitle()
+      this.loadHomeData()
+    } catch (e) {
+      console.error('refresh user info error', e)
+    }
+  },
+
+  async loadHomeData() {
+    if (!app.isBound()) return
+    await Promise.all([
+      this.loadTodayOrder(),
+      this.loadStats()
+    ])
   },
 
   // 设置问候语

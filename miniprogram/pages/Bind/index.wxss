@@ -1,6 +1,7 @@
-/* 自定义导航栏 */
+/* 蜜桃奶油系 */
+
 .custom-nav {
-  background: linear-gradient(135deg, #6FCF97 0%, #B8E6C1 100%);
+  background: var(--gradient-header);
 }
 
 .nav-content {
@@ -31,13 +32,11 @@
   color: white;
 }
 
-.nav-placeholder {
-  width: 80rpx;
-}
+.nav-placeholder { width: 80rpx; }
 
 .container {
   min-height: 100vh;
-  background: #F5F9F0;
+  background: var(--bg-color);
   padding-bottom: 60rpx;
 }
 
@@ -46,7 +45,7 @@
   justify-content: center;
   align-items: center;
   height: 300rpx;
-  color: #999;
+  color: var(--text-hint);
 }
 
 /* 页面头部 */
@@ -55,7 +54,7 @@
   flex-direction: column;
   align-items: center;
   padding: 80rpx 40rpx 60rpx;
-  background: linear-gradient(135deg, #6FCF97 0%, #B8E6C1 100%);
+  background: var(--gradient-header);
 }
 
 .header-emoji {
@@ -82,7 +81,7 @@
 
 .section-title {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-hint);
   margin-bottom: 16rpx;
   padding-left: 10rpx;
 }
@@ -91,7 +90,7 @@
   background: white;
   border-radius: 20rpx;
   overflow: hidden;
-  box-shadow: 0 4rpx 20rpx rgba(124, 179, 66, 0.08);
+  box-shadow: var(--shadow-card-light);
 }
 
 /* 个人资料项 */
@@ -99,14 +98,14 @@
   display: flex;
   align-items: center;
   padding: 24rpx;
-  border-bottom: 2rpx solid #F5F9F0;
+  border-bottom: 2rpx solid var(--bg-color);
 }
 
 .profile-avatar {
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: #F5F9F0;
+  background: var(--bg-color);
 }
 
 .profile-info {
@@ -116,7 +115,7 @@
 
 .profile-name {
   font-size: 32rpx;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -130,7 +129,7 @@
 
 .item-label {
   font-size: 30rpx;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .item-value-wrap {
@@ -141,7 +140,7 @@
 .item-code {
   font-size: 32rpx;
   font-weight: 600;
-  color: #6FCF97;
+  color: var(--primary-color);
   letter-spacing: 4rpx;
   margin-right: 16rpx;
 }
@@ -149,7 +148,7 @@
 .copy-btn {
   font-size: 24rpx;
   color: white;
-  background: #6FCF97;
+  background: var(--primary-color);
   padding: 8rpx 20rpx;
   border-radius: 20rpx;
 }
@@ -161,16 +160,14 @@
   justify-content: center;
   margin: 24rpx 0 0;
   height: 88rpx;
-  background: linear-gradient(135deg, #6FCF97 0%, #6FCF97 100%);
+  background: var(--primary-color);
   color: white;
   font-size: 32rpx;
   border-radius: 44rpx;
   border: none;
 }
 
-.share-btn::after {
-  display: none;
-}
+.share-btn::after { display: none; }
 
 .share-icon {
   font-size: 36rpx;
@@ -180,14 +177,14 @@
 .tip-text {
   display: block;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-hint);
   padding: 16rpx 10rpx 0;
   text-align: center;
 }
 
 /* 已绑定状态 - 情侣头部 */
 .couple-header-bound {
-  background: linear-gradient(135deg, #6FCF97 0%, #B8E6C1 100%);
+  background: var(--gradient-header);
   padding: 80rpx 40rpx 60rpx;
   display: flex;
   flex-direction: column;
@@ -270,21 +267,19 @@
   align-items: center;
   justify-content: space-between;
   padding: 30rpx 24rpx;
-  border-bottom: 2rpx solid #F5F9F0;
+  border-bottom: 2rpx solid var(--bg-color);
 }
 
-.info-row:last-child {
-  border-bottom: none;
-}
+.info-row:last-child { border-bottom: none; }
 
 .info-label {
   font-size: 30rpx;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .info-value {
   font-size: 30rpx;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .info-value-wrap {
@@ -295,14 +290,12 @@
 .info-code {
   font-size: 30rpx;
   font-weight: 600;
-  color: #6FCF97;
+  color: var(--primary-color);
   letter-spacing: 4rpx;
   margin-right: 12rpx;
 }
 
-.copy-icon {
-  font-size: 28rpx;
-}
+.copy-icon { font-size: 28rpx; }
 
 /* 解绑区域 */
 .unbind-section {
@@ -322,7 +315,7 @@
 
 .unbind-tip {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-hint);
   margin-top: 12rpx;
 }
 
@@ -334,7 +327,7 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
-  box-shadow: 0 4rpx 20rpx rgba(124, 179, 66, 0.08);
+  box-shadow: var(--shadow-card-light);
 }
 
 .stat-item {
@@ -346,24 +339,24 @@
 .stat-number {
   font-size: 48rpx;
   font-weight: 600;
-  color: #6FCF97;
+  color: var(--primary-color);
   margin-bottom: 8rpx;
 }
 
 .stat-label {
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-hint);
 }
 
 .stat-divider {
   width: 2rpx;
   height: 60rpx;
-  background: #E8F5E9;
+  background: var(--border-color);
 }
 
 /* 小贴士卡片 */
 .tips-card {
-  background: linear-gradient(135deg, #F1F8E9 0%, #E8F5E9 100%);
+  background: linear-gradient(135deg, #FFF0F4 0%, var(--border-color) 100%);
   border-radius: 20rpx;
   padding: 30rpx;
 }
@@ -382,7 +375,7 @@
 .tips-title {
   font-size: 28rpx;
   font-weight: 500;
-  color: #5AC476;
+  color: var(--primary-color);
 }
 
 .tips-list {
@@ -393,7 +386,7 @@
 
 .tips-item {
   font-size: 26rpx;
-  color: #689F38;
+  color: var(--primary-color);
   line-height: 1.6;
 }
 
@@ -407,10 +400,7 @@
 /* 弹窗样式 */
 .modal-mask {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -433,7 +423,7 @@
 .modal-title {
   font-size: 34rpx;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .modal-body {
@@ -443,7 +433,7 @@
 .kitchen-name-input {
   width: 100%;
   height: 90rpx;
-  background: #F5F9F0;
+  background: var(--bg-color);
   border-radius: 16rpx;
   padding: 0 24rpx;
   font-size: 32rpx;
@@ -453,7 +443,7 @@
 .input-tip {
   display: block;
   font-size: 24rpx;
-  color: #999;
+  color: var(--text-hint);
   text-align: center;
   margin-top: 16rpx;
 }
@@ -473,24 +463,22 @@
 }
 
 .modal-btn.cancel {
-  color: #999;
+  color: var(--text-hint);
   border-right: 2rpx solid #f5f5f5;
 }
 
 .modal-btn.confirm {
-  color: #6FCF97;
+  color: var(--primary-color);
   font-weight: 500;
 }
 
 /* 输入框 */
-.input-wrap {
-  padding: 30rpx 24rpx;
-}
+.input-wrap { padding: 30rpx 24rpx; }
 
 .code-input {
   width: 100%;
   height: 90rpx;
-  background: #F5F9F0;
+  background: var(--bg-color);
   border-radius: 16rpx;
   padding: 0 24rpx;
   font-size: 36rpx;
@@ -503,7 +491,7 @@
   margin: 0 24rpx 30rpx;
   height: 88rpx;
   background: #E0E0E0;
-  color: #999;
+  color: var(--text-hint);
   font-size: 32rpx;
   border-radius: 44rpx;
   display: flex;
@@ -512,6 +500,6 @@
 }
 
 .bind-btn.active {
-  background: linear-gradient(135deg, #6FCF97 0%, #6FCF97 100%);
+  background: var(--primary-color);
   color: white;
 }

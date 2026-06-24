@@ -1,6 +1,6 @@
 // 全局页面绑定拦截器 —— 白名单之外的页面自动校验绑定状态
 const _originalPage = Page
-const _bindWhitelist = ['pages/MainPage/index', 'pages/Settings/index', 'pages/Bind/index']
+const _bindWhitelist = ['pages/Index/index', 'pages/Settings/index', 'pages/Bind/index']
 
 Page = function(options) {
   const originalOnShow = options.onShow
@@ -49,6 +49,8 @@ App({
       // 菜品分类（从数据库动态加载）
       categories: [],
       categoriesLoaded: false,
+      categoriesLoadPromise: null,
+      categoriesInited: false,
     }
   },
 
@@ -122,9 +124,9 @@ App({
         this.globalData.currentUser = res.result.user
         this.globalData.partner = res.result.partner
         this.globalData.userLoaded = true
-        // 已绑定时加载分类
+        // 已绑定时预热分类，不阻塞首屏展示
         if (res.result.user?.bindStatus === 'bound') {
-          await this.loadCategories()
+          this.loadCategories().catch(e => console.error('preload categories error', e))
         }
         return {
           currentUser: res.result.user,
@@ -142,12 +144,29 @@ App({
     if (this.globalData.categoriesLoaded && !forceRefresh) {
       return this.globalData.categories
     }
+
+    if (this.globalData.categoriesLoadPromise && !forceRefresh) {
+      return this.globalData.categoriesLoadPromise
+    }
+
+    this.globalData.categoriesLoadPromise = this._doLoadCategories(forceRefresh)
+    try {
+      return await this.globalData.categoriesLoadPromise
+    } finally {
+      this.globalData.categoriesLoadPromise = null
+    }
+  },
+
+  async _doLoadCategories(forceRefresh = false) {
     try {
       // 先确保初始化默认分类
-      await wx.cloud.callFunction({
-        name: 'manageCategory',
-        data: { action: 'init' }
-      })
+      if (!this.globalData.categoriesInited || forceRefresh) {
+        await wx.cloud.callFunction({
+          name: 'manageCategory',
+          data: { action: 'init' }
+        })
+        this.globalData.categoriesInited = true
+      }
       // 加载分类列表
       const res = await wx.cloud.callFunction({
         name: 'manageCategory',

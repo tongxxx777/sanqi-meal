@@ -1,6 +1,6 @@
 {
   "pages": [
-    "pages/MainPage/index",
+    "pages/Index/index",
     "pages/Dishes/index",
     "pages/DishAdd/index",
     "pages/DishDetail/index",
@@ -12,19 +12,19 @@
     "pages/CategoryManage/index"
   ],
   "window": {
-    "backgroundColor": "#F5F9F0",
+    "backgroundColor": "#FFF6F8",
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#6FCF97",
+    "navigationBarBackgroundColor": "#FF7A9E",
     "navigationBarTitleText": "叁柒食",
     "navigationBarTextStyle": "white"
   },
   "tabBar": {
-    "color": "#666666",
-    "selectedColor": "#6FCF97",
+    "color": "#888888",
+    "selectedColor": "#FF7A9E",
     "backgroundColor": "#ffffff",
     "borderStyle": "white",
     "list": [{
-      "pagePath": "pages/MainPage/index",
+      "pagePath": "pages/Index/index",
       "iconPath": "images/TabBar/HomeIconGrey.png",
       "selectedIconPath": "images/TabBar/HomeIconColor.png",
       "text": "首页"

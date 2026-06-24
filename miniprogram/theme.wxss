@@ -1,0 +1,48 @@
+/* ========================================
+   蜜桃奶油系（轻甜情侣风）设计系统
+   Peach Cream Design System
+   ======================================== */
+
+/* 主色调 */
+page {
+  --primary-color: #FF7A9E;       /* 主色 - 蜜桃粉 */
+  --primary-light: #FFD6E0;       /* 辅助色 - 浅粉 */
+  --primary-dark: #FFB3C7;        /* 辅助色 - 中粉 */
+  --primary-deep: #D9446E;        /* 深粉 - 用于强调标题/情侣日等 */
+
+  /* 背景 */
+  --bg-color: #FFF6F8;            /* 页面背景 - 淡粉 */
+  --card-bg: #FFFFFF;             /* 卡片/面板背景 - 纯白 */
+  --highlight-bg: #FFF0F4;        /* 高亮/选中背景 */
+  --selected-bg: #FFF5F7;         /* 已选项目背景 */
+
+  /* 文字 */
+  --text-primary: #333333;        /* 主文字 */
+  --text-secondary: #888888;      /* 次要文字 */
+  --text-hint: #999999;           /* 提示文字 */
+
+  /* 边框/分隔 */
+  --border-color: #FFD6E0;        /* 边框色同辅助色 */
+  --divider-color: #FFE8EE;       /* 细分隔线 */
+
+  /* 语义色 */
+  --success-color: #FF7A9E;       /* 成功/积极 —— 继承主色 */
+  --warning-color: #FFB74D;       /* 警告 —— 保留暖橙 */
+
+  /* 渐变预设（常用组合） */
+  --gradient-primary: linear-gradient(135deg, #FF7A9E 0%, #FFB3C7 100%);
+  --gradient-soft: linear-gradient(135deg, #FF7A9E 0%, #FFD6E0 100%);
+  --gradient-header: linear-gradient(135deg, #FF7A9E 0%, #FFD6E0 100%);
+
+  /* 阴影 */
+  --shadow-card: 0 4rpx 20rpx rgba(255, 122, 158, 0.1);
+  --shadow-card-light: 0 4rpx 16rpx rgba(255, 122, 158, 0.08);
+  --shadow-card-medium: 0 8rpx 30rpx rgba(255, 122, 158, 0.15);
+  --shadow-button: 0 8rpx 24rpx rgba(255, 122, 158, 0.3);
+  --shadow-fab: 0 8rpx 30rpx rgba(255, 122, 158, 0.4);
+
+  /* 布局 */
+  --footer-height: 10vh;
+  --button-size: 16vw;
+  --button-icon-size: 6vw;
+}

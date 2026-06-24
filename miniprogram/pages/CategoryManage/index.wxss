@@ -1,12 +1,14 @@
+/* 类目管理 - 蜜桃奶油系 */
+
 .container {
   min-height: 100vh;
-  background: #F5F9F0;
+  background: var(--bg-color);
   padding-bottom: 120rpx;
 }
 
 .page-header {
   padding: 40rpx 30rpx;
-  background: linear-gradient(135deg, #6FCF97 0%, #B8E6C1 100%);
+  background: var(--gradient-header);
 }
 
 .page-title {
@@ -23,9 +25,7 @@
 }
 
 /* 分类列表 */
-.category-list {
-  padding: 24rpx;
-}
+.category-list { padding: 24rpx; }
 
 .category-item {
   display: flex;
@@ -35,7 +35,7 @@
   border-radius: 20rpx;
   padding: 28rpx 24rpx;
   margin-bottom: 16rpx;
-  box-shadow: 0 4rpx 16rpx rgba(124, 179, 66, 0.08);
+  box-shadow: var(--shadow-card-light);
 }
 
 .category-main {
@@ -51,7 +51,7 @@
 
 .category-name {
   font-size: 30rpx;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .category-actions {
@@ -67,8 +67,8 @@
 }
 
 .action-btn.move {
-  color: #6FCF97;
-  background: #E8F5E9;
+  color: var(--primary-color);
+  background: var(--border-color);
 }
 
 .action-btn.delete {
@@ -79,7 +79,7 @@
 .empty-tip {
   text-align: center;
   padding: 80rpx;
-  color: #999;
+  color: var(--text-hint);
   font-size: 28rpx;
 }
 
@@ -88,7 +88,7 @@
   margin: 0 24rpx 16rpx;
   text-align: center;
   padding: 28rpx;
-  background: linear-gradient(135deg, #6FCF97 0%, #5AC476 100%);
+  background: var(--gradient-primary);
   border-radius: 20rpx;
   color: white;
   font-size: 30rpx;
@@ -102,8 +102,8 @@
   padding: 28rpx;
   background: white;
   border-radius: 20rpx;
-  border: 2rpx dashed #B8E6C1;
-  color: #6FCF97;
+  border: 2rpx dashed var(--primary-light);
+  color: var(--primary-color);
   font-size: 30rpx;
 }
 
@@ -129,7 +129,7 @@
   display: block;
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   text-align: center;
   margin-bottom: 30rpx;
 }
@@ -137,26 +137,24 @@
 .modal-desc {
   display: block;
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 30rpx;
 }
 
-.modal-field {
-  margin-bottom: 30rpx;
-}
+.modal-field { margin-bottom: 30rpx; }
 
 .field-label {
   display: block;
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 16rpx;
 }
 
 .field-input {
   width: 100%;
   height: 88rpx;
-  background: #F5F9F0;
+  background: var(--bg-color);
   border-radius: 16rpx;
   padding: 0 24rpx;
   font-size: 30rpx;
@@ -183,8 +181,8 @@
 }
 
 .emoji-item.active {
-  background: #E8F5E9;
-  border-color: #6FCF97;
+  background: var(--border-color);
+  border-color: var(--primary-color);
 }
 
 /* 自定义emoji */
@@ -197,7 +195,7 @@
 
 .custom-emoji-label {
   font-size: 26rpx;
-  color: #999;
+  color: var(--text-hint);
   white-space: nowrap;
 }
 
@@ -213,10 +211,10 @@
 
 .custom-emoji-preview {
   font-size: 26rpx;
-  color: #6FCF97;
+  color: var(--primary-color);
   white-space: nowrap;
   padding: 10rpx 20rpx;
-  background: #E8F5E9;
+  background: var(--border-color);
   border-radius: 20rpx;
 }
 
@@ -236,18 +234,16 @@
 
 .modal-btn.cancel {
   background: #F5F5F5;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .modal-btn.confirm {
-  background: linear-gradient(135deg, #6FCF97 0%, #5AC476 100%);
+  background: var(--gradient-primary);
   color: white;
   font-weight: 500;
 }
 
-.modal-btn.confirm.disabled {
-  opacity: 0.5;
-}
+.modal-btn.confirm.disabled { opacity: 0.5; }
 
 /* 转移列表 */
 .transfer-list {
@@ -260,21 +256,21 @@
 .transfer-item {
   padding: 16rpx 28rpx;
   font-size: 28rpx;
-  color: #666;
+  color: var(--text-secondary);
   background: #F5F5F5;
   border-radius: 30rpx;
   border: 2rpx solid transparent;
 }
 
 .transfer-item.active {
-  color: #5AC476;
-  background: #E8F5E9;
-  border-color: #6FCF97;
+  color: var(--primary-color);
+  background: var(--border-color);
+  border-color: var(--primary-color);
 }
 
 .loading {
   text-align: center;
   padding: 60rpx;
-  color: #999;
+  color: var(--text-hint);
   font-size: 28rpx;
 }
