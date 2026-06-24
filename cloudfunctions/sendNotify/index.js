@@ -42,10 +42,9 @@ exports.main = async (event, context) => {
         templateId,
         page: pagePath,
         data: {
-          time25: { value: formatTime(new Date()) },                    // 时间（精确到分钟）
-          thing31: { value: '叁柒食' },                           // 任务名称（写死）
-          thing2: { value: dishNames.substring(0, 20) },                // 提醒内容（菜名）
-          thing11: { value: (remark || '快来看看今天吃什么~').substring(0, 20) }  // 备注
+          time9: { value: formatTime(new Date()) }, // 时间(精确到分钟)
+          thing41: { value: dishNames.substring(0, 20) }, // 提醒内容(菜名)
+          thing3: { value: (remark || '快来看看今天吃什么~').substring(0, 20) } // 备注
         }
       })
     } else if (type === 'newDish') {
@@ -54,16 +53,14 @@ exports.main = async (event, context) => {
         templateId,
         page: 'pages/Dishes/index',
         data: {
-          time25: { value: formatTime(new Date()) },                    // 时间
-          thing31: { value: '叁柒食' },                           // 任务名称
-          thing2: { value: dishName.substring(0, 20) },                 // 提醒内容（菜名）
-          thing11: { value: '新菜品加入菜单啦~' }                         // 备注
+          time9: { value: formatTime(new Date()) },
+          thing41: { value: dishName.substring(0, 20) },
+          thing3: { value: '新菜品加入菜单啦~' }
         }
       })
     } else {
       return { success: false, message: '未知通知类型' }
     }
-
     console.log('发送成功', result)
     return { success: true, result }
   } catch (err) {
