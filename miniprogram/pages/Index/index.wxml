@@ -15,7 +15,7 @@
   <view class="welcome-section {{isBound ? 'couple-mode' : ''}}">
     <!-- 未绑定：原欢迎卡片 -->
     <view wx:if="{{!isBound}}" class="welcome-card">
-      <image class="avatar-image" src="{{userAvatar || 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'}}" mode="aspectFill" bindtap="goToSettings"></image>
+      <image class="avatar-image" src="{{userAvatar || '/images/user-default.jpg'}}" mode="aspectFill" bindtap="goToSettings"></image>
       <view class="welcome-text">
         <text class="greeting">{{greeting}}，{{userName || '新朋友'}}！</text>
         <text class="sub-greeting">今天想吃点什么呀？</text>
@@ -44,10 +44,10 @@
   <!-- profile 未完成提醒卡片 -->
   <view wx:if="{{!profileComplete}}" class="bind-tip-section">
     <view class="bind-tip-card profile-tip-card" bindtap="goToSetProfile">
-      <text class="bind-tip-icon">👤</text>
+      <text class="bind-tip-icon">🥺</text>
       <view class="bind-tip-content">
         <text class="bind-tip-title">还没有设置头像和昵称</text>
-        <text class="bind-tip-desc">点击设置，让伴侣认识你~</text>
+        <text class="bind-tip-desc">点击设置，做个有身份的人儿~</text>
       </view>
       <text class="bind-tip-arrow">></text>
     </view>
@@ -59,7 +59,7 @@
       <text class="bind-tip-icon">💕</text>
       <view class="bind-tip-content">
         <text class="bind-tip-title">还没有绑定另一半</text>
-        <text class="bind-tip-desc">点击邀请TA一起使用小厨房</text>
+        <text class="bind-tip-desc">点击邀请 TA 入驻你的小厨房</text>
       </view>
       <text class="bind-tip-arrow">></text>
     </view>
@@ -95,7 +95,7 @@
     <view class="section-title">⚡ 快捷操作</view>
     <view class="quick-grid">
       <view class="quick-item" bindtap="goToSettings">
-        <view class="quick-icon quick-icon-green">👤</view>
+        <view class="quick-icon quick-icon-green">😊</view>
         <text class="quick-label">个人中心</text>
       </view>
       <view class="quick-item" bindtap="goToBind">
@@ -103,11 +103,11 @@
         <text class="quick-label">绑定关系</text>
       </view>
       <view class="quick-item" bindtap="goToCategoryManage">
-        <view class="quick-icon quick-icon-purple">📂</view>
+        <view class="quick-icon quick-icon-purple">🍽️</view>
         <text class="quick-label">类目管理</text>
       </view>
       <view class="quick-item" bindtap="goToRecentOrder">
-        <view class="quick-icon quick-icon-orange">📋</view>
+        <view class="quick-icon quick-icon-orange">🕐</view>
         <text class="quick-label">最近点菜</text>
       </view>
     </view>
@@ -133,12 +133,12 @@
       </view>
     </view>
   </view>
-
   <!-- 底部装饰 -->
+  <!-- 底部版权 -->
   <view class="footer-decoration">
     <view class="footer-content">
-      <image class="footer-mascot" src="/images/4aa65830d0f97dad0cb40d992405e6cc-removebg-preview.png" mode="aspectFit"></image>
-      <text class="footer-text">叁柒食祝你们用餐愉快 ~</text>
+          <text class="footer-text" wx:if="{{isBound}}">Made with 🎀 for {{partnerName}}</text>
+          <text class="footer-text" wx:else>Made with 🎀</text>
     </view>
   </view>
 </view>
