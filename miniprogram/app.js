@@ -56,6 +56,10 @@ App({
       categoriesLoadPromise: null,
       categoriesInited: false,
     }
+
+    // 预加载用户信息：在系统启动画面期间拉取数据，首页加载时缓存命中，几乎零等待
+    // 不阻塞 onLaunch 返回，异步执行；若未完成则首页 loading 兜底
+    this.loadUserInfo().catch(e => console.error('preload user info error', e))
   },
 
   flag: false,

@@ -30,7 +30,7 @@
           <text class="couple-avatar-name">{{userName}}</text>
         </view>
         <view class="couple-heart-center">
-          <view class="couple-heart-beat">🍔</view>
+          <view class="couple-heart-beat">❤️</view>
           <text class="couple-days" wx:if="{{bindDays > 0}}">{{bindDays}}天</text>
         </view>
         <view class="couple-avatar-item">

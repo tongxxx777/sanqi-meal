@@ -25,7 +25,7 @@
             <text class="couple-name">{{nickname}}</text>
           </view>
           <view class="couple-heart-wrap">
-            <view class="couple-heart-beat">🍔</view>
+            <view class="couple-heart-beat">❤️</view>
             <text class="couple-days">{{bindDays}}天</text>
           </view>
           <view class="couple-avatar-wrap">
@@ -103,12 +103,12 @@
       <view class="page-header">
         <text class="header-emoji">💕</text>
         <text class="header-title">伴侣绑定</text>
-        <text class="header-subtitle">绑定后可以共享菜品库和点菜记录</text>
+        <text class="header-subtitle">绑定后即可拥有专属的菜单和订单</text>
       </view>
 
-      <!-- 我的信息 -->
+      <!-- 我是邀请人 -->
       <view class="section">
-        <view class="section-title">我的信息</view>
+        <view class="section-title">我是邀请人</view>
         <view class="card">
           <view class="profile-item">
             <image class="profile-avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
@@ -131,14 +131,14 @@
         <text class="tip-text">点击上方按钮分享给TA，TA点击即可自动绑定</text>
       </view>
 
-      <!-- 绑定伴侣 -->
+      <!-- 我收到了邀请码 -->
       <view class="section">
-        <view class="section-title">绑定伴侣</view>
+        <view class="section-title">我收到了邀请码</view>
         <view class="card">
           <view class="input-wrap">
             <input
               class="code-input"
-              placeholder="输入对方的邀请码"
+              placeholder="请输入六位邀请码"
               value="{{inputCode}}"
               maxlength="6"
               bindinput="onInputCode"
@@ -149,7 +149,7 @@
             bindtap="bindPartner"
             loading="{{submitting}}"
           >
-            绑定
+            绑定另一半
           </button>
         </view>
       </view>

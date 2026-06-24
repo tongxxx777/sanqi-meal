@@ -31,16 +31,15 @@ Page({
   async onShow() {
     const showSeq = (this._showSeq || 0) + 1
     this._showSeq = showSeq
+    const isFirstLoad = !this.hasLoaded
     // 首次进入显示 loading，之后直接显示页面
-    if (!this.hasLoaded) {
+    if (isFirstLoad) {
       this.setData({ pageLoading: true })
     }
-    // 先用缓存/基础用户信息渲染首屏，避免等待统计、分类等慢请求
-    await this.loadUserInfo()
+    await this.loadUserInfo(isFirstLoad)
     if (showSeq !== this._showSeq) return
     app.setKitchenTitle()
-    if (!this.hasLoaded) {
-      this.setData({ pageLoading: false })
+    if (isFirstLoad) {
       this.hasLoaded = true
     }
     this.loadHomeData()
@@ -48,7 +47,8 @@ Page({
   },
 
   // 加载用户信息
-  async loadUserInfo() {
+  // isFirstLoad: 首次加载时，将 pageLoading 合并到同一次 setData 中，减少渲染次数
+  async loadUserInfo(isFirstLoad = false) {
     const { currentUser, partner } = await app.loadUserInfo()
     const isBound = app.isBound()
     const profileComplete = app.isProfileComplete()
@@ -62,6 +62,7 @@ Page({
     }
 
     this.setData({
+      pageLoading: isFirstLoad ? false : this.data.pageLoading,
       userName: currentUser?.nickname || '',
       userAvatar: currentUser?.avatarUrl || '',
       partnerName: partner?.nickname || '',
