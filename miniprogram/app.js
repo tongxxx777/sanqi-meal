@@ -1,6 +1,10 @@
-// 全局页面绑定拦截器 —— 白名单之外的页面自动校验绑定状态
+// 全局页面绑定拦截器 - 白名单之外的页面自动校验绑定状态
 const _originalPage = Page
-const _bindWhitelist = ['pages/Index/index', 'pages/Settings/index', 'pages/Bind/index']
+const _bindWhitelist = [
+  'pages/Index/index',
+  'pages/Settings/index',
+  'pages/Bind/index'
+]
 
 Page = function(options) {
   const originalOnShow = options.onShow
@@ -26,9 +30,9 @@ App({
     this.initcloud()
 
     this.globalData = {
-      // 当前用户信息（动态获取）
+      // 当前用户信息(动态获取)
       currentUser: null,
-      // 伴侣信息（动态获取）
+      // 伴侣信息(动态获取)
       partner: null,
       // 用户信息是否已加载
       userLoaded: false,
@@ -46,7 +50,7 @@ App({
       // 订阅消息模板ID
       notifyTmplIds: ['4fGogemXCXDix8zLHNZAtrx8DBfEROampfiZEse0Dek'],
 
-      // 菜品分类（从数据库动态加载）
+      // 菜品分类(从数据库动态加载)
       categories: [],
       categoriesLoaded: false,
       categoriesLoadPromise: null,
@@ -72,7 +76,7 @@ App({
     } else {
       this.cloud = () => {
         wx.showModal({
-          content: '叁柒食找不到云环境啦~',
+          content: '找不到云环境',
           showCancel: false
         })
         throw new Error('无云开发环境')
@@ -85,7 +89,7 @@ App({
     return (await this.cloud()).database()
   },
 
-  // 加载用户信息（带缓存）
+  // 加载用户信息(带缓存)
   async loadUserInfo(forceRefresh = false) {
     // 如果已加载且不强制刷新，直接返回
     if (this.globalData.userLoaded && !forceRefresh) {
@@ -208,7 +212,7 @@ App({
         data: { inviteCode }
       })
       if (res.result && res.result.success) {
-        // 刷新用户信息（会自动加载分类）
+        // 刷新用户信息(会自动加载分类)
         await this.loadUserInfo(true)
         return { success: true, partner: res.result.partner }
       }
@@ -244,7 +248,7 @@ App({
     return this.globalData.currentUser?.bindStatus === 'bound' && this.globalData.partner
   },
 
-  // 检查用户信息是否完整（有昵称和头像）
+  // 检查用户信息是否完整(有昵称和头像)
   isProfileComplete() {
     const user = this.globalData.currentUser
     return user?.nickname && user?.avatarUrl
@@ -277,7 +281,7 @@ App({
     return '未知'
   },
 
-  // 获取厨房名称（自定义或默认）
+  // 获取厨房名称(自定义或默认)
   getKitchenName() {
     return this.globalData.currentUser?.kitchenName || this.globalData.appName
   },
@@ -288,7 +292,7 @@ App({
     wx.setNavigationBarTitle({ title })
   },
 
-  // 临时链接缓存（fileID -> { url, expireTime }）
+  // 临时链接缓存(fileID -> { url, expireTime })
   _tempUrlCache: {},
 
   // 批量将 cloud:// fileID 转为临时链接
@@ -319,7 +323,7 @@ App({
           for (const item of res.result.fileList) {
             if (item.tempFileURL) {
               result[item.fileID] = item.tempFileURL
-              // 缓存 1.5 小时（临时链接有效期约 2 小时）
+              // 缓存 1.5 小时(临时链接有效期约 2 小时)
               this._tempUrlCache[item.fileID] = {
                 url: item.tempFileURL,
                 expireTime: now + 90 * 60 * 1000
@@ -357,7 +361,7 @@ App({
     return items
   },
 
-  // 更新厨房名称（同步到伴侣）
+  // 更新厨房名称(同步到伴侣)
   async updateKitchenName(name) {
     if (!name || name.length > 8) {
       return { success: false, message: '名称不能超过8个字' }

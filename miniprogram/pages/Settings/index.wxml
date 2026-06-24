@@ -83,8 +83,8 @@
 
   <!-- 底部版权 -->
   <view class="footer">
-    <text class="footer-text" wx:if="{{isBound}}">Made with 💚 for {{partnerName}}</text>
-    <text class="footer-text" wx:else>Made with 💚</text>
+    <text class="footer-text" wx:if="{{isBound}}">Made with 🎀 for {{partnerName}}</text>
+    <text class="footer-text" wx:else>Made with 🎀</text>
   </view>
 
   <!-- 编辑头像昵称弹窗 -->
