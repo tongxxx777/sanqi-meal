@@ -1,29 +1,61 @@
-/* 菜品库样式 - 与点菜页 UI 保持一致 */
+/* ========================================
+   菜品库样式 - 蜜桃奶油系配色 + 重构布局
+   与点菜页同色系但结构独立区分
+   ======================================== */
 
 .container {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #F5F5F5;
+  background: var(--bg-color);
 }
 
-/* 页面头部 */
+/* ========== 页面头部（渐变背景，与点菜页一致） ========== */
 .page-header {
-  padding: 30rpx 24rpx 20rpx;
+  padding: 28rpx 28rpx 20rpx;
   background: var(--gradient-header);
 }
 
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4rpx;
+}
+
 .page-title {
-  display: block;
-  font-size: 40rpx;
-  font-weight: 600;
-  color: white;
-  margin-bottom: 6rpx;
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 2rpx;
+}
+
+.header-add {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 10rpx 24rpx;
+  border-radius: 30rpx;
+}
+
+.header-add-icon {
+  font-size: 32rpx;
+  color: #FFFFFF;
+  margin-right: 4rpx;
+  font-weight: 300;
+}
+
+.header-add-text {
+  font-size: 24rpx;
+  color: #FFFFFF;
+  font-weight: 500;
 }
 
 .page-subtitle {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 20rpx;
+  display: block;
 }
 
 /* 搜索框 */
@@ -33,12 +65,12 @@
   background: rgba(255, 255, 255, 0.9);
   border-radius: 40rpx;
   padding: 16rpx 24rpx;
-  margin-top: 20rpx;
 }
 
 .search-icon {
   font-size: 28rpx;
   margin-right: 12rpx;
+  opacity: 0.5;
 }
 
 .search-input {
@@ -53,7 +85,195 @@
   padding: 0 10rpx;
 }
 
-/* 空状态 */
+/* ========== 横向分类胶囊 ========== */
+.category-tabs {
+  background: var(--card-bg);
+  white-space: nowrap;
+  padding: 20rpx 0 12rpx;
+  flex-shrink: 0;
+}
+
+.tabs-inner {
+  display: flex;
+  padding: 0 24rpx;
+  gap: 16rpx;
+}
+
+.tab-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 14rpx 24rpx;
+  background: var(--highlight-bg);
+  border-radius: 40rpx;
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+
+.tab-pill.active {
+  background: var(--gradient-primary);
+  color: #FFFFFF;
+  box-shadow: var(--shadow-button);
+}
+
+.tab-pill-icon {
+  font-size: 28rpx;
+  margin-right: 6rpx;
+}
+
+.tab-pill-name {
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.tab-pill-count {
+  font-size: 22rpx;
+  min-width: 32rpx;
+  text-align: center;
+  margin-left: 8rpx;
+  background: rgba(255, 122, 158, 0.15);
+  color: var(--primary-color);
+  border-radius: 20rpx;
+  padding: 2rpx 10rpx;
+}
+
+.tab-pill.active .tab-pill-count {
+  background: rgba(255, 255, 255, 0.3);
+  color: #FFFFFF;
+}
+
+/* ========== 菜品列表 ========== */
+.dish-list {
+  flex: 1;
+}
+
+/* 双列网格 */
+.dish-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 0 24rpx;
+}
+
+/* 菜品卡片 — 图片在上、文字在下 */
+.dish-card {
+  width: calc((100% - 24rpx) / 2);
+  margin-bottom: 24rpx;
+  background: var(--card-bg);
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: var(--shadow-card-light);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dish-card:active {
+  transform: scale(0.97);
+  box-shadow: 0 2rpx 8rpx rgba(255, 122, 158, 0.06);
+}
+
+/* 图片区 — 正方形，撑满卡片宽度 */
+.card-image-wrap {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%;
+  background: var(--highlight-bg);
+  overflow: hidden;
+}
+
+.card-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.card-order-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(255, 122, 158, 0.55));
+  padding: 24rpx 10rpx 8rpx;
+  font-size: 20rpx;
+  color: #FFFFFF;
+  text-align: center;
+}
+
+/* 信息区 — 紧凑排列在图片下方 */
+.card-body {
+  padding: 16rpx 16rpx 20rpx;
+}
+
+.card-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 6rpx;
+}
+
+.card-desc {
+  display: block;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-bottom {
+  text-align: center;
+  padding: 40rpx 0;
+  font-size: 24rpx;
+  color: var(--text-hint);
+  letter-spacing: 2rpx;
+}
+
+.list-empty {
+  padding: 100rpx 0;
+  text-align: center;
+}
+
+.list-empty-text {
+  font-size: 28rpx;
+  color: var(--text-hint);
+}
+
+/* ========== 搜索无结果 ========== */
+.search-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx;
+  background: var(--card-bg);
+}
+
+.search-empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+  opacity: 0.5;
+}
+
+.search-empty-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12rpx;
+}
+
+.search-empty-desc {
+  font-size: 26rpx;
+  color: var(--text-hint);
+}
+
+/* ========== 空状态（保持不变） ========== */
 .empty-state {
   flex: 1;
   display: flex;
@@ -61,17 +281,19 @@
   align-items: center;
   justify-content: center;
   padding: 60rpx;
+  background: var(--card-bg);
 }
 
 .empty-image {
   width: 240rpx;
   height: 240rpx;
   margin-bottom: 30rpx;
+  opacity: 0.7;
 }
 
 .empty-title {
   font-size: 32rpx;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 12rpx;
 }
@@ -79,168 +301,26 @@
 .empty-desc {
   font-size: 26rpx;
   color: var(--text-hint);
-  margin-bottom: 30rpx;
+  margin-bottom: 40rpx;
 }
 
-/* 左右分栏容器 */
-.menu-container {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* 左侧分类 */
-.category-list {
-  width: 180rpx;
-  background: #F8F8F8;
-  height: 100%;
-  will-change: scroll-position;
-}
-
-.category-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 24rpx 12rpx;
-  position: relative;
-  border-left: 6rpx solid transparent;
-}
-
-.category-item.active {
-  background: white;
-  border-left-color: var(--primary-color);
-}
-
-.category-icon {
-  font-size: 36rpx;
-  margin-bottom: 8rpx;
-}
-
-.category-name {
-  font-size: 24rpx;
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.category-item.active .category-name {
-  color: var(--primary-color);
-  font-weight: 500;
-}
-
-.category-count {
-  position: absolute;
-  top: 12rpx;
-  right: 12rpx;
-  min-width: 32rpx;
-  height: 32rpx;
-  line-height: 32rpx;
-  text-align: center;
-  font-size: 20rpx;
+.btn-primary {
+  padding: 24rpx 60rpx;
+  background: var(--gradient-primary);
+  border-radius: 44rpx;
+  font-size: 28rpx;
   color: white;
-  background: var(--primary-color);
-  border-radius: 16rpx;
-  padding: 0 8rpx;
-}
-
-/* 右侧菜品 */
-.dish-list {
-  flex: 1;
-  background: white;
-  height: 100%;
-  will-change: scroll-position;
-}
-
-.category-header {
-  display: flex;
-  align-items: center;
-  padding: 20rpx 24rpx;
-  background: #FAFAFA;
-}
-
-.category-header-icon {
-  font-size: 28rpx;
-  margin-right: 10rpx;
-}
-
-.category-header-name {
-  font-size: 26rpx;
   font-weight: 500;
-  color: var(--text-primary);
+  letter-spacing: 2rpx;
 }
 
-.dish-item {
-  display: flex;
-  align-items: center;
-  padding: 20rpx 24rpx;
-  border-bottom: 1rpx solid #F5F5F5;
-}
-
-.dish-image {
-  width: 170rpx;
-  height: 170rpx;
-  border-radius: 12rpx;
-  background: #F5F5F5;
-}
-
-.dish-info {
-  flex: 1;
-  margin-left: 20rpx;
-}
-
-.dish-name {
-  font-size: 30rpx;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.dish-meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12rpx;
-  margin-top: 10rpx;
-}
-
-.dish-count {
-  font-size: 22rpx;
-  color: var(--text-hint);
-}
-
-.dish-desc {
-  font-size: 22rpx;
-  color: var(--primary-color);
-  background: var(--highlight-bg);
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-}
-
-/* 右箭头指示 */
-.dish-more {
-  width: 48rpx;
-  height: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28rpx;
-  color: #CCC;
-  flex-shrink: 0;
-}
-
-.list-bottom {
-  text-align: center;
-  padding: 30rpx;
-  font-size: 24rpx;
-  color: #CCC;
-}
-
-/* 悬浮添加按钮 */
+/* ========== 悬浮添加按钮 ========== */
 .fab {
   position: fixed;
-  right: 40rpx;
+  right: 36rpx;
   bottom: calc(80rpx + env(safe-area-inset-bottom));
-  width: 110rpx;
-  height: 110rpx;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 50%;
   background: var(--gradient-primary);
   display: flex;
@@ -248,10 +328,15 @@
   justify-content: center;
   box-shadow: var(--shadow-fab);
   z-index: 999;
+  transition: transform 0.2s ease;
+}
+
+.fab:active {
+  transform: scale(0.92);
 }
 
 .fab-text {
-  font-size: 56rpx;
+  font-size: 52rpx;
   color: white;
   font-weight: 300;
   margin-top: -4rpx;

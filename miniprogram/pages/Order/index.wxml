@@ -11,12 +11,19 @@
     </view>
   </view>
 
-  <!-- 空状态 -->
-  <view class="empty-state" wx:if="{{dishes.length === 0 && !loading}}">
+  <!-- 空状态 - 仅在数据库真的没菜且非搜索时展示 -->
+  <view class="empty-state" wx:if="{{allDishes.length === 0 && !loading && !searchKey}}">
     <image class="empty-image" src="/images/dish-default.jpg" mode="aspectFit"></image>
     <text class="empty-title">菜品库还是空的</text>
     <text class="empty-desc">先去添加一些菜品吧~</text>
     <view class="btn-primary" bindtap="goToDishes">去添加菜品</view>
+  </view>
+
+  <!-- 搜索无结果 -->
+  <view class="search-empty" wx:elif="{{searchKey && dishes.length === 0 && allDishes.length > 0 && !loading}}">
+    <text class="search-empty-icon">🔍</text>
+    <text class="search-empty-text">未找到相关菜品</text>
+    <text class="search-empty-desc">换个关键词试试吧~</text>
   </view>
 
   <!-- 左右分栏布局 -->

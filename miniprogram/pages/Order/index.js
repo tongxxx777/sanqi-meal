@@ -34,12 +34,40 @@ Page({
     app.setKitchenTitle()
     this.loadPartnerName()
     await app.loadCategories()
-    // 首次加载显示 loading，后续静默刷新避免闪屏
     if (!this.data.hasLoaded) {
       await this.loadDishes()
       this.setData({ hasLoaded: true })
     } else {
-      this.refreshDishesSilently()
+      // 保存当前搜索状态
+      const savedKey = this.data.searchKey
+      // 静默刷新仅更新后台数据，不触发显示层渲染
+      const result = await this.refreshDishesSilently()
+      if (result) {
+        const { allDishes, categories } = result
+        const filtered = savedKey
+          ? allDishes.filter(d => d.name.includes(savedKey) || (d.description && d.description.includes(savedKey)))
+          : allDishes
+        const { dishesByCategory, selectedByCategory } = this._syncCategoryData(filtered, categories)
+        const categoryCount = {}
+        categories.forEach(cat => {
+          categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
+        })
+        const firstCategory = categories.find(cat => categoryCount[cat._id] > 0)
+        this.setData({
+          allDishes,
+          categories,
+          dishes: filtered,
+          dishesByCategory,
+          categoryCount,
+          selectedByCategory,
+          currentCategory: firstCategory ? firstCategory._id : (categories[0] ? categories[0]._id : ''),
+          loading: false
+        })
+        // 测量分类位置供滚动联动使用
+        if (filtered.length > 0) {
+          setTimeout(() => { this._measureDishCategoryPositions() }, 200)
+        }
+      }
     }
   },
 
@@ -127,7 +155,7 @@ Page({
     }
   },
 
-  // 静默刷新菜品（切换 tab 时后台更新，不显示 loading 避免闪屏）
+  // 静默刷新菜品（仅更新后台数据，不触发显示渲染，返回原始数据供调用方使用）
   async refreshDishesSilently() {
     try {
       const res = await wx.cloud.callFunction({
@@ -139,7 +167,7 @@ Page({
           limit: 100
         }
       })
-      if (!res.result?.success) return
+      if (!res.result?.success) return null
 
       const data = res.result.data
       const dishes = data.map(item => ({
@@ -149,23 +177,23 @@ Page({
       }))
       await app.convertFileURLs(dishes, ['imageUrl'])
 
-      const categories = this.data.categories
-      const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes, categories)
-      const categoryCount = {}
-      categories.forEach(cat => {
-        categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
-      })
+      let categories = app.globalData.categories || []
+      if (categories.length === 0) {
+        const catMap = {}
+        dishes.forEach(d => {
+          const cid = d.category || 'other'
+          if (!catMap[cid]) catMap[cid] = { _id: cid, name: cid, icon: '🍽️' }
+        })
+        categories = Object.values(catMap)
+      }
 
-      this.setData({
-        allDishes: dishes,
-        dishesByCategory,
-        categoryCount,
-        selectedByCategory,
-        dishes,
-        loading: false,
-      })
+      // 仅更新 allDishes 和 categories，不写入 dishes/dishesByCategory
+      // 避免与搜索状态冲突造成闪屏
+      this.setData({ allDishes: dishes, categories, loading: false })
+      return { allDishes: dishes, categories }
     } catch (e) {
       console.error('静默刷新菜品失败', e)
+      return null
     }
   },
 

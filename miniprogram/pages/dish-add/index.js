@@ -11,6 +11,12 @@ Page({
     categories: [],
     categoryIndex: 0,
     saving: false,
+    // AI生成图片相关
+    showAIModal: false,      // 控制AI图片选择模态框显示
+    aiImages: [],            // AI生成的图片数据 [{fileID, tempFileURL}]
+    aiImageUrls: [],         // AI生成的图片临时路径列表（用于渲染）
+    selectedAIIndex: -1,     // 用户选择的AI图片索引
+    generating: false,       // AI生成中状态
   },
 
   async onLoad(options) {
@@ -140,8 +146,8 @@ Page({
     try {
       let imageUrl = this._rawImageUrl || this.data.imageUrl
 
-      // 如果有新选择的图片，上传新图片
-      if (this.data.tempFilePath) {
+      // 如果有新选择的本地图片，上传新图片（远程URL已在云存储中，无需重复上传）
+      if (this.data.tempFilePath && !this.data.tempFilePath.startsWith('http')) {
         imageUrl = await this.uploadImage()
       }
 
@@ -204,6 +210,138 @@ Page({
     }
   },
 
+  // 预览图片
+  onPreviewImage() {
+    if (this.data.imageUrl) {
+      wx.previewImage({
+        current: this.data.imageUrl,
+        urls: [this.data.imageUrl]
+      })
+    }
+  },
+
+  // 从相册选择图片
+  chooseImageFromAlbum() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const tempFilePath = res.tempFiles[0].tempFilePath
+        this.setData({
+          tempFilePath,
+          imageUrl: tempFilePath
+        })
+      }
+    })
+  },
+
+  // 生成AI图片（通过云函数代理，避免客户端 wx.downloadFile 超时）
+  async generateAIImage() {
+    if (!this.data.name.trim()) {
+      wx.showToast({ title: '请先输入菜品名称', icon: 'none' })
+      return
+    }
+
+    this.setData({
+      generating: true,
+      showAIModal: true,
+      aiImages: [],
+      aiImageUrls: [],
+      selectedAIIndex: -1
+    })
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'generateAIImage',
+        data: { dishName: this.data.name.trim() }
+      })
+
+      if (!res.result?.success) {
+        wx.showToast({ title: res.result?.message || '图片生成失败，请重试', icon: 'none' })
+        this.setData({ generating: false, showAIModal: false })
+        return
+      }
+
+      const images = res.result.data.images
+
+      this.setData({
+        aiImages: images,
+        aiImageUrls: images.map(img => img.tempFileURL),
+        generating: false
+      })
+
+    } catch (error) {
+      console.error('AI生成图片失败', error)
+      const errMsg = String(error)
+      if (errMsg.includes('TIME_LIMIT_EXCEEDED') || errMsg.includes('-504003')) {
+        wx.showToast({ title: 'AI服务超时，请检查云函数 timeout 是否设为 60s 并重新部署', icon: 'none', duration: 4000 })
+      } else if (errMsg.includes('不可达') || errMsg.includes('ENOTFOUND')) {
+        wx.showToast({ title: 'AI服务暂不可达，请稍后重试', icon: 'none' })
+      } else {
+        wx.showToast({ title: '图片生成失败，请重试', icon: 'none' })
+      }
+      this.setData({ generating: false, showAIModal: false })
+    }
+  },
+
+  // 重新生成AI图片
+  async regenerateAIImage() {
+    await this.generateAIImage()
+  },
+
+  // 选择AI图片（已选中的再点击=全屏预览）
+  selectAIImage(e) {
+    const index = e.currentTarget.dataset.index
+    if (this.data.selectedAIIndex === index) {
+      // 已选中，全屏预览
+      const url = this.data.aiImageUrls[index]
+      if (url) {
+        wx.previewImage({ current: url, urls: this.data.aiImageUrls })
+      }
+      return
+    }
+    this.setData({ selectedAIIndex: index })
+  },
+
+  // 确认选择AI图片（云函数已上传，直接使用 fileID）
+  async confirmAIImage() {
+    if (this.data.selectedAIIndex === -1) {
+      wx.showToast({ title: '请先选择一张图片', icon: 'none' })
+      return
+    }
+
+    const selected = this.data.aiImages[this.data.selectedAIIndex]
+    if (!selected) return
+
+    // AI图片已由云函数上传到云存储，使用 fileID 即可
+    // tempFilePath 保持为空，避免 saveDish 重复上传
+    this.setData({
+      tempFilePath: '',
+      imageUrl: selected.tempFileURL,
+      showAIModal: false
+    })
+    this._rawImageUrl = selected.fileID
+
+    wx.showToast({ title: '图片已选择', icon: 'success' })
+  },
+
+  // 关闭AI模态框
+  closeAIModal() {
+    this.setData({
+      showAIModal: false,
+      generating: false,
+      aiImages: [],
+      aiImageUrls: [],
+      selectedAIIndex: -1
+    })
+  },
+
+  // 阻止事件冒泡
+  preventBubble() {
+    // 阻止点击模态框内容区域时关闭模态框
+  },
+
   // 重置表单
   resetForm() {
     this.setData({
@@ -211,7 +349,13 @@ Page({
       description: '',
       imageUrl: '',
       tempFilePath: '',
-      categoryIndex: 0
+      categoryIndex: 0,
+      // 重置AI相关状态
+      showAIModal: false,
+      aiImages: [],
+      aiImageUrls: [],
+      selectedAIIndex: -1,
+      generating: false,
     })
   },
 })

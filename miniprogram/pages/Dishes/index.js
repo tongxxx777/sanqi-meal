@@ -9,7 +9,6 @@ Page({
     dishesByCategory: {},
     categoryCount: {},
     currentCategory: '',
-    categoryScrollId: '',
     dishScrollTop: 0,
     loading: true,
     hasLoaded: false,
@@ -25,7 +24,35 @@ Page({
       await this.loadDishes()
       this.setData({ hasLoaded: true })
     } else {
-      this.refreshDishesSilently()
+      // 保存当前搜索/分类状态
+      const savedKey = this.data.searchKey
+      const savedCat = this.data.currentCategory
+      // 静默刷新仅更新后台数据，不触发显示层渲染
+      const result = await this.refreshDishesSilently()
+      // 用最新数据 + 保存的状态，一次 setData 完成渲染，杜绝闪屏
+      if (result) {
+        const { allDishes, categories } = result
+        const filtered = savedKey
+          ? allDishes.filter(d => d.name.includes(savedKey) || (d.description && d.description.includes(savedKey)))
+          : allDishes
+        const { dishesByCategory } = this._syncCategoryData(filtered, categories)
+        const categoryCount = {}
+        categories.forEach(cat => {
+          categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
+        })
+        const firstCategory = categories.find(cat => categoryCount[cat._id] > 0)
+        this.setData({
+          allDishes,
+          categories,
+          dishes: filtered,
+          dishesByCategory,
+          categoryCount,
+          currentCategory: savedKey
+            ? (savedCat || '')
+            : (firstCategory ? firstCategory._id : (categories[0] ? categories[0]._id : '')),
+          loading: false
+        })
+      }
     }
   },
 
@@ -89,7 +116,6 @@ Page({
         searchKey: '',
         dishScrollTop: 0
       })
-      setTimeout(() => { this._measureDishCategoryPositions() }, 200)
     } catch (e) {
       console.error('加载菜品失败', e)
       this.setData({ loading: false })
@@ -97,7 +123,7 @@ Page({
     }
   },
 
-  // 静默刷新菜品
+  // 静默刷新菜品（仅更新后台数据，不触发显示渲染，返回原始数据供调用方使用）
   async refreshDishesSilently() {
     try {
       const res = await wx.cloud.callFunction({
@@ -109,7 +135,7 @@ Page({
           limit: 100
         }
       })
-      if (!res.result?.success) return
+      if (!res.result?.success) return null
 
       let dishes = res.result.data.map(item => ({
         ...item,
@@ -128,22 +154,13 @@ Page({
         categories = Object.values(catMap)
       }
 
-      const { dishesByCategory } = this._syncCategoryData(dishes, categories)
-      const categoryCount = {}
-      categories.forEach(cat => {
-        categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
-      })
-
-      this.setData({
-        allDishes: dishes,
-        dishesByCategory,
-        categoryCount,
-        dishes,
-        categories,
-        loading: false,
-      })
+      // 仅更新 allDishes 和 categories，不写入 dishes/dishesByCategory
+      // 避免与搜索/分类状态冲突造成闪屏
+      this.setData({ allDishes: dishes, categories, loading: false })
+      return { allDishes: dishes, categories }
     } catch (e) {
       console.error('静默刷新菜品失败', e)
+      return null
     }
   },
 
@@ -157,20 +174,10 @@ Page({
     return { dishesByCategory }
   },
 
-  // 选择分类
+  // 选择分类 - 切换显示当前分类菜品
   selectCategory(e) {
     const id = e.currentTarget.dataset.id
-    this.setData({
-      currentCategory: id,
-      categoryScrollId: `catleft-${id}`
-    })
-    this._manualSelectId = id
-    this._manualSelectTime = Date.now()
-
-    const pos = this._categoryPositions && this._categoryPositions[id]
-    if (pos !== undefined && pos !== null) {
-      this.setData({ dishScrollTop: pos })
-    }
+    this.setData({ currentCategory: id, dishScrollTop: 0 })
   },
 
   // 搜索输入
@@ -207,68 +214,9 @@ Page({
       dishes,
       dishesByCategory,
       categoryCount,
-      currentCategory: firstCategory ? firstCategory._id : (categories[0] ? categories[0]._id : ''),
+      // 搜索时 currentCategory 置空表示"显示全部"，分类时保留 firstCategory
+      currentCategory: searchKey ? '' : (firstCategory ? firstCategory._id : (categories[0] ? categories[0]._id : '')),
       dishScrollTop: 0
-    })
-    setTimeout(() => { this._measureDishCategoryPositions() }, 200)
-  },
-
-  // 监听右侧滚动，同步左侧高亮
-  onDishScroll(e) {
-    this._dishScrollTop = e.detail.scrollTop
-    if (this._scrollTimer) return
-    this._scrollTimer = setTimeout(() => {
-      this._scrollTimer = null
-      this._syncCategoryHighlight()
-    }, 100)
-  },
-
-  // 预测量所有分类标题位置
-  _measureDishCategoryPositions() {
-    const cats = this.data.categories.filter(c => this.data.categoryCount[c._id] > 0)
-    if (cats.length === 0) return
-    const q = this.createSelectorQuery()
-    q.select('.dish-list').boundingClientRect()
-    cats.forEach(cat => q.select(`#cat-${cat._id}`).boundingClientRect())
-    q.exec(res => {
-      if (!res || !res[0]) return
-      const listTop = res[0].top
-      this._categoryPositions = {}
-      cats.forEach((cat, i) => {
-        if (res[i + 1]) {
-          this._categoryPositions[cat._id] = Math.max(0, res[i + 1].top - listTop)
-        }
-      })
-    })
-  },
-
-  _syncCategoryHighlight() {
-    if (this._manualSelectTime && Date.now() - this._manualSelectTime < 600) return
-
-    const visibleCats = this.data.categories.filter(c => this.data.categoryCount[c._id] > 0)
-    if (visibleCats.length === 0) return
-
-    const query = this.createSelectorQuery()
-    query.select('.dish-list').boundingClientRect()
-    visibleCats.forEach(cat => {
-      query.select(`#cat-${cat._id}`).boundingClientRect()
-    })
-    query.exec(rects => {
-      if (!rects || !rects[0]) return
-      const listTop = rects[0].top + 20
-      let activeId = visibleCats[0]._id
-      for (let i = 0; i < visibleCats.length; i++) {
-        if (rects[i + 1] && rects[i + 1].top <= listTop) {
-          activeId = visibleCats[i]._id
-        }
-      }
-      if (activeId !== this.data.currentCategory) {
-        const now = Date.now()
-        if (!this._lastHighlightTime || now - this._lastHighlightTime > 200) {
-          this._lastHighlightTime = now
-          this.setData({ currentCategory: activeId })
-        }
-      }
     })
   },
 
@@ -328,7 +276,6 @@ Page({
       })
 
       this.setData({ dishes, allDishes: dishes, dishesByCategory, categoryCount })
-      setTimeout(() => { this._measureDishCategoryPositions() }, 200)
       wx.showToast({ title: '已删除', icon: 'success' })
     } catch (e) {
       wx.hideLoading()

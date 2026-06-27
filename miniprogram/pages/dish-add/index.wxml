@@ -7,21 +7,12 @@
 
   <!-- 表单区域 -->
   <view class="form-section">
-    <!-- 图片上传 -->
-    <view class="upload-card" bindtap="chooseImage">
-      <image wx:if="{{imageUrl}}" class="preview-image" src="{{imageUrl}}" mode="aspectFill"></image>
-      <view wx:else class="upload-placeholder">
-        <text class="upload-icon">📷</text>
-        <text class="upload-text">点击上传菜品图片</text>
-        <text class="upload-hint">支持从相册选择或拍照</text>
-      </view>
-    </view>
-
-    <!-- 菜品名称 -->
+    <!-- 菜品名称（必填） -->
     <view class="input-card">
       <view class="input-label">
         <text class="label-icon">🍽️</text>
         <text class="label-text">菜品名称</text>
+        <view class="label-tag label-tag--required">必填</view>
       </view>
       <input class="input-field" placeholder="给这道菜起个名字吧"
              placeholderClass="input-placeholder"
@@ -29,11 +20,84 @@
       <text class="input-counter">{{name.length}}/20</text>
     </view>
 
-    <!-- 菜品分类 -->
+    <!-- 菜品图片（选填） -->
+    <view class="upload-card">
+      <view class="upload-card-header">
+        <view class="input-label" style="margin-bottom:0; padding:30rpx 30rpx 0;">
+          <text class="label-icon">🖼️</text>
+          <text class="label-text">菜品图片</text>
+          <view class="label-tag label-tag--optional">选填</view>
+        </view>
+        <text class="upload-card-sub">不上传将使用默认图片，也可AI生成</text>
+      </view>
+
+      <!-- 图片预览区域 -->
+      <image wx:if="{{imageUrl}}" class="preview-image" src="{{imageUrl}}" mode="aspectFill" bindtap="onPreviewImage"></image>
+      <view wx:else class="upload-placeholder" bindtap="chooseImageFromAlbum">
+        <text class="upload-icon">🍽️</text>
+        <text class="upload-text">添加菜品图片</text>
+        <text class="upload-hint">上传照片或AI生成</text>
+      </view>
+
+      <!-- 双按钮布局 -->
+      <view class="upload-buttons">
+        <view class="btn-upload" bindtap="chooseImageFromAlbum" hover-class="btn-hover">
+          <text class="btn-icon">📷</text>
+          <text class="btn-text">上传图片</text>
+        </view>
+        <view class="btn-ai" bindtap="generateAIImage" hover-class="btn-hover">
+          <text class="btn-icon">✨</text>
+          <text class="btn-text">AI生成</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- AI图片选择模态框 -->
+    <view class="ai-modal-mask" wx:if="{{showAIModal}}" bindtap="closeAIModal">
+      <view class="ai-modal-content" catchtap="preventBubble">
+        <!-- 模态框头部 -->
+        <view class="ai-modal-header">
+          <text class="ai-modal-title">选择AI生成的图片</text>
+          <text class="ai-modal-close" bindtap="closeAIModal">✕</text>
+        </view>
+
+        <!-- 生成中状态 -->
+        <view class="ai-loading" wx:if="{{generating}}">
+          <view class="loading-spinner"></view>
+          <text class="loading-text">AI 正在为你生成图片(大约15~40秒)</text>
+        </view>
+
+        <!-- 图片网格 -->
+        <view class="ai-image-grid" wx:else>
+          <view class="ai-image-item {{selectedAIIndex === index ? 'selected' : ''}}"
+                wx:for="{{aiImageUrls}}"
+                wx:key="index"
+                bindtap="selectAIImage"
+                data-index="{{index}}"
+                data-temp-file-path="{{item}}">
+            <image class="ai-image" src="{{item}}" mode="aspectFill"></image>
+            <view class="ai-image-check" wx:if="{{selectedAIIndex === index}}">✓</view>
+          </view>
+        </view>
+
+        <!-- 模态框底部按钮 -->
+        <view class="ai-modal-footer" wx:if="{{!generating}}">
+          <view class="btn-regenerate" bindtap="regenerateAIImage" hover-class="btn-hover">
+            <text>🔄 重新生成</text>
+          </view>
+          <view class="btn-confirm-select" bindtap="confirmAIImage" hover-class="btn-hover">
+            <text>确认选择</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 菜品分类（必填） -->
     <view class="input-card">
       <view class="input-label">
         <text class="label-icon">📂</text>
         <text class="label-text">菜品分类</text>
+        <view class="label-tag label-tag--required">必填</view>
       </view>
       <picker mode="selector" range="{{categories}}" range-key="name" value="{{categoryIndex}}" bindchange="onCategoryChange">
         <view class="picker-value">
@@ -43,12 +107,12 @@
       </picker>
     </view>
 
-    <!-- 菜品描述 -->
+    <!-- 菜品描述（选填） -->
     <view class="input-card">
       <view class="input-label">
         <text class="label-icon">💬</text>
         <text class="label-text">一句话描述</text>
-        <text class="label-optional">（选填，最多6字）</text>
+        <view class="label-tag label-tag--optional">选填</view>
       </view>
       <input class="input-field" placeholder="例如：超下饭"
              placeholderClass="input-placeholder"

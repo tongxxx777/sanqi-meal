@@ -53,6 +53,35 @@
   padding: 0 10rpx;
 }
 
+/* 搜索无结果 */
+.search-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx;
+  background: var(--card-bg);
+}
+
+.search-empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+  opacity: 0.5;
+}
+
+.search-empty-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12rpx;
+}
+
+.search-empty-desc {
+  font-size: 26rpx;
+  color: var(--text-hint);
+}
+
 /* 空状态 */
 .empty-state {
   flex: 1;
