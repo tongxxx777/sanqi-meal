@@ -11,7 +11,7 @@ Page({
     selectedByCategory: {},
     currentCategory: '',
     categoryScrollId: '',
-    dishScrollId: '',
+    dishScrollTop: 0,
     selectedCount: 0,
     selectedDishes: [],
     loading: true,
@@ -72,21 +72,21 @@ Page({
       }))
       await app.convertFileURLs(dishes, ['imageUrl'])
 
-      const categories = app.globalData.categories || []
+      let categories = app.globalData.categories || []
       if (categories.length === 0) {
-        console.warn('分类数据为空，请检查 manageCategory 云函数')
-        this.setData({ dishes, allDishes: dishes, loading: false })
-        return
+        // 兜底：分类为空时用菜品自带的 category 值生成临时分组，确保菜品能正常展示
+        const catMap = {}
+        dishes.forEach(d => {
+          const cid = d.category || 'other'
+          if (!catMap[cid]) catMap[cid] = { _id: cid, name: cid, icon: '🍽️' }
+        })
+        categories = Object.values(catMap)
       }
 
-      const dishesByCategory = {}
+      const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes, categories)
       const categoryCount = {}
-      const selectedByCategory = {}
-
       categories.forEach(cat => {
-        dishesByCategory[cat._id] = dishes.filter(d => d.category === cat._id)
-        categoryCount[cat._id] = dishesByCategory[cat._id].length
-        selectedByCategory[cat._id] = dishes.filter(d => d.category === cat._id && d.selected).length
+        categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
       })
 
       const selectedDishes = dishes.filter(d => d.selected)
@@ -105,8 +105,11 @@ Page({
         selectedCount: selectedDishes.length,
         currentCategory: firstCategory ? firstCategory._id : categories[0]._id,
         loading: false,
-        searchKey: ''
+        searchKey: '',
+        dishScrollTop: 0
       })
+      // 等 DOM 渲染完，预测量所有分类在 scroll 内容中的位置
+      setTimeout(() => { this._measureDishCategoryPositions() }, 200)
 
       if (reorderIds.length > 0) {
         wx.showToast({ title: '已选好菜品~', icon: 'none' })
@@ -122,9 +125,17 @@ Page({
     const id = e.currentTarget.dataset.id
     this.setData({
       currentCategory: id,
-      dishScrollId: `cat-${id}`,
       categoryScrollId: `catleft-${id}`
     })
+    // 锁定手动选中，防止滚动动画期间 _syncCategoryHighlight 把高亮切回去
+    this._manualSelectId = id
+    this._manualSelectTime = Date.now()
+
+    // 用预测量位置精确滚动，彻底避免 boundingClientRect 对视野外元素不准的问题
+    const pos = this._categoryPositions && this._categoryPositions[id]
+    if (pos !== undefined && pos !== null) {
+      this.setData({ dishScrollTop: pos })
+    }
   },
 
   // 搜索输入
@@ -143,22 +154,15 @@ Page({
   // 过滤菜品
   filterDishes(searchKey) {
     const { allDishes, categories } = this.data
-    let dishes = allDishes
+    let dishes = searchKey
+      ? allDishes.filter(d => d.name.includes(searchKey) || (d.description && d.description.includes(searchKey)))
+      : allDishes
 
-    if (searchKey) {
-      dishes = allDishes.filter(d => d.name.includes(searchKey) || (d.description && d.description.includes(searchKey)))
-    }
-
-    const dishesByCategory = {}
+    const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes, categories)
     const categoryCount = {}
-    const selectedByCategory = {}
-
     categories.forEach(cat => {
-      dishesByCategory[cat._id] = dishes.filter(d => d.category === cat._id)
-      categoryCount[cat._id] = dishesByCategory[cat._id].length
-      selectedByCategory[cat._id] = dishes.filter(d => d.category === cat._id && d.selected).length
+      categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
     })
-
     const firstCategory = categories.find(cat => categoryCount[cat._id] > 0)
 
     this.setData({
@@ -166,12 +170,27 @@ Page({
       dishesByCategory,
       categoryCount,
       selectedByCategory,
-      currentCategory: firstCategory ? firstCategory._id : categories[0]._id
+      currentCategory: firstCategory ? firstCategory._id : categories[0]._id,
+      dishScrollTop: 0
     })
+    setTimeout(() => { this._measureDishCategoryPositions() }, 200)
+  },
+
+  // 重新按分类整理菜品数据
+  _syncCategoryData(dishes, categories) {
+    const cats = categories || this.data.categories || []
+    const dishesByCategory = {}
+    const selectedByCategory = {}
+    cats.forEach(cat => {
+      dishesByCategory[cat._id] = dishes.filter(d => d.category === cat._id)
+      selectedByCategory[cat._id] = dishes.filter(d => d.category === cat._id && d.selected).length
+    })
+    return { dishesByCategory, selectedByCategory }
   },
 
   // 监听右侧滚动，同步左侧高亮
   onDishScroll(e) {
+    this._dishScrollTop = e.detail.scrollTop
     if (this._scrollTimer) return
     this._scrollTimer = setTimeout(() => {
       this._scrollTimer = null
@@ -179,7 +198,29 @@ Page({
     }, 100)
   },
 
+  // 预测量所有分类标题在 scroll-view 内容中的位置（scrollTop=0 时测量，保证视野外元素也精确）
+  _measureDishCategoryPositions() {
+    const cats = this.data.categories.filter(c => this.data.categoryCount[c._id] > 0)
+    if (cats.length === 0) return
+    const q = this.createSelectorQuery()
+    q.select('.dish-list').boundingClientRect()
+    cats.forEach(cat => q.select(`#cat-${cat._id}`).boundingClientRect())
+    q.exec(res => {
+      if (!res || !res[0]) return
+      const listTop = res[0].top
+      this._categoryPositions = {}
+      cats.forEach((cat, i) => {
+        if (res[i + 1]) {
+          this._categoryPositions[cat._id] = Math.max(0, res[i + 1].top - listTop)
+        }
+      })
+    })
+  },
+
   _syncCategoryHighlight() {
+    // 手动选分类后 600ms 内暂停自动同步，避免被滚动事件冲掉
+    if (this._manualSelectTime && Date.now() - this._manualSelectTime < 600) return
+
     const visibleCats = this.data.categories.filter(c => this.data.categoryCount[c._id] > 0)
     if (visibleCats.length === 0) return
 
@@ -198,10 +239,12 @@ Page({
         }
       }
       if (activeId !== this.data.currentCategory) {
-        this.setData({
-          currentCategory: activeId,
-          categoryScrollId: `catleft-${activeId}`
-        })
+        // 高亮切换加节流：至少间隔 200ms 才更新一次，避免滚动时过度渲染导致闪烁
+        const now = Date.now()
+        if (!this._lastHighlightTime || now - this._lastHighlightTime > 200) {
+          this._lastHighlightTime = now
+          this.setData({ currentCategory: activeId })
+        }
       }
     })
   },
@@ -209,21 +252,11 @@ Page({
   // 切换选中状态
   toggleSelect(e) {
     const id = e.currentTarget.dataset.id
-    const dishes = this.data.dishes.map(item => {
-      if (item._id === id) {
-        return { ...item, selected: !item.selected }
-      }
-      return item
-    })
+    const dishes = this.data.dishes.map(item =>
+      item._id === id ? { ...item, selected: !item.selected } : item
+    )
 
-    // 重新按分类整理
-    const dishesByCategory = {}
-    const selectedByCategory = {}
-    this.data.categories.forEach(cat => {
-      dishesByCategory[cat._id] = dishes.filter(d => d.category === cat._id)
-      selectedByCategory[cat._id] = dishes.filter(d => d.category === cat._id && d.selected).length
-    })
-
+    const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes)
     const selectedDishes = dishes.filter(item => item.selected)
 
     this.setData({
@@ -288,20 +321,11 @@ Page({
     const { currentDish } = this.data
     if (!currentDish) return
 
-    const dishes = this.data.dishes.map(item => {
-      if (item._id === currentDish._id) {
-        return { ...item, selected: !item.selected }
-      }
-      return item
-    })
+    const dishes = this.data.dishes.map(item =>
+      item._id === currentDish._id ? { ...item, selected: !item.selected } : item
+    )
 
-    const dishesByCategory = {}
-    const selectedByCategory = {}
-    this.data.categories.forEach(cat => {
-      dishesByCategory[cat._id] = dishes.filter(d => d.category === cat._id)
-      selectedByCategory[cat._id] = dishes.filter(d => d.category === cat._id && d.selected).length
-    })
-
+    const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes)
     const selectedDishes = dishes.filter(item => item.selected)
     const updatedDish = dishes.find(d => d._id === currentDish._id)
 
@@ -318,20 +342,11 @@ Page({
   // 从购物车移除
   removeFromCart(e) {
     const id = e.currentTarget.dataset.id
-    const dishes = this.data.dishes.map(item => {
-      if (item._id === id) {
-        return { ...item, selected: false }
-      }
-      return item
-    })
+    const dishes = this.data.dishes.map(item =>
+      item._id === id ? { ...item, selected: false } : item
+    )
 
-    const dishesByCategory = {}
-    const selectedByCategory = {}
-    this.data.categories.forEach(cat => {
-      dishesByCategory[cat._id] = dishes.filter(d => d.category === cat._id)
-      selectedByCategory[cat._id] = dishes.filter(d => d.category === cat._id && d.selected).length
-    })
-
+    const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes)
     const selectedDishes = dishes.filter(item => item.selected)
 
     this.setData({
@@ -346,13 +361,7 @@ Page({
   // 清空购物车
   clearCart() {
     const dishes = this.data.dishes.map(item => ({ ...item, selected: false }))
-
-    const dishesByCategory = {}
-    const selectedByCategory = {}
-    this.data.categories.forEach(cat => {
-      dishesByCategory[cat._id] = dishes.filter(d => d.category === cat._id)
-      selectedByCategory[cat._id] = 0
-    })
+    const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes)
 
     this.setData({
       dishes,
@@ -498,18 +507,8 @@ Page({
 
   // 关闭成功弹窗
   closeSuccess() {
-    // 重置选择状态
-    const dishes = this.data.dishes.map(item => ({
-      ...item,
-      selected: false
-    }))
-
-    const dishesByCategory = {}
-    const selectedByCategory = {}
-    this.data.categories.forEach(cat => {
-      dishesByCategory[cat._id] = dishes.filter(d => d.category === cat._id)
-      selectedByCategory[cat._id] = 0
-    })
+    const dishes = this.data.dishes.map(item => ({ ...item, selected: false }))
+    const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes)
 
     this.setData({
       showSuccess: false,
@@ -524,5 +523,15 @@ Page({
   // 跳转到菜品库
   goToDishes() {
     wx.switchTab({ url: '/pages/dishes/index' })
+  },
+
+  // 分享给好友
+  onShareAppMessage() {
+    const { partnerName } = this.data
+    return {
+      title: `今天吃什么？和${partnerName}一起来点菜吧`,
+      path: '/pages/order/index',
+      imageUrl: '/images/share.jpg'
+    }
   },
 })

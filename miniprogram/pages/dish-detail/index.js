@@ -72,8 +72,7 @@ Page({
 
   // 获取创建者名字
   getCreatorName(openid) {
-    if (openid === this.data.openid) return '我'
-    return app.getPartnerName(this.data.openid)
+    return app.getDisplayName(openid)
   },
 
   // 格式化日期
@@ -128,5 +127,17 @@ Page({
         }
       }
     })
+  },
+
+  // 分享菜品给好友
+  onShareAppMessage() {
+    const { dish, _id } = this.data
+    const name = dish?.name || '这道菜'
+    const imageUrl = dish?.imageUrl || '/images/share.jpg'
+    return {
+      title: `来尝尝「${name}」吧`,
+      path: `/pages/dish-detail/index?id=${_id}`,
+      imageUrl
+    }
   },
 })

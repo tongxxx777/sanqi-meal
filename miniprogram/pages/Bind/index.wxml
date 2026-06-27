@@ -1,4 +1,4 @@
-<view class="container">
+﻿<view class="container">
   <!-- 自定义导航栏 -->
   <view class="custom-nav" style="padding-top: {{statusBarHeight}}px;">
     <view class="nav-content">
@@ -21,7 +21,7 @@
       <view class="couple-header-bound">
         <view class="couple-avatars">
           <view class="couple-avatar-wrap">
-            <image class="couple-avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+            <image class="couple-avatar" src="{{avatarUrl || '/images/user-default.jpg'}}" mode="aspectFill"></image>
             <text class="couple-name">{{nickname}}</text>
           </view>
           <view class="couple-heart-wrap">
@@ -29,7 +29,7 @@
             <text class="couple-days">{{bindDays}}天</text>
           </view>
           <view class="couple-avatar-wrap">
-            <image class="couple-avatar" src="{{partnerAvatarUrl}}" mode="aspectFill"></image>
+            <image class="couple-avatar" src="{{partnerAvatarUrl || '/images/user-default.jpg'}}" mode="aspectFill"></image>
             <text class="couple-name">{{partnerNickname}}</text>
           </view>
         </view>
@@ -111,7 +111,7 @@
         <view class="section-title">我是邀请人</view>
         <view class="card">
           <view class="profile-item">
-            <image class="profile-avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+            <image class="profile-avatar" src="{{avatarUrl || '/images/user-default.jpg'}}" mode="aspectFill"></image>
             <view class="profile-info">
               <text class="profile-name">{{nickname}}</text>
             </view>

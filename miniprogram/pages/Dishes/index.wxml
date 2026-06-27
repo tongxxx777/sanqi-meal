@@ -3,19 +3,32 @@
   <view class="page-header">
     <text class="page-title">菜品库</text>
     <text class="page-subtitle">和{{partnerName}}一起管理你们的菜单 ~</text>
+    <!-- 搜索框 -->
+    <view class="search-box">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" placeholder="搜索菜品" value="{{search}}" bindinput="onSearch" confirm-type="search" />
+      <text class="search-clear" wx:if="{{search}}" bindtap="clearSearch">✕</text>
+    </view>
   </view>
 
-  <!-- 搜索框 -->
-  <view class="search-section">
-    <view class="search-bar">
-      <text class="search-icon">🔍</text>
-      <input class="search-input" placeholder="搜索菜品..." bindinput="onSearch" value="{{search}}" />
-    </view>
+  <!-- 分类标签栏 -->
+  <view class="category-tabs" wx:if="{{categories.length > 0}}">
+    <scroll-view class="tabs-scroll" scroll-x>
+      <view class="tab-item {{currentCategory === '' ? 'active' : ''}}" data-id="" bindtap="selectCategory">
+        <text class="tab-name">全部</text>
+      </view>
+      <block wx:for="{{categories}}" wx:key="_id">
+        <view class="tab-item {{currentCategory === item._id ? 'active' : ''}}" data-id="{{item._id}}" bindtap="selectCategory">
+          <text class="tab-icon">{{item.icon}}</text>
+          <text class="tab-name">{{item.name}}</text>
+        </view>
+      </block>
+    </scroll-view>
   </view>
 
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{dishes.length === 0 && !loading}}">
-    <image class="empty-image" src="/images/bba273d65e7e0a3ae9773c36c18acef1.jpg" mode="aspectFit"></image>
+    <image class="empty-image" src="/images/dish-default.jpg" mode="aspectFit"></image>
     <text class="empty-title">菜品库空空如也</text>
     <text class="empty-desc">快添加你们喜欢的菜品吧！</text>
     <view class="btn-primary" bindtap="toAddPage">添加第一道菜</view>
@@ -25,7 +38,7 @@
   <view class="dish-grid" wx:if="{{dishes.length > 0}}">
     <view class="dish-card" wx:for="{{filteredDishes}}" wx:key="_id"
           data-id="{{item._id}}" bindtap="toDetailPage" bindlongpress="showDeleteConfirm">
-      <image class="dish-card-image" wx:if="{{!item.imageUrl}}" src="/images/bba273d65e7e0a3ae9773c36c18acef1.jpg" mode="aspectFill"></image>
+      <image class="dish-card-image" wx:if="{{!item.imageUrl}}" src="/images/dish-default.jpg" mode="aspectFill"></image>
       <image class="dish-card-image" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
       <view class="dish-card-info">
         <text class="dish-card-name">{{item.name}}</text>
@@ -36,7 +49,7 @@
 
   <!-- 无搜索结果 -->
   <view class="no-result" wx:if="{{dishes.length > 0 && filteredDishes.length === 0}}">
-    <text class="no-result-text">没有找到"{{search}}"相关的菜品</text>
+    <text class="no-result-text">没有找到"{{filterLabel}}"相关的菜品</text>
   </view>
 
   <!-- 悬浮添加按钮 -->

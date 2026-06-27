@@ -13,7 +13,7 @@
 
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{dishes.length === 0 && !loading}}">
-    <image class="empty-image" src="/images/1efe5aea4d976b0e8597d4ffd5c068bc.jpg" mode="aspectFit"></image>
+    <image class="empty-image" src="/images/dish-default.jpg" mode="aspectFit"></image>
     <text class="empty-title">菜品库还是空的</text>
     <text class="empty-desc">先去添加一些菜品吧~</text>
     <view class="btn-primary" bindtap="goToDishes">去添加菜品</view>
@@ -35,7 +35,7 @@
 
     <!-- 右侧菜品 -->
     <scroll-view class="dish-list" scroll-y scroll-with-animation
-                 scroll-into-view="{{dishScrollId}}" bindscroll="onDishScroll">
+                 scroll-top="{{dishScrollTop}}" bindscroll="onDishScroll">
       <view wx:for="{{categories}}" wx:key="_id" wx:if="{{categoryCount[item._id] > 0}}">
         <view class="category-header" id="cat-{{item._id}}">
           <text class="category-header-icon">{{item.icon}}</text>
@@ -45,7 +45,7 @@
               wx:for="{{dishesByCategory[item._id]}}" wx:for-item="dish" wx:key="_id"
               data-id="{{dish._id}}" bindtap="toggleSelect">
           <image class="dish-image" wx:if="{{dish.imageUrl}}" src="{{dish.imageUrl}}" mode="aspectFill" data-id="{{dish._id}}" catchtap="openDishDetail"></image>
-          <image class="dish-image" wx:else src="/images/1efe5aea4d976b0e8597d4ffd5c068bc.jpg" mode="aspectFill" data-id="{{dish._id}}" catchtap="openDishDetail"></image>
+          <image class="dish-image" wx:else src="/images/dish-default.jpg" mode="aspectFill" data-id="{{dish._id}}" catchtap="openDishDetail"></image>
           <view class="dish-info">
             <text class="dish-name">{{dish.name}}</text>
             <view class="dish-meta">
@@ -93,7 +93,7 @@
     </view>
     <view class="cart-item" wx:for="{{selectedDishes}}" wx:key="_id">
       <image class="cart-item-image" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
-      <image class="cart-item-image" wx:else src="/images/1efe5aea4d976b0e8597d4ffd5c068bc.jpg" mode="aspectFill"></image>
+      <image class="cart-item-image" wx:else src="/images/dish-default.jpg" mode="aspectFill"></image>
       <view class="cart-item-info">
         <text class="cart-item-name">{{item.name}}</text>
         <view class="cart-item-meta">
@@ -146,7 +146,7 @@
         <view class="pull-chevron"></view>
       </view>
       <image class="detail-dish-image" wx:if="{{currentDish.imageUrl}}" src="{{currentDish.imageUrl}}" mode="widthFix"></image>
-      <image class="detail-dish-image" wx:else src="/images/1efe5aea4d976b0e8597d4ffd5c068bc.jpg" mode="widthFix"></image>
+      <image class="detail-dish-image" wx:else src="/images/dish-default.jpg" mode="widthFix"></image>
     </view>
     <view class="detail-dish-info">
       <text class="detail-dish-name">{{currentDish.name}}</text>

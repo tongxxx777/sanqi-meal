@@ -8,24 +8,24 @@ Page({
     search: '',
     loading: true,
     partnerName: '',
+    categories: [],
+    currentCategory: '',
+    categoryCount: {},
+    filterLabel: '',
   },
 
-  onShow() {
+  async onShow() {
     app.setKitchenTitle()
     this.getPartnerName()
+    await app.loadCategories()
     this.loadDishes()
   },
 
   // 获取伴侣名字
   async getPartnerName() {
-    try {
-      const res = await wx.cloud.callFunction({ name: 'getOpenId' })
-      const openid = res.result?.openid || ''
-      const partnerName = app.getPartnerName(openid)
-      this.setData({ partnerName })
-    } catch (e) {
-      console.error('获取伴侣名字失败', e)
-    }
+    await app.loadUserInfo()
+    const partnerName = app.getPartnerName()
+    this.setData({ partnerName })
   },
 
   // 加载菜品列表
@@ -51,16 +51,31 @@ Page({
       }))
       await app.convertFileURLs(dishes, ['imageUrl'])
 
+      const categories = app.globalData.categories || []
+      const categoryCount = {}
+      categories.forEach(cat => {
+        categoryCount[cat._id] = dishes.filter(d => d.category === cat._id).length
+      })
+
       this.setData({
         dishes,
-        filteredDishes: dishes,
+        categories,
+        categoryCount,
         loading: false
       })
+      this.filterDishes()
     } catch (e) {
       console.error('加载菜品失败', e)
       this.setData({ loading: false })
       wx.showToast({ title: '加载失败', icon: 'none' })
     }
+  },
+
+  // 选择分类
+  selectCategory(e) {
+    const id = e.currentTarget.dataset.id
+    this.setData({ currentCategory: id })
+    this.filterDishes()
   },
 
   // 搜索
@@ -70,17 +85,37 @@ Page({
     this.filterDishes()
   },
 
+  // 清除搜索
+  clearSearch() {
+    this.setData({ search: '' })
+    this.filterDishes()
+  },
+
   // 过滤菜品
   filterDishes() {
-    const { dishes, search } = this.data
-    if (!search) {
-      this.setData({ filteredDishes: dishes })
-      return
+    const { dishes, search, currentCategory, categories } = this.data
+    let filtered = dishes
+
+    // 按分类筛选
+    if (currentCategory) {
+      filtered = filtered.filter(item => item.category === currentCategory)
     }
-    const filtered = dishes.filter(item =>
-      item.name.toLowerCase().includes(search.toLowerCase())
-    )
-    this.setData({ filteredDishes: filtered })
+
+    // 按搜索词筛选
+    if (search) {
+      filtered = filtered.filter(item =>
+        item.name.toLowerCase().includes(search.toLowerCase())
+      )
+    }
+
+    // 确定筛选标签：优先搜索词，其次分类名
+    let filterLabel = search || ''
+    if (!filterLabel && currentCategory) {
+      const cat = categories.find(c => c._id === currentCategory)
+      filterLabel = cat ? cat.name : ''
+    }
+
+    this.setData({ filteredDishes: filtered, filterLabel })
   },
 
   // 跳转到添加页
@@ -152,5 +187,14 @@ Page({
     const month = (d.getMonth() + 1).toString().padStart(2, '0')
     const day = d.getDate().toString().padStart(2, '0')
     return `${month}-${day}`
+  },
+
+  // 分享菜品库
+  onShareAppMessage() {
+    return {
+      title: '来看看我们的小厨房菜单吧',
+      path: '/pages/dishes/index',
+      imageUrl: '/images/share.jpg'
+    }
   },
 })

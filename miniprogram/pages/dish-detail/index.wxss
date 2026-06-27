@@ -2,19 +2,13 @@
 
 .container { padding-bottom: 40rpx; }
 
+
 /* 菜品图片 */
 .dish-image-wrapper { width: 100%; }
 
 .dish-image {
   width: 100%;
   display: block;
-}
-
-.dish-image.dish-emoji {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 200rpx;
 }
 
 /* 信息卡片 */

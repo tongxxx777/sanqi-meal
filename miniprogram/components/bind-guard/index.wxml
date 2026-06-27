@@ -1,10 +1,29 @@
-<view class="guard-banner profile" wx:if="{{show && type === 'profile'}}" bindtap="goToSetProfile">
-  <text class="guard-banner-icon">👤</text>
-  <text class="guard-banner-text">请先设置头像和昵称</text>
-  <view class="guard-banner-btn">去设置</view>
-</view>
-<view class="guard-banner bind" wx:elif="{{show && type === 'bind'}}" bindtap="goToBind">
-  <text class="guard-banner-icon">🔗</text>
-  <text class="guard-banner-text">还未绑定伴侣</text>
-  <view class="guard-banner-btn">去绑定</view>
+<view class="guard-notify {{show ? 'guard-notify--visible' : 'guard-notify--hidden'}} {{type === 'bind' ? 'guard-notify--bind' : ''}}" wx:if="{{_mounted}}">
+  <!-- 左侧图标 -->
+  <view class="guard-notify__icon" wx:if="{{type === 'profile'}}">
+    <view class="guard-notify__icon-circle">
+      <text class="guard-notify__icon-emoji">👤</text>
+    </view>
+  </view>
+  <view class="guard-notify__icon" wx:else>
+    <view class="guard-notify__icon-circle guard-notify__icon-circle--bind">
+      <text class="guard-notify__icon-emoji">🔗</text>
+    </view>
+  </view>
+
+  <!-- 中间文字 -->
+  <view class="guard-notify__body" catch:tap="{{type === 'profile' ? 'goToSetProfile' : 'goToBind'}}">
+    <text class="guard-notify__title">{{type === 'profile' ? '请先设置头像和昵称' : '还未绑定伴侣'}}</text>
+    <text class="guard-notify__desc">{{type === 'profile' ? '做个有身份的人儿~' : '绑定后一起管理菜单'}}</text>
+  </view>
+
+  <!-- 右侧操作区 -->
+  <view class="guard-notify__actions">
+    <view class="guard-notify__btn" catch:tap="{{type === 'profile' ? 'goToSetProfile' : 'goToBind'}}">
+      {{type === 'profile' ? '去设置' : '去绑定'}}
+    </view>
+    <view class="guard-notify__close" catch:tap="closeBanner">
+      <text class="guard-notify__close-icon">✕</text>
+    </view>
+  </view>
 </view>

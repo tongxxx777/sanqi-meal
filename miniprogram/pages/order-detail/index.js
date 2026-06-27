@@ -46,15 +46,8 @@ Page({
     }
   },
 
-  async getCreatorName(openid) {
-    try {
-      const res = await wx.cloud.callFunction({ name: 'getOpenId' })
-      const myOpenid = res.result?.openid || ''
-      if (openid === myOpenid) return '你'
-      return app.getPartnerName(myOpenid)
-    } catch (e) {
-      return '对方'
-    }
+  getCreatorName(openid) {
+    return app.getDisplayName(openid)
   },
 
   formatDate(date) {
@@ -195,5 +188,17 @@ Page({
         }
       }
     })
+  },
+
+  // 分享订单
+  onShareAppMessage() {
+    const { order } = this.data
+    if (!order) return { title: '叁柒食', path: '/pages/index/index' }
+    const dishNames = (order.dishes || []).map(d => d.name).join('、')
+    return {
+      title: `${order.creatorName}点了：${dishNames}`,
+      path: `/pages/order-detail/index?id=${order._id}`,
+      imageUrl: '/images/share.jpg'
+    }
   },
 })

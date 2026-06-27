@@ -88,6 +88,7 @@
   display: flex;
   overflow: hidden;
   padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
+  -webkit-overflow-scrolling: touch;
 }
 
 /* 左侧分类 */
@@ -95,6 +96,7 @@
   width: 180rpx;
   background: #F8F8F8;
   height: 100%;
+  will-change: scroll-position;
 }
 
 .category-item {
@@ -147,6 +149,7 @@
   flex: 1;
   background: white;
   height: 100%;
+  will-change: scroll-position;
 }
 
 .category-header {
@@ -154,9 +157,6 @@
   align-items: center;
   padding: 20rpx 24rpx;
   background: #FAFAFA;
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
 .category-header-icon {
@@ -429,20 +429,6 @@
   color: #CCC;
   font-size: 32rpx;
   flex-shrink: 0;
-}
-
-.count-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44rpx;
-  height: 44rpx;
-  background: var(--primary-color);
-  color: white;
-  font-size: 26rpx;
-  font-weight: 600;
-  border-radius: 22rpx;
-  padding: 0 12rpx;
 }
 
 .btn-order {

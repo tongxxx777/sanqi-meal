@@ -9,6 +9,7 @@
     "pages/order-detail/index",
     "pages/settings/index",
     "pages/bind/index",
+    "pages/bind-confirm/index",
     "pages/category-manage/index"
   ],
   "window": {

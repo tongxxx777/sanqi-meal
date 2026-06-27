@@ -20,12 +20,8 @@ Page({
   // 是否已完成首次加载
   hasLoaded: false,
 
-  onLoad(options) {
+  onLoad() {
     this.setGreeting()
-    // 如果携带了邀请码参数（从分享链接进入）
-    if (options.inviteCode) {
-      app.globalData.pendingInviteCode = options.inviteCode
-    }
   },
 
   async onShow() {
@@ -262,5 +258,27 @@ Page({
   // 跳转到设置 profile
   goToSetProfile() {
     wx.navigateTo({ url: '/pages/settings/index?editProfile=true' })
+  },
+
+  // 分享给好友
+  onShareAppMessage() {
+    const app = getApp()
+    const partnerName = this.data.partnerName || 'TA'
+    const isBound = this.data.isBound
+    return {
+      title: isBound ? `和${partnerName}的专属小厨房 · ${app.getKitchenName()}` : '叁柒食 · 和TA的专属小厨房',
+      path: '/pages/index/index',
+      imageUrl: '/images/share.jpg'
+    }
+  },
+
+  // 分享到朋友圈
+  onShareTimeline() {
+    const app = getApp()
+    return {
+      title: app.getKitchenName() + ' · 叁柒食',
+      query: '',
+      imageUrl: '/images/share.jpg'
+    }
   },
 })

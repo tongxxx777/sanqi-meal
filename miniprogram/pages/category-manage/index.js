@@ -27,6 +27,12 @@ Page({
   async loadCategories() {
     this.setData({ loading: true })
     try {
+      // 先确保分类已初始化（幂等操作，已有数据则跳过）
+      await wx.cloud.callFunction({
+        name: 'manageCategory',
+        data: { action: 'init' }
+      })
+      // 再加载分类列表
       const res = await wx.cloud.callFunction({
         name: 'manageCategory',
         data: { action: 'list' }

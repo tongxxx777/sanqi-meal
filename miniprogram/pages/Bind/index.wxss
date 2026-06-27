@@ -37,7 +37,7 @@
 .container {
   min-height: 100vh;
   background: var(--bg-color);
-  padding-bottom: 60rpx;
+  padding-bottom: 0;
 }
 
 .loading {

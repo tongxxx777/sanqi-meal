@@ -26,7 +26,7 @@
       <view class="couple-greeting">{{greeting}}，一起吃点什么？</view>
       <view class="couple-avatars-top">
         <view class="couple-avatar-item" catchtap="goToSettings">
-          <image class="couple-avatar-img" src="{{userAvatar}}" mode="aspectFill"></image>
+          <image class="couple-avatar-img" src="{{userAvatar || '/images/user-default.jpg'}}" mode="aspectFill"></image>
           <text class="couple-avatar-name">{{userName}}</text>
         </view>
         <view class="couple-heart-center">
@@ -34,7 +34,7 @@
           <text class="couple-days" wx:if="{{bindDays > 0}}">{{bindDays}}天</text>
         </view>
         <view class="couple-avatar-item">
-          <image class="couple-avatar-img" src="{{partnerAvatar}}" mode="aspectFill"></image>
+          <image class="couple-avatar-img" src="{{partnerAvatar || '/images/user-default.jpg'}}" mode="aspectFill"></image>
           <text class="couple-avatar-name">{{partnerName}}</text>
         </view>
       </view>
@@ -49,7 +49,6 @@
         <text class="bind-tip-title">还没有设置头像和昵称</text>
         <text class="bind-tip-desc">点击设置，做个有身份的人儿~</text>
       </view>
-      <text class="bind-tip-arrow">></text>
     </view>
   </view>
 
@@ -61,7 +60,7 @@
         <text class="bind-tip-title">还没有绑定另一半</text>
         <text class="bind-tip-desc">点击邀请 TA 入驻你的小厨房</text>
       </view>
-      <text class="bind-tip-arrow">></text>
+
     </view>
   </view>
 

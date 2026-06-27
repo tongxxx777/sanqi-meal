@@ -14,15 +14,14 @@ Page({
   },
 
   async onLoad(options) {
-    await app.loadCategories()
-    this.setData({ categories: app.globalData.categories })
+    // 先同步设置编辑标识，防止 onShow 先触发时读不到
     if (options.id) {
       this.setData({ _id: options.id, isEdit: true })
       wx.setNavigationBarTitle({ title: '编辑菜品' })
     }
-  },
-
-  async onShow() {
+    await app.loadCategories()
+    this.setData({ categories: app.globalData.categories })
+    // 编辑模式下立即加载菜品数据
     if (this.data.isEdit && this.data._id) {
       await this.loadDish()
     }

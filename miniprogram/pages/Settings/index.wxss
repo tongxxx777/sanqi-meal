@@ -23,15 +23,6 @@
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
 }
 
-.emoji-mascot {
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 60rpx;
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
-}
 
 .header-info {
   display: flex;
@@ -168,152 +159,201 @@
 
 .contact-btn::after { display: none !important; }
 
-/* 弹窗样式 */
-.modal-mask {
+/* ========================================
+   头像昵称编辑 —— 居中弹窗
+   ======================================== */
+
+/* 遮罩层 */
+.sheet-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  transition: opacity 0.3s ease;
 }
 
-.modal-content {
-  width: 640rpx;
-  background: white;
-  border-radius: 32rpx;
-  overflow: hidden;
+.sheet-overlay--hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
-.modal-header {
-  padding: 40rpx;
+/* 弹窗面板 */
+.sheet-panel {
+  width: 90%;
+  max-width: 600rpx;
+  background: #FFFFFF;
+  border-radius: 28rpx;
+  transform: scale(1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  box-shadow: 0 12rpx 48rpx rgba(0, 0, 0, 0.18);
+  padding: 0 0 24rpx;
+}
+
+.sheet-panel--hidden {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+/* 拖拽手柄 - 隐藏 */
+.sheet-handle {
+  display: none;
+}
+
+/* 标题区 */
+.sheet-header {
+  padding: 48rpx 40rpx 8rpx;
   text-align: center;
-  background: var(--gradient-header);
 }
 
-.modal-title {
+.sheet-title {
+  display: block;
   font-size: 36rpx;
-  font-weight: 600;
-  color: white;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 10rpx;
 }
 
-.modal-body { padding: 40rpx; }
+.sheet-desc {
+  display: block;
+  font-size: 26rpx;
+  color: #999999;
+}
 
-/* 头像选择区域 */
-.avatar-section {
+/* 内容区 */
+.sheet-body {
+  padding: 24rpx 48rpx 0;
+}
+
+/* ---- 头像选择 ---- */
+.avatar-area {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 40rpx;
+  margin-bottom: 36rpx;
 }
 
-.avatar-btn {
-  position: relative;
-  width: 160rpx;
-  height: 160rpx;
+.avatar-pick-btn {
+  width: 152rpx;
+  height: 152rpx;
   padding: 0;
-  margin: 0;
+  margin: 0 0 20rpx;
   background: transparent;
   border: none;
   line-height: normal;
 }
 
-.avatar-btn::after { display: none; }
+.avatar-pick-btn::after { display: none; }
 
-.avatar-preview {
-  width: 160rpx;
-  height: 160rpx;
+.avatar-pick-img {
+  width: 152rpx;
+  height: 152rpx;
   border-radius: 50%;
   background: var(--bg-color);
-}
-
-.avatar-edit-icon {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 48rpx;
-  height: 48rpx;
-  background: var(--primary-color);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 24rpx;
-  border: 4rpx solid white;
+  border: 5rpx solid var(--primary-light);
+  box-sizing: border-box;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 148, 0.15);
 }
 
 .avatar-hint {
   font-size: 24rpx;
-  color: var(--text-hint);
-  margin-top: 16rpx;
+  color: #B0B0B0;
 }
 
-/* 昵称输入区域 */
-.nickname-section {
+/* ---- 昵称输入 ---- */
+.nick-area {
   display: flex;
   flex-direction: column;
 }
 
-.nickname-label {
+.nick-label {
   font-size: 28rpx;
-  color: var(--text-secondary);
-  margin-bottom: 16rpx;
+  color: #555555;
+  margin-bottom: 14rpx;
+  font-weight: 500;
 }
 
-.nickname-input-wrap { position: relative; }
+.nick-input-wrap { position: relative; }
 
-.nickname-input {
+.nick-input {
   width: 100%;
-  height: 90rpx;
-  background: var(--bg-color);
+  height: 88rpx;
+  background: #FFF6F8;
   border-radius: 16rpx;
   padding: 0 24rpx;
   font-size: 30rpx;
+  box-sizing: border-box;
+  border: 2rpx solid transparent;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.nickname-tip {
+.nick-input:focus {
+  border-color: var(--primary-light);
+  background: #FFF0F4;
+}
+
+.nick-hint {
   display: flex;
   align-items: center;
-  margin-top: 16rpx;
-  padding: 16rpx 20rpx;
-  background: linear-gradient(135deg, var(--border-color) 0%, #FFF0F4 100%);
-  border-radius: 12rpx;
+  margin-top: 14rpx;
+  padding: 10rpx 16rpx;
+  background: linear-gradient(135deg, #FFF0F4 0%, #FFE8EE 100%);
+  border-radius: 10rpx;
 }
 
-.tip-icon {
-  font-size: 28rpx;
-  margin-right: 10rpx;
-}
-
-.tip-text {
+.nick-hint__icon {
   font-size: 24rpx;
-  color: var(--primary-color);
+  margin-right: 8rpx;
+  flex-shrink: 0;
 }
 
-.modal-footer {
+.nick-hint__text {
+  font-size: 22rpx;
+  color: #E87A90;
+  line-height: 1.4;
+}
+
+/* ---- 底部按钮 ---- */
+.sheet-footer {
   display: flex;
-  padding: 0 40rpx 40rpx;
+  padding: 36rpx 48rpx 0;
   gap: 20rpx;
 }
 
-.modal-btn {
+.sheet-btn {
   flex: 1;
-  height: 88rpx;
+  height: 84rpx;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 30rpx;
-  border-radius: 44rpx;
-}
-
-.modal-btn.cancel {
-  background: #F5F5F5;
-  color: var(--text-secondary);
-}
-
-.modal-btn.confirm {
-  background: var(--primary-color);
-  color: white;
   font-weight: 500;
+  border-radius: 42rpx;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.sheet-btn:active {
+  transform: scale(0.96);
+}
+
+.sheet-btn--cancel {
+  background: #F5F5F5;
+  color: #888888;
+}
+
+.sheet-btn--cancel:active {
+  background: #EBEBEB;
+}
+
+.sheet-btn--save {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: 0 4rpx 18rpx rgba(255, 107, 148, 0.3);
+}
+
+.sheet-btn--loading {
+  opacity: 0.7;
+  pointer-events: none;
 }

@@ -249,4 +249,22 @@ Page({
   onReachBottom() {
     this.loadMore()
   },
+
+  // 分享给好友
+  onShareAppMessage() {
+    return {
+      title: '看看我们的美食记录',
+      path: '/pages/order-history/index',
+      imageUrl: '/images/share.jpg'
+    }
+  },
+
+  // 分享到朋友圈
+  onShareTimeline() {
+    return {
+      title: '叁柒食 · 美食记忆',
+      query: '',
+      imageUrl: '/images/share.jpg'
+    }
+  },
 })

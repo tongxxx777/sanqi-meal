@@ -29,14 +29,11 @@
   padding: 100rpx 60rpx;
 }
 
-.empty-image,
-.empty-emoji {
+.empty-image {
   width: 300rpx;
   height: 300rpx;
   margin-bottom: 40rpx;
 }
-
-.empty-emoji { font-size: 150rpx; }
 
 .empty-title {
   font-size: 34rpx;
@@ -71,7 +68,7 @@ mp-slideview .delete-btn,
 .mark-btn,
 mp-slideview .mark-btn,
 .weui-slideview__btn.mark-btn {
-  background-color: #42A5F5 !important;
+  background-color: #FFB74D !important;
 }
 
 /* 标记高亮 */
@@ -128,13 +125,6 @@ mp-slideview .mark-btn,
   margin-right: 12rpx;
 }
 
-.history-dish-image.dish-emoji {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36rpx;
-  background: white;
-}
 
 .history-dish-name {
   font-size: 26rpx;

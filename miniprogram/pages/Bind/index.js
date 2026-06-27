@@ -1,4 +1,4 @@
-﻿const app = getApp()
+const app = getApp()
 
 Page({
   data: {
@@ -28,21 +28,12 @@ Page({
 
   async onShow() {
     await this.loadUserInfo()
-
-    // 如果有待绑定的邀请码（从分享链接进入），自动执行绑定
-    if (app.globalData.pendingInviteCode && this.data.bindStatus !== 'bound') {
-      this.setData({ inputCode: app.globalData.pendingInviteCode })
-      app.globalData.pendingInviteCode = null
-      setTimeout(() => this.bindPartner(), 500)
-    }
   },
 
-  // 加载用户信息
   async loadUserInfo() {
     this.setData({ loading: true })
     const { currentUser, partner } = await app.loadUserInfo()
 
-    // 计算绑定天数和日期
     let bindDays = 0
     let bindDate = ''
     if (currentUser?.bindStatus === 'bound' && currentUser?.bindTime) {
@@ -65,13 +56,11 @@ Page({
       partnerAvatarUrl: partner?.avatarUrl || ''
     })
 
-    // 已绑定时加载统计数据
     if (currentUser?.bindStatus === 'bound') {
       this.loadStats()
     }
   },
 
-  // 加载统计数据
   async loadStats() {
     try {
       const [dishRes, orderRes] = await Promise.all([
@@ -94,12 +83,10 @@ Page({
     }
   },
 
-  // 输入邀请码
   onInputCode(e) {
     this.setData({ inputCode: e.detail.value.toUpperCase() })
   },
 
-  // 绑定伴侣
   async bindPartner() {
     const { inputCode, submitting } = this.data
     if (submitting || !inputCode || inputCode.length !== 6) {
@@ -113,16 +100,15 @@ Page({
     const result = await app.bindPartner(inputCode)
 
     if (result.success) {
-      // 刷新页面显示已绑定状态
-      await app.loadUserInfo(true)
-      await this.loadUserInfo()
       wx.hideLoading()
-      wx.showToast({ title: '绑定成功', icon: 'success' })
-      // 绑定成功后立即请求通知授权，为接收伴侣点菜通知积攒额度
+      // 请求订阅消息授权 — 必须放在 await loadUserInfo 之前，否则可能丢失用户手势上下文
       wx.requestSubscribeMessage({
         tmplIds: app.globalData.notifyTmplIds,
         complete: () => {}
       })
+      await app.loadUserInfo(true)
+      await this.loadUserInfo()
+      wx.showToast({ title: '绑定成功', icon: 'success' })
     } else {
       wx.hideLoading()
       wx.showToast({ title: result.message, icon: 'none' })
@@ -130,7 +116,6 @@ Page({
     this.setData({ submitting: false })
   },
 
-  // 解除绑定
   unbindPartner() {
     wx.showModal({
       title: '确认解绑',
@@ -153,7 +138,6 @@ Page({
     })
   },
 
-  // 复制邀请码
   copyInviteCode() {
     wx.setClipboardData({
       data: this.data.inviteCode,
@@ -163,22 +147,19 @@ Page({
     })
   },
 
-  // 分享邀请链接
   onShareAppMessage() {
     const { inviteCode, nickname } = this.data
     return {
       title: `${nickname || '我'}邀请你一起使用叁柒食`,
-      path: `/pages/index/index?inviteCode=${inviteCode}`,
+      path: `/pages/bind-confirm/index?inviteCode=${inviteCode}`,
       imageUrl: '/images/share.jpg'
     }
   },
 
-  // 返回上一页
   goBack() {
-    wx.navigateBack()
+    wx.switchTab({ url: '/pages/index/index' })
   },
 
-  // 显示修改厨房名称弹窗
   showKitchenNameModal() {
     this.setData({
       showKitchenNameModal: true,
@@ -186,15 +167,12 @@ Page({
     })
   },
 
-  // 隐藏弹窗
   hideKitchenNameModal() {
     this.setData({ showKitchenNameModal: false })
   },
 
-  // 阻止冒泡
   preventClose() {},
 
-  // 输入厨房名称
   onKitchenNameInput(e) {
     let value = e.detail.value
     if (value.length > 8) value = value.slice(0, 8)
@@ -202,7 +180,6 @@ Page({
     return value
   },
 
-  // 保存厨房名称
   async saveKitchenName() {
     const { tempKitchenName } = this.data
     if (!tempKitchenName.trim()) {

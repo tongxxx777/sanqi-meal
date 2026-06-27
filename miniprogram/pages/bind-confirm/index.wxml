@@ -1,0 +1,117 @@
+<!-- 自定义导航栏 -->
+<view class="custom-nav" style="padding-top: {{statusBarHeight}}px;">
+  <view class="nav-content">
+    <view class="nav-back" bindtap="goBack">
+      <text class="back-icon">‹</text>
+    </view>
+    <text class="nav-title">情侣邀请</text>
+    <view class="nav-placeholder"></view>
+  </view>
+</view>
+
+<view class="container">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-wrap">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载邀请信息...</text>
+  </view>
+
+  <!-- 加载失败 -->
+  <block wx:elif="{{loadFailed}}">
+    <view class="fail-section">
+      <!-- 自己创建的邀请 -->
+      <view wx:if="{{failCode === 'SELF_INVITE'}}" class="fail-card">
+        <text class="fail-emoji">🙈</text>
+        <text class="fail-title">不能接受自己创建的邀请</text>
+        <text class="fail-desc">这是你自己的邀请码呀~<br/>快分享链接给 TA 吧</text>
+        <view class="btn-primary" bindtap="declineInvite">返回首页</view>
+      </view>
+
+      <!-- 已绑定 -->
+      <view wx:elif="{{failCode === 'ALREADY_BOUND'}}" class="fail-card">
+        <text class="fail-emoji">🔗</text>
+        <text class="fail-title">你已经绑定过了</text>
+        <text class="fail-desc">你和伴侣已经在一起使用叁柒食啦</text>
+        <view class="btn-primary" bindtap="goToBindPage">查看绑定</view>
+      </view>
+
+      <!-- 邀请码不存在 -->
+      <view wx:elif="{{failCode === 'NOT_FOUND'}}" class="fail-card">
+        <text class="fail-emoji">🔍</text>
+        <text class="fail-title">邀请链接无效</text>
+        <text class="fail-desc">{{failMessage}}</text>
+        <view class="btn-primary" bindtap="declineInvite">返回首页</view>
+      </view>
+
+      <!-- 对方已绑定 -->
+      <view wx:elif="{{failCode === 'PARTNER_BOUND'}}" class="fail-card">
+        <text class="fail-emoji">😢</text>
+        <text class="fail-title">来晚了一步</text>
+        <text class="fail-desc">TA 已经绑定其他人了</text>
+        <view class="btn-primary" bindtap="declineInvite">返回首页</view>
+      </view>
+
+      <!-- 其他错误 -->
+      <view wx:else class="fail-card">
+        <text class="fail-emoji">😵</text>
+        <text class="fail-title">加载失败</text>
+        <text class="fail-desc">{{failMessage}}</text>
+        <view class="btn-primary" bindtap="declineInvite">返回首页</view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 正常邀请确认 -->
+  <block wx:else>
+    <!-- 顶部装饰 -->
+    <view class="top-decoration">
+      <view class="deco-circle deco-1"></view>
+      <view class="deco-circle deco-2"></view>
+      <view class="deco-circle deco-3"></view>
+    </view>
+
+    <!-- 头部信息 -->
+    <view class="header-section">
+      <text class="header-badge">邀请绑定</text>
+      <text class="header-title">情侣邀请</text>
+    </view>
+
+    <!-- 邀请人信息卡片 -->
+    <view class="inviter-card">
+      <view class="avatar-frame">
+        <image class="inviter-avatar" src="{{inviterAvatarUrl || '/images/user-default.jpg'}}" mode="aspectFill"></image>
+        <view class="avatar-ring"></view>
+      </view>
+      <text class="inviter-name">{{inviterNickname || '你的另一半'}}</text>
+      <text class="invite-desc">邀请你一起使用叁柒食小厨房</text>
+      <text class="invite-sub">接受邀请，你们将共享专属菜单、订单和情侣记录</text>
+    </view>
+
+    <!-- 温馨提示 -->
+    <view class="tips-card">
+      <view class="tips-item">
+        <text class="tips-dot">●</text>
+        <text class="tips-text">点菜后对方会收到通知提醒</text>
+      </view>
+      <view class="tips-item">
+        <text class="tips-dot">●</text>
+        <text class="tips-text">菜品库内容双方共享</text>
+      </view>
+      <view class="tips-item">
+        <text class="tips-dot">●</text>
+        <text class="tips-text">可以查看彼此的点菜历史</text>
+      </view>
+    </view>
+
+    <!-- 按钮区 -->
+    <view class="action-section">
+      <button class="accept-btn" bindtap="acceptInvite" loading="{{submitting}}" disabled="{{submitting}}">
+        <text class="accept-icon">♥</text>
+        <text>接受邀请</text>
+      </button>
+      <view class="decline-btn" bindtap="declineInvite">
+        <text>暂不接受</text>
+      </view>
+    </view>
+  </block>
+</view>

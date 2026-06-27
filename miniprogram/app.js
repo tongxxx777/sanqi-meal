@@ -3,7 +3,8 @@ const _originalPage = Page
 const _bindWhitelist = [
   'pages/index/index',
   'pages/settings/index',
-  'pages/bind/index'
+  'pages/bind/index',
+  'pages/bind-confirm/index'
 ]
 
 Page = function(options) {
@@ -28,6 +29,12 @@ Page = function(options) {
 App({
   async onLaunch() {
     this.initcloud()
+
+    // 全局启用分享菜单（转发 + 朋友圈）
+    wx.showShareMenu({
+      withShareTicket: false,
+      menus: ['shareAppMessage', 'shareTimeline']
+    })
 
     this.globalData = {
       // 当前用户信息(动态获取)
@@ -61,8 +68,6 @@ App({
     // 不阻塞 onLaunch 返回，异步执行；若未完成则首页 loading 兜底
     this.loadUserInfo().catch(e => console.error('preload user info error', e))
   },
-
-  flag: false,
 
   /**
    * 初始化云开发环境
@@ -383,6 +388,47 @@ App({
     } catch (e) {
       console.error('update kitchen name error', e)
       return { success: false, message: '更新失败' }
+    }
+  },
+
+  // ========== 全局分享配置 ==========
+
+  /**
+   * 全局转发兜底 —— 所有未自定义 onShareAppMessage 的页面走这里
+   * 页面可通过定义自己的 onShareAppMessage 覆盖
+   */
+  onShareAppMessage(options) {
+    const pages = getCurrentPages()
+    const route = pages[pages.length - 1]?.route || ''
+
+    const shareTitles = {
+      'pages/index/index': this.getKitchenName() + ' · 专属小厨房',
+      'pages/dishes/index': '来看看我们的小厨房菜单吧',
+      'pages/order/index': '今天吃什么？来叁柒食点菜吧',
+      'pages/order-history/index': '看看我们的美食记录',
+      'pages/settings/index': this.getKitchenName() + ' · 叁柒食'
+    }
+
+    return {
+      title: shareTitles[route] || '叁柒食 · 和TA的专属小厨房',
+      path: '/pages/index/index',
+      imageUrl: '/images/share.jpg'
+    }
+  },
+
+  onShareTimeline() {
+    const pages = getCurrentPages()
+    const route = pages[pages.length - 1]?.route || ''
+
+    const timelineTitles = {
+      'pages/index/index': this.getKitchenName() + ' · 叁柒食',
+      'pages/dishes/index': '叁柒食 · 我们的美食小厨房',
+      'pages/order-history/index': '叁柒食 · 美食记忆'
+    }
+
+    return {
+      title: timelineTitles[route] || '叁柒食 · 和TA的专属小厨房',
+      imageUrl: '/images/share.jpg'
     }
   },
 })

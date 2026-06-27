@@ -11,6 +11,7 @@ Page({
     dishCount: 0,
     orderCount: 0,
     showEditModal: false,
+    _showSheet: false,   // 控制 DOM 挂载（动画用）
     tempNickname: '',
     tempAvatarUrl: '',
     saving: false,
@@ -82,16 +83,32 @@ Page({
 
   // 打开编辑个人信息弹窗
   openEditProfile() {
+    // 先挂载 DOM（隐藏态）
     this.setData({
-      showEditModal: true,
+      _showSheet: true,
+      showEditModal: false,
       tempNickname: this.data.userName === '未设置' ? '' : this.data.userName,
       tempAvatarUrl: ''
     })
+    // 下一帧触发入场动画
+    setTimeout(() => {
+      this.setData({ showEditModal: true })
+    }, 50)
   },
 
-  // 关闭编辑弹窗
+  // 关闭编辑弹窗（带动画）
   closeEditModal() {
+    if (this.data.saving) return
+    this._closeSheet()
+  },
+
+  /** 关闭浮层动画 */
+  _closeSheet() {
     this.setData({ showEditModal: false })
+    // 动画结束后卸载 DOM
+    setTimeout(() => {
+      this.setData({ _showSheet: false })
+    }, 350)
   },
 
   // 阻止冒泡
@@ -105,6 +122,13 @@ Page({
   // 输入昵称
   onNicknameInput(e) {
     this.setData({ tempNickname: e.detail.value })
+  },
+
+  // 昵称失去焦点（微信昵称按钮会触发此事件）
+  onNicknameBlur(e) {
+    if (e.detail.value) {
+      this.setData({ tempNickname: e.detail.value })
+    }
   },
 
   // 保存个人信息
@@ -144,8 +168,8 @@ Page({
       await this.loadUserInfo()
 
       wx.hideLoading()
-      this.setData({ showEditModal: false })
-      wx.showToast({ title: '保存成功', icon: 'success' })
+      this._closeSheet()
+      wx.showToast({ title: '保存成功', icon: 'success', duration: 1500 })
     } catch (e) {
       wx.hideLoading()
       console.error('save profile error', e)

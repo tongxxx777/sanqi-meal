@@ -235,43 +235,4 @@ button::after {
   background-color: #E57373 !important;
 }
 
-/* ---- 顶部提醒横条 ---- */
-.guard-banner {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  padding: 16rpx 30rpx;
-  z-index: 999;
-  font-size: 26rpx;
-}
 
-.guard-banner.profile {
-  background: linear-gradient(135deg, var(--border-color) 0%, var(--primary-light) 100%);
-}
-
-.guard-banner.bind {
-  background: linear-gradient(135deg, #FFE0EC 0%, #FFCDD2 100%);
-}
-
-.guard-banner-icon {
-  font-size: 32rpx;
-  margin-right: 12rpx;
-}
-
-.guard-banner-text {
-  flex: 1;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.guard-banner-btn {
-  padding: 8rpx 28rpx;
-  background: var(--gradient-primary);
-  border-radius: 30rpx;
-  font-size: 24rpx;
-  color: white;
-  font-weight: 500;
-}
