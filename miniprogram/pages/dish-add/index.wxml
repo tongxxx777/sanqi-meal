@@ -28,26 +28,26 @@
           <text class="label-text">菜品图片</text>
           <view class="label-tag label-tag--optional">选填</view>
         </view>
-        <text class="upload-card-sub">不上传将使用默认图片，也可AI生成</text>
+        <text class="upload-card-sub">不上传将使用默认图片，也可搜索真实图片</text>
       </view>
 
       <!-- 图片预览区域 -->
       <image wx:if="{{imageUrl}}" class="preview-image" src="{{imageUrl}}" mode="aspectFill" bindtap="onPreviewImage"></image>
-      <view wx:else class="upload-placeholder" bindtap="chooseImageFromAlbum">
+      <view wx:else class="upload-placeholder" bindtap="chooseImage">
         <text class="upload-icon">🍽️</text>
         <text class="upload-text">添加菜品图片</text>
-        <text class="upload-hint">上传照片或AI生成</text>
+        <text class="upload-hint">上传照片或搜索图片</text>
       </view>
 
       <!-- 双按钮布局 -->
       <view class="upload-buttons">
-        <view class="btn-upload" bindtap="chooseImageFromAlbum" hover-class="btn-hover">
+        <view class="btn-upload" bindtap="chooseImage" hover-class="btn-hover">
           <text class="btn-icon">📷</text>
           <text class="btn-text">上传图片</text>
         </view>
         <view class="btn-ai" bindtap="generateAIImage" hover-class="btn-hover">
-          <text class="btn-icon">✨</text>
-          <text class="btn-text">AI生成</text>
+          <text class="btn-icon">🔍</text>
+          <text class="btn-text">搜索图片</text>
         </view>
       </view>
     </view>
@@ -57,14 +57,14 @@
       <view class="ai-modal-content" catchtap="preventBubble">
         <!-- 模态框头部 -->
         <view class="ai-modal-header">
-          <text class="ai-modal-title">选择AI生成的图片</text>
+          <text class="ai-modal-title">选择搜索到的图片</text>
           <text class="ai-modal-close" bindtap="closeAIModal">✕</text>
         </view>
 
         <!-- 生成中状态 -->
         <view class="ai-loading" wx:if="{{generating}}">
           <view class="loading-spinner"></view>
-          <text class="loading-text">AI 正在为你生成图片(大约15~40秒)</text>
+          <text class="loading-text">正在搜索图片...</text>
         </view>
 
         <!-- 图片网格 -->
@@ -83,7 +83,7 @@
         <!-- 模态框底部按钮 -->
         <view class="ai-modal-footer" wx:if="{{!generating}}">
           <view class="btn-regenerate" bindtap="regenerateAIImage" hover-class="btn-hover">
-            <text>🔄 重新生成</text>
+            <text>🔄 重新搜索</text>
           </view>
           <view class="btn-confirm-select" bindtap="confirmAIImage" hover-class="btn-hover">
             <text>确认选择</text>

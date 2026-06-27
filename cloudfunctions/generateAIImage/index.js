@@ -3,95 +3,69 @@ const axios = require('axios')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-const DASHSCOPE_API_URL = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis'
-const DASHSCOPE_TASK_URL = 'https://dashscope.aliyuncs.com/api/v1/tasks'
-
 /**
- * 调用阿里云百炼 wanx-v1 创建图片生成任务
- * @param {string} dishName - 菜品名称
- * @param {string} apiKey - DashScope API Key
- * @returns {Promise<string>} taskId
+ * 爬取百度图片搜索结果
+ * 百度图片对中文支持最好，准确度最高
+ * @param {string} keyword - 搜索关键词（中文）
+ * @param {number} count - 需要获取的图片数量
+ * @returns {Promise<Array<string>>} 图片 URL 列表
  */
-async function createImageTask(dishName, apiKey) {
-  const prompt = `精美的${dishName}菜品，中式美食，餐厅级摆盘，高清美食摄影，白色餐盘，自然光，俯视角度`
-  const negativePrompt = '企鹅，动物，人物，文字，水印，低质量，模糊'
-
-  const response = await axios.post(
-    DASHSCOPE_API_URL,
-    {
-      model: 'wanx-v1',
-      input: {
-        prompt,
-        negative_prompt: negativePrompt,
-      },
-      parameters: {
-        n: 2,
-        size: '1024*1024',
-      },
+async function searchBaiduImages(keyword, count = 5) {
+  // 百度图片搜索接口（非官方，但稳定可用）
+  const searchUrl = 'https://image.baidu.com/search/acjson'
+  
+  const response = await axios.get(searchUrl, {
+    params: {
+      tn: 'resultjson_com',
+      logid: Date.now(),
+      ipn: 'rj',
+      ct: 201326592,
+      is: '',
+      fp: 'result',
+      fr: '',
+      word: keyword + ' 美食',
+      queryWord: keyword + ' 美食',
+      cl: 2,
+      lm: -1,
+      ie: 'utf-8',
+      oe: 'utf-8',
+      adpicid: '',
+      st: -1,
+      z: '',
+      ic: 0,
+      hd: '',
+      latest: '',
+      copyright: '',
+      s: '',
+      se: '',
+      tab: '',
+      width: '',
+      height: '',
+      face: 0,
+      istype: 2,
+      jc: '',
+      nc: 1,
+      pn: 0,
+      rn: count + 5,  // 多请求几张，过滤掉无效的
     },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-        'X-DashScope-Async': 'enable',
-      },
-      timeout: 15000,
-    }
-  )
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      'Referer': 'https://image.baidu.com/',
+    },
+    timeout: 10000,
+  })
 
-  const taskId = response.data?.output?.task_id
-  if (!taskId) {
-    throw new Error('创建图片生成任务失败：未返回 task_id')
-  }
-  return taskId
-}
+  const results = response.data?.data || []
+  // 过滤掉无效的图片（百度返回的数据里有一条空数据）
+  const validResults = results.filter(item => item && item.thumbURL)
 
-/**
- * 轮询任务状态，直到完成或超时
- * @param {string} taskId - 任务 ID
- * @param {string} apiKey - DashScope API Key
- * @param {number} maxAttempts - 最大轮询次数，默认 20
- * @param {number} interval - 轮询间隔（毫秒），默认 3000
- * @returns {Promise<Array<{url: string}>>} 生成的图片 URL 列表
- */
-async function pollTask(taskId, apiKey, maxAttempts = 20, interval = 3000) {
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    await new Promise((resolve) => setTimeout(resolve, interval))
-
-    const response = await axios.get(`${DASHSCOPE_TASK_URL}/${taskId}`, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      timeout: 10000,
-    })
-
-    const output = response.data?.output
-    const status = output?.task_status
-
-    console.log(`[AI] 轮询任务 ${taskId}，第 ${attempt} 次，状态：${status}`)
-
-    if (status === 'SUCCEEDED') {
-      const results = output.results || []
-      if (results.length === 0) {
-        throw new Error('任务成功但未返回图片')
-      }
-      return results
-    }
-
-    if (status === 'FAILED') {
-      const error = output?.code || output?.message || '未知错误'
-      throw new Error(`图片生成任务失败：${error}`)
-    }
-
-    // PENDING / RUNNING 继续等待
-  }
-
-  throw new Error('图片生成超时，请稍后重试')
+  // 返回图片 URL 列表（使用 thumbURL 或 middleURL）
+  return validResults.slice(0, count).map(item => item.thumbURL || item.middleURL || item.hoverURL)
 }
 
 /**
  * 下载图片并上传到云存储
- * @param {string} imageUrl - 图片 URL（有效期 24 小时）
+ * @param {string} imageUrl - 图片 URL
  * @param {number} index - 图片索引
  * @returns {Promise<{fileID: string, tempFileURL: string}|null>}
  */
@@ -101,11 +75,15 @@ async function downloadAndUploadImage(imageUrl, index) {
     const downloadRes = await axios.get(imageUrl, {
       responseType: 'arraybuffer',
       timeout: 30000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': 'https://image.baidu.com/',
+      },
     })
     const buffer = Buffer.from(downloadRes.data)
 
-    // 上传到云存储
-    const cloudPath = `dishes/ai/${Date.now()}-${index}-${Math.random().toString(36).slice(2)}.jpg`
+    // 上传到云存储（存到 dishes/ 目录）
+    const cloudPath = `dishes/${Date.now()}-${index}-${Math.random().toString(36).slice(2)}.jpg`
     const uploadRes = await cloud.uploadFile({ cloudPath, fileContent: buffer })
 
     // 获取临时访问 URL
@@ -117,7 +95,7 @@ async function downloadAndUploadImage(imageUrl, index) {
     }
     return { fileID: uploadRes.fileID, tempFileURL: '' }
   } catch (err) {
-    console.error(`[AI] 图片 ${index} 下载/上传失败:`, err.message)
+    console.error(`[搜索图片] 图片 ${index} 下载/上传失败:`, err.message)
     return null
   }
 }
@@ -129,42 +107,38 @@ exports.main = async (event, context) => {
     return { success: false, message: '菜品名称不能为空' }
   }
 
-  const apiKey = process.env.DASHSCOPE_API_KEY
-  if (!apiKey) {
-    return { success: false, message: 'AI 服务未配置，请联系管理员' }
-  }
-
   try {
-    console.log(`[AI] 开始为"${dishName}"生成图片...`)
+    const name = dishName.trim()
+    console.log(`[搜索图片] 开始为"${name}"搜索图片...`)
 
-    // 第 1 步：创建图片生成任务
-    const taskId = await createImageTask(dishName.trim(), apiKey)
-    console.log(`[AI] 任务已创建，taskId: ${taskId}`)
+    // 调用百度图片搜索（无需 API Key）
+    const imageUrls = await searchBaiduImages(name, 5)
+    console.log(`[搜索图片] 关键词"${name}"，找到 ${imageUrls.length} 张图片`)
 
-    // 第 2 步：轮询任务状态
-    const results = await pollTask(taskId, apiKey)
-    console.log(`[AI] 任务完成，生成 ${results.length} 张图片`)
+    if (!imageUrls || imageUrls.length === 0) {
+      return { success: false, message: '未找到相关图片，请手动上传' }
+    }
 
-    // 第 3 步：下载图片并上传到云存储
+    // 下载图片并上传到云存储（最多2张）
     const images = await Promise.all(
-      results.map((item, index) => downloadAndUploadImage(item.url, index))
+      imageUrls.slice(0, 2).map((url, index) => downloadAndUploadImage(url, index))
     )
 
     // 过滤掉上传失败的图片
     const validImages = images.filter((img) => img !== null)
 
     if (validImages.length === 0) {
-      return { success: false, message: 'AI 图片生成失败，请重试' }
+      return { success: false, message: '图片下载失败，请重试' }
     }
 
-    console.log(`[AI] 最终上传成功: ${validImages.length} 张`)
+    console.log(`[搜索图片] 最终上传成功: ${validImages.length} 张`)
 
     return {
       success: true,
       data: { images: validImages, total: validImages.length },
     }
   } catch (e) {
-    console.error('[AI] 云函数异常:', e)
-    return { success: false, message: '图片生成失败', error: e.message }
+    console.error('[搜索图片] 云函数异常:', e)
+    return { success: false, message: '图片搜索失败', error: e.message }
   }
 }

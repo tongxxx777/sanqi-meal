@@ -249,7 +249,7 @@
   transform: scale(0.98);
 }
 
-/* AI图片选择模态框 */
+/* 图片选择模态框 */
 .ai-modal-mask {
   position: fixed;
   top: 0;

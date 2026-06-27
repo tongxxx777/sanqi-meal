@@ -11,12 +11,12 @@ Page({
     categories: [],
     categoryIndex: 0,
     saving: false,
-    // AI生成图片相关
-    showAIModal: false,      // 控制AI图片选择模态框显示
-    aiImages: [],            // AI生成的图片数据 [{fileID, tempFileURL}]
-    aiImageUrls: [],         // AI生成的图片临时路径列表（用于渲染）
-    selectedAIIndex: -1,     // 用户选择的AI图片索引
-    generating: false,       // AI生成中状态
+    // 图片搜索结果相关
+    showAIModal: false,
+    aiImages: [],
+    aiImageUrls: [],
+    selectedAIIndex: -1,
+    generating: false,
   },
 
   async onLoad(options) {
@@ -106,6 +106,58 @@ Page({
     })
   },
 
+  // 搜索图片（原 generateAIImage，保留函数名以兼容 wxml）
+  async generateAIImage() {
+    if (!this.data.name.trim()) {
+      wx.showToast({ title: '请先输入菜品名称', icon: 'none' })
+      return
+    }
+
+    this.setData({
+      generating: true,
+      showAIModal: true,
+      aiImages: [],
+      aiImageUrls: [],
+      selectedAIIndex: -1
+    })
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'generateAIImage',
+        data: { dishName: this.data.name.trim() }
+      })
+
+      if (!res.result?.success) {
+        wx.showToast({ title: res.result?.message || '图片搜索失败，请重试', icon: 'none' })
+        this.setData({ generating: false, showAIModal: false })
+        return
+      }
+
+      const images = res.result.data.images
+
+      this.setData({
+        aiImages: images,
+        aiImageUrls: images.map(img => img.tempFileURL),
+        generating: false
+      })
+
+    } catch (error) {
+      console.error('搜索图片失败', error)
+      const errMsg = String(error)
+      if (errMsg.includes('TIME_LIMIT_EXCEEDED') || errMsg.includes('-504003')) {
+        wx.showToast({ title: '图片搜索超时，请稍后重试', icon: 'none', duration: 3000 })
+      } else {
+        wx.showToast({ title: '图片搜索失败，请手动上传', icon: 'none' })
+      }
+      this.setData({ generating: false, showAIModal: false })
+    }
+  },
+
+  // 重新搜索图片
+  async regenerateAIImage() {
+    await this.generateAIImage()
+  },
+
   // 上传图片到云存储
   async uploadImage() {
     if (!this.data.tempFilePath) return ''
@@ -149,6 +201,11 @@ Page({
       // 如果有新选择的本地图片，上传新图片（远程URL已在云存储中，无需重复上传）
       if (this.data.tempFilePath && !this.data.tempFilePath.startsWith('http')) {
         imageUrl = await this.uploadImage()
+      }
+
+      // 降级：无任何图片时，使用默认菜品图片
+      if (!imageUrl) {
+        imageUrl = '/images/dish-default.jpg'
       }
 
       const db = await app.database()
@@ -220,77 +277,7 @@ Page({
     }
   },
 
-  // 从相册选择图片
-  chooseImageFromAlbum() {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        const tempFilePath = res.tempFiles[0].tempFilePath
-        this.setData({
-          tempFilePath,
-          imageUrl: tempFilePath
-        })
-      }
-    })
-  },
-
-  // 生成AI图片（通过云函数代理，避免客户端 wx.downloadFile 超时）
-  async generateAIImage() {
-    if (!this.data.name.trim()) {
-      wx.showToast({ title: '请先输入菜品名称', icon: 'none' })
-      return
-    }
-
-    this.setData({
-      generating: true,
-      showAIModal: true,
-      aiImages: [],
-      aiImageUrls: [],
-      selectedAIIndex: -1
-    })
-
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'generateAIImage',
-        data: { dishName: this.data.name.trim() }
-      })
-
-      if (!res.result?.success) {
-        wx.showToast({ title: res.result?.message || '图片生成失败，请重试', icon: 'none' })
-        this.setData({ generating: false, showAIModal: false })
-        return
-      }
-
-      const images = res.result.data.images
-
-      this.setData({
-        aiImages: images,
-        aiImageUrls: images.map(img => img.tempFileURL),
-        generating: false
-      })
-
-    } catch (error) {
-      console.error('AI生成图片失败', error)
-      const errMsg = String(error)
-      if (errMsg.includes('TIME_LIMIT_EXCEEDED') || errMsg.includes('-504003')) {
-        wx.showToast({ title: 'AI服务超时，请检查云函数 timeout 是否设为 60s 并重新部署', icon: 'none', duration: 4000 })
-      } else if (errMsg.includes('不可达') || errMsg.includes('ENOTFOUND')) {
-        wx.showToast({ title: 'AI服务暂不可达，请稍后重试', icon: 'none' })
-      } else {
-        wx.showToast({ title: '图片生成失败，请重试', icon: 'none' })
-      }
-      this.setData({ generating: false, showAIModal: false })
-    }
-  },
-
-  // 重新生成AI图片
-  async regenerateAIImage() {
-    await this.generateAIImage()
-  },
-
-  // 选择AI图片（已选中的再点击=全屏预览）
+  // 确认选择图片（已选中的再点击=全屏预览）
   selectAIImage(e) {
     const index = e.currentTarget.dataset.index
     if (this.data.selectedAIIndex === index) {
@@ -304,7 +291,7 @@ Page({
     this.setData({ selectedAIIndex: index })
   },
 
-  // 确认选择AI图片（云函数已上传，直接使用 fileID）
+  // 确认选择图片（云函数已上传，直接使用 fileID）
   async confirmAIImage() {
     if (this.data.selectedAIIndex === -1) {
       wx.showToast({ title: '请先选择一张图片', icon: 'none' })
@@ -326,7 +313,7 @@ Page({
     wx.showToast({ title: '图片已选择', icon: 'success' })
   },
 
-  // 关闭AI模态框
+  // 关闭图片选择模态框
   closeAIModal() {
     this.setData({
       showAIModal: false,
@@ -350,7 +337,6 @@ Page({
       imageUrl: '',
       tempFilePath: '',
       categoryIndex: 0,
-      // 重置AI相关状态
       showAIModal: false,
       aiImages: [],
       aiImageUrls: [],
