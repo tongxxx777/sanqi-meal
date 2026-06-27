@@ -6,24 +6,9 @@
     <!-- 搜索框 -->
     <view class="search-box">
       <text class="search-icon">🔍</text>
-      <input class="search-input" placeholder="搜索菜品" value="{{search}}" bindinput="onSearch" confirm-type="search" />
-      <text class="search-clear" wx:if="{{search}}" bindtap="clearSearch">✕</text>
+      <input class="search-input" placeholder="搜索菜品" value="{{searchKey}}" bindinput="onSearchInput" confirm-type="search" />
+      <text class="search-clear" wx:if="{{searchKey}}" bindtap="clearSearch">✕</text>
     </view>
-  </view>
-
-  <!-- 分类标签栏 -->
-  <view class="category-tabs" wx:if="{{categories.length > 0}}">
-    <scroll-view class="tabs-scroll" scroll-x>
-      <view class="tab-item {{currentCategory === '' ? 'active' : ''}}" data-id="" bindtap="selectCategory">
-        <text class="tab-name">全部</text>
-      </view>
-      <block wx:for="{{categories}}" wx:key="_id">
-        <view class="tab-item {{currentCategory === item._id ? 'active' : ''}}" data-id="{{item._id}}" bindtap="selectCategory">
-          <text class="tab-icon">{{item.icon}}</text>
-          <text class="tab-name">{{item.name}}</text>
-        </view>
-      </block>
-    </scroll-view>
   </view>
 
   <!-- 空状态 -->
@@ -34,26 +19,51 @@
     <view class="btn-primary" bindtap="toAddPage">添加第一道菜</view>
   </view>
 
-  <!-- 菜品列表 -->
-  <view class="dish-grid" wx:if="{{dishes.length > 0}}">
-    <view class="dish-card" wx:for="{{filteredDishes}}" wx:key="_id"
-          data-id="{{item._id}}" bindtap="toDetailPage" bindlongpress="showDeleteConfirm">
-      <image class="dish-card-image" wx:if="{{!item.imageUrl}}" src="/images/dish-default.jpg" mode="aspectFill"></image>
-      <image class="dish-card-image" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
-      <view class="dish-card-info">
-        <text class="dish-card-name">{{item.name}}</text>
-        <text class="dish-card-time">{{item.createTimeText}}</text>
+  <!-- 左右分栏布局 -->
+  <view class="menu-container" wx:if="{{dishes.length > 0}}">
+    <!-- 左侧分类 -->
+    <scroll-view class="category-list" scroll-y scroll-with-animation scroll-into-view="{{categoryScrollId}}">
+      <view class="category-item {{currentCategory === item._id ? 'active' : ''}}"
+            wx:for="{{categories}}" wx:key="_id"
+            id="catleft-{{item._id}}"
+            data-id="{{item._id}}" bindtap="selectCategory">
+        <text class="category-icon">{{item.icon}}</text>
+        <text class="category-name">{{item.name}}</text>
+        <text class="category-count" wx:if="{{categoryCount[item._id]}}">{{categoryCount[item._id]}}</text>
       </view>
-    </view>
-  </view>
+    </scroll-view>
 
-  <!-- 无搜索结果 -->
-  <view class="no-result" wx:if="{{dishes.length > 0 && filteredDishes.length === 0}}">
-    <text class="no-result-text">没有找到"{{filterLabel}}"相关的菜品</text>
+    <!-- 右侧菜品 -->
+    <scroll-view class="dish-list" scroll-y scroll-with-animation
+                 scroll-top="{{dishScrollTop}}" bindscroll="onDishScroll">
+      <view wx:for="{{categories}}" wx:key="_id" wx:if="{{categoryCount[item._id] > 0}}">
+        <view class="category-header" id="cat-{{item._id}}">
+          <text class="category-header-icon">{{item.icon}}</text>
+          <text class="category-header-name">{{item.name}}</text>
+        </view>
+        <view class="dish-item"
+              wx:for="{{dishesByCategory[item._id]}}" wx:for-item="dish" wx:key="_id"
+              data-id="{{dish._id}}" bindtap="toDetailPage" bindlongpress="showDeleteConfirm">
+          <image class="dish-image" wx:if="{{dish.imageUrl}}" src="{{dish.imageUrl}}" mode="aspectFill"></image>
+          <image class="dish-image" wx:else src="/images/dish-default.jpg" mode="aspectFill"></image>
+          <view class="dish-info">
+            <text class="dish-name">{{dish.name}}</text>
+            <view class="dish-meta">
+              <text class="dish-desc" wx:if="{{dish.description}}">"{{dish.description}}"</text>
+              <text class="dish-count" wx:if="{{dish.orderCount > 0}}">已点{{dish.orderCount}}次</text>
+            </view>
+          </view>
+          <view class="dish-more">
+            <text>></text>
+          </view>
+        </view>
+      </view>
+      <view class="list-bottom">~ 已经到底啦 ~</view>
+    </scroll-view>
   </view>
 
   <!-- 悬浮添加按钮 -->
-  <view class="fab" bindtap="toAddPage">
+  <view class="fab" bindtap="toAddPage" wx:if="{{dishes.length > 0}}">
     <text class="fab-text">+</text>
   </view>
 </view>

@@ -5,6 +5,7 @@ Page({
     isBound: false,
     orders: [],
     loading: true,
+    hasLoaded: false,
     hasMore: true,
     page: 0,
     pageSize: 10,
@@ -17,7 +18,13 @@ Page({
   async onShow() {
     app.setKitchenTitle()
     await this.loadUserInfo()
-    await this.loadOrders(true)
+    // 首次加载显示 loading，后续静默刷新避免闪屏
+    if (!this.data.hasLoaded) {
+      await this.loadOrders(true)
+      this.setData({ hasLoaded: true })
+    } else {
+      this.refreshOrdersSilently()
+    }
   },
 
   // 加载用户信息
@@ -76,6 +83,43 @@ Page({
     } catch (e) {
       console.error('加载历史失败', e)
       this.setData({ loading: false })
+    }
+  },
+
+  // 静默刷新历史记录（切换 tab 时后台更新，不显示 loading 避免闪屏）
+  async refreshOrdersSilently() {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'getCoupleData',
+        data: {
+          collection: app.globalData.collectionOrderList,
+          orderBy: 'createTime',
+          order: 'desc',
+          skip: 0,
+          limit: this.data.pageSize
+        }
+      })
+      if (!res.result?.success) return
+
+      const data = res.result.data
+      const newOrders = data.map(item => ({
+        ...item,
+        dateText: this.formatDate(item.createTime),
+        timeText: this.formatTime(item.createTime),
+        creatorName: this.getCreatorName(item._openid),
+        slideButtons: this.getSlideButtons(item.marked)
+      }))
+      const allDishes = newOrders.flatMap(o => o.dishes || [])
+      await app.convertFileURLs(allDishes, ['imageUrl'])
+
+      this.setData({
+        orders: newOrders,
+        hasMore: data.length === this.data.pageSize,
+        page: 1,
+        loading: false
+      })
+    } catch (e) {
+      console.error('静默刷新历史失败', e)
     }
   },
 
@@ -230,12 +274,7 @@ Page({
   // 跳转到详情页
   goToDetail(e) {
     const id = e.currentTarget.dataset.id
-    wx.requestSubscribeMessage({
-      tmplIds: app.globalData.notifyTmplIds,
-      complete: () => {
-        wx.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
-      }
-    })
+    wx.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
   },
 
   // 下拉刷新

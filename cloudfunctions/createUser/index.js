@@ -21,7 +21,7 @@ function generateInviteCode() {
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
-  const { nickname, avatarUrl } = event
+  const { nickname, avatarUrl, subscribeStatus } = event
 
   try {
     // 查询用户是否已存在
@@ -32,11 +32,13 @@ exports.main = async (event, context) => {
       const updateData = {}
       if (nickname) updateData.nickname = nickname
       if (avatarUrl) updateData.avatarUrl = avatarUrl
+      if (subscribeStatus !== undefined) updateData.subscribeStatus = subscribeStatus
 
       if (Object.keys(updateData).length > 0) {
         await db.collection('User').doc(openid).update({ data: updateData })
         if (nickname) userRes.data.nickname = nickname
         if (avatarUrl) userRes.data.avatarUrl = avatarUrl
+        if (subscribeStatus !== undefined) userRes.data.subscribeStatus = subscribeStatus
       }
 
       // 查询伴侣信息
@@ -84,6 +86,7 @@ exports.main = async (event, context) => {
       partnerId: '',
       inviteCode,
       bindStatus: 'unbound',
+      subscribeStatus: 'unsubscribed',
       createTime: db.serverDate()
     }
 

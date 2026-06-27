@@ -128,6 +128,19 @@
   margin-left: 10rpx;
 }
 
+/* 订阅消息状态 */
+.notify-status {
+  font-size: 28rpx;
+}
+
+.notify-status.notify-on {
+  color: #52C41A;
+}
+
+.notify-status.notify-off {
+  color: #999;
+}
+
 /* 底部版权 */
 .footer {
   padding: 60rpx 0;

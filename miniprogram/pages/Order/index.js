@@ -15,6 +15,7 @@ Page({
     selectedCount: 0,
     selectedDishes: [],
     loading: true,
+    hasLoaded: false,
     showSuccess: false,
     showRemarkModal: false,
     showCartPanel: false,
@@ -33,7 +34,13 @@ Page({
     app.setKitchenTitle()
     this.loadPartnerName()
     await app.loadCategories()
-    this.loadDishes()
+    // 首次加载显示 loading，后续静默刷新避免闪屏
+    if (!this.data.hasLoaded) {
+      await this.loadDishes()
+      this.setData({ hasLoaded: true })
+    } else {
+      this.refreshDishesSilently()
+    }
   },
 
   // 获取伴侣名字
@@ -117,6 +124,48 @@ Page({
     } catch (e) {
       console.error('加载菜品失败', e)
       this.setData({ loading: false })
+    }
+  },
+
+  // 静默刷新菜品（切换 tab 时后台更新，不显示 loading 避免闪屏）
+  async refreshDishesSilently() {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'getCoupleData',
+        data: {
+          collection: app.globalData.collectionDishList,
+          orderBy: 'createTime',
+          order: 'desc',
+          limit: 100
+        }
+      })
+      if (!res.result?.success) return
+
+      const data = res.result.data
+      const dishes = data.map(item => ({
+        ...item,
+        selected: false,
+        category: item.category || 'meat'
+      }))
+      await app.convertFileURLs(dishes, ['imageUrl'])
+
+      const categories = this.data.categories
+      const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes, categories)
+      const categoryCount = {}
+      categories.forEach(cat => {
+        categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
+      })
+
+      this.setData({
+        allDishes: dishes,
+        dishesByCategory,
+        categoryCount,
+        selectedByCategory,
+        dishes,
+        loading: false,
+      })
+    } catch (e) {
+      console.error('静默刷新菜品失败', e)
     }
   },
 
@@ -407,19 +456,13 @@ Page({
   // 跳过备注
   skipRemark() {
     this.setData({ showRemarkModal: false })
-    wx.requestSubscribeMessage({
-      tmplIds: app.globalData.notifyTmplIds,
-      complete: () => this.doSubmitOrder('')
-    })
+    this.doSubmitOrder('')
   },
 
   // 确认备注
   confirmRemark() {
     this.setData({ showRemarkModal: false })
-    wx.requestSubscribeMessage({
-      tmplIds: app.globalData.notifyTmplIds,
-      complete: () => this.doSubmitOrder(this.data.remark)
-    })
+    this.doSubmitOrder(this.data.remark)
   },
 
   // 实际提交点菜

@@ -101,11 +101,6 @@ Page({
 
     if (result.success) {
       wx.hideLoading()
-      // 请求订阅消息授权 — 必须放在 await loadUserInfo 之前，否则可能丢失用户手势上下文
-      wx.requestSubscribeMessage({
-        tmplIds: app.globalData.notifyTmplIds,
-        complete: () => {}
-      })
       await app.loadUserInfo(true)
       await this.loadUserInfo()
       wx.showToast({ title: '绑定成功', icon: 'success' })

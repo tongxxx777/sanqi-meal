@@ -64,6 +64,18 @@
     </view>
   </view>
 
+  <!-- 订阅消息提醒 -->
+  <view wx:if="{{!subscribeRequested}}" class="bind-tip-section">
+    <view class="bind-tip-card subscribe-tip-card" bindtap="goToSubscribe">
+      <text class="bind-tip-icon">🔔</text>
+      <view class="bind-tip-content">
+        <text class="bind-tip-title">开启点菜提醒通知</text>
+        <text class="bind-tip-desc">TA 点菜时你会收到提醒哦~</text>
+      </view>
+      <text class="bind-tip-arrow">›</text>
+    </view>
+  </view>
+
   <!-- 今日状态卡片 -->
   <view class="status-section" wx:if="{{isBound}}">
     <view class="section-title">🍽️ 今日点菜</view>

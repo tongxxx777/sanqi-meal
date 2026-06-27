@@ -51,10 +51,10 @@
   <view class="settings-section">
     <view class="section-title">消息通知</view>
     <view class="settings-card">
-      <view class="settings-item" bindtap="requestNotifyPermission">
+      <view class="settings-item">
         <text class="item-icon">🔔</text>
         <text class="item-label">订阅消息</text>
-        <text class="item-arrow">></text>
+        <text class="notify-status {{notifyEnabled ? 'notify-on' : 'notify-off'}}">{{notifyEnabled ? '已开启' : '已关闭'}}</text>
       </view>
     </view>
   </view>
@@ -65,13 +65,8 @@
       <view class="settings-item">
         <text class="item-icon">📱</text>
         <text class="item-label">版本号</text>
-        <text class="item-value">v1.0.0</text>
+        <text class="item-value">v2.0.0</text>
       </view>
-      <button class="settings-item contact-btn" open-type="contact">
-        <text class="item-icon">💬</text>
-        <text class="item-label">联系作者</text>
-        <text class="item-arrow">></text>
-      </button>
     </view>
   </view>
 

@@ -196,6 +196,25 @@ App({
     return []
   },
 
+  // 更新订阅消息状态
+  async updateSubscribeStatus(status) {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'createUser',
+        data: { subscribeStatus: status }
+      })
+      if (res.result && res.result.success) {
+        if (this.globalData.currentUser) {
+          this.globalData.currentUser.subscribeStatus = status
+        }
+        return true
+      }
+    } catch (e) {
+      console.error('update subscribeStatus error', e)
+    }
+    return false
+  },
+
   // 更新用户昵称
   async updateNickname(nickname) {
     try {

@@ -424,3 +424,20 @@
 .profile-tip-card .bind-tip-arrow {
   color: var(--primary-color);
 }
+
+/* 订阅提醒卡片 */
+.subscribe-tip-card {
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+}
+
+.subscribe-tip-card .bind-tip-title {
+  color: #2E7D32;
+}
+
+.subscribe-tip-card .bind-tip-desc {
+  color: #66BB6A;
+}
+
+.subscribe-tip-card .bind-tip-arrow {
+  color: #66BB6A;
+}

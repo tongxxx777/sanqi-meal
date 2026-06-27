@@ -70,15 +70,10 @@ Page({
   // 再来一单
   reorder() {
     const dishIds = this.data.order.dishes.map(d => d._id).join(',')
-    wx.requestSubscribeMessage({
-      tmplIds: app.globalData.notifyTmplIds,
-      complete: () => {
-        wx.switchTab({
-          url: '/pages/order/index',
-          success: () => {
-            app.globalData.reorderDishIds = dishIds
-          }
-        })
+    wx.switchTab({
+      url: '/pages/order/index',
+      success: () => {
+        app.globalData.reorderDishIds = dishIds
       }
     })
   },

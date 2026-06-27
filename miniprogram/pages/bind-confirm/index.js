@@ -95,12 +95,6 @@ Page({
     if (this.data.submitting) return
     this.setData({ submitting: true })
 
-    // 请求订阅消息授权 — 必须在 await 之前调用，否则会丢失用户手势上下文
-    wx.requestSubscribeMessage({
-      tmplIds: app.globalData.notifyTmplIds,
-      complete: () => {}
-    })
-
     const result = await app.bindPartner(this.data.inviteCode)
 
     if (result.success) {

@@ -15,6 +15,7 @@ Page({
     togetherDays: 0,
     isBound: false,
     profileComplete: false,
+    subscribeRequested: false,
   },
 
   // 是否已完成首次加载
@@ -57,6 +58,9 @@ Page({
       bindDays = Math.floor((now - bindTime) / (1000 * 60 * 60 * 24)) + 1
     }
 
+    // 从数据库读取订阅状态
+    const subscribeRequested = currentUser?.subscribeStatus === 'subscribed'
+
     this.setData({
       pageLoading: isFirstLoad ? false : this.data.pageLoading,
       userName: currentUser?.nickname || '',
@@ -65,7 +69,8 @@ Page({
       partnerAvatar: partner?.avatarUrl || '',
       bindDays,
       isBound,
-      profileComplete
+      profileComplete,
+      subscribeRequested
     })
 
     if (!isBound) {
@@ -177,15 +182,17 @@ Page({
     return `${hours}:${minutes}`
   },
 
-  // 订阅消息
-  async requestSubscribeMessage() {
+
+  // 首页提醒卡片 - 请求订阅消息
+  goToSubscribe() {
     wx.requestSubscribeMessage({
       tmplIds: app.globalData.notifyTmplIds,
-      success: (res) => {
+      success: async (res) => {
         if (res[app.globalData.notifyTmplIds[0]] === 'accept') {
-          wx.showToast({ title: '订阅成功', icon: 'success' })
-        } else {
-          wx.showToast({ title: '订阅失败', icon: 'none' })
+          wx.showToast({ title: '订阅成功 🎉', icon: 'success' })
+          // 持久化到数据库，多设备同步
+          await app.updateSubscribeStatus('subscribed')
+          this.setData({ subscribeRequested: true })
         }
       },
       fail: (err) => {

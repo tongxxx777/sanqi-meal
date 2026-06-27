@@ -15,6 +15,7 @@ Page({
     tempNickname: '',
     tempAvatarUrl: '',
     saving: false,
+    notifyEnabled: false, // 订阅消息开关状态
   },
 
   onLoad(options) {
@@ -27,6 +28,7 @@ Page({
     await this.loadUserInfo()
     this.loadAppInfo()
     await this.loadStats()
+    this.checkNotifyStatus()
     app.setKitchenTitle()
     if (this._autoEditProfile) {
       this._autoEditProfile = false
@@ -179,21 +181,10 @@ Page({
     }
   },
 
-  // 请求订阅消息权限
-  requestNotifyPermission() {
-    wx.requestSubscribeMessage({
-      tmplIds: app.globalData.notifyTmplIds,
-      success: (res) => {
-        if (res[app.globalData.notifyTmplIds[0]] === 'accept') {
-          wx.showToast({ title: '订阅成功', icon: 'success' })
-        } else {
-          wx.showToast({ title: '需要授权才能收到通知', icon: 'none' })
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '订阅失败', icon: 'none' })
-      }
-    })
+  // 查询订阅消息开关状态（以数据库为准）
+  checkNotifyStatus() {
+    const subscribed = app.globalData.currentUser?.subscribeStatus === 'subscribed'
+    this.setData({ notifyEnabled: subscribed })
   },
 
 })
