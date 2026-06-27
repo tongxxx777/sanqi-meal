@@ -201,23 +201,23 @@ Page({
 
   // 跳转到点菜页
   goToOrder() {
-    wx.switchTab({ url: '/pages/Order/index' })
+    wx.switchTab({ url: '/pages/order/index' })
   },
 
   // 跳转到今日订单详情
   goToTodayOrder() {
     if (!this.data.todayOrder?._id) return
-    wx.navigateTo({ url: `/pages/OrderDetail/index?id=${this.data.todayOrder._id}` })
+    wx.navigateTo({ url: `/pages/order-detail/index?id=${this.data.todayOrder._id}` })
   },
 
   // 跳转到菜品库
   goToDishes() {
-    wx.switchTab({ url: '/pages/Dishes/index' })
+    wx.switchTab({ url: '/pages/dishes/index' })
   },
 
   // 跳转到历史
   goToHistory() {
-    wx.switchTab({ url: '/pages/OrderHistory/index' })
+    wx.switchTab({ url: '/pages/order-history/index' })
   },
 
   // 跳转到最近点菜记录
@@ -234,33 +234,33 @@ Page({
       })
       if (res.result?.success && res.result.data?.length > 0) {
         const order = res.result.data[0]
-        wx.navigateTo({ url: `/pages/OrderDetail/index?id=${order._id}` })
+        wx.navigateTo({ url: `/pages/order-detail/index?id=${order._id}` })
       } else {
-        wx.switchTab({ url: '/pages/OrderHistory/index' })
+        wx.switchTab({ url: '/pages/order-history/index' })
       }
     } catch (e) {
       console.error('goToRecentOrder error', e)
-      wx.switchTab({ url: '/pages/OrderHistory/index' })
+      wx.switchTab({ url: '/pages/order-history/index' })
     }
   },
 
   // 跳转到绑定页
   goToBind() {
-    wx.navigateTo({ url: '/pages/Bind/index' })
+    wx.navigateTo({ url: '/pages/bind/index' })
   },
 
   // 跳转到设置页
   goToSettings() {
-    wx.navigateTo({ url: '/pages/Settings/index' })
+    wx.navigateTo({ url: '/pages/settings/index' })
   },
 
   // 跳转到类目管理
   goToCategoryManage() {
-    wx.navigateTo({ url: '/pages/CategoryManage/index' })
+    wx.navigateTo({ url: '/pages/category-manage/index' })
   },
 
   // 跳转到设置 profile
   goToSetProfile() {
-    wx.navigateTo({ url: '/pages/Settings/index?editProfile=true' })
+    wx.navigateTo({ url: '/pages/settings/index?editProfile=true' })
   },
 })

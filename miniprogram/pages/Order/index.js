@@ -523,6 +523,6 @@ Page({
 
   // 跳转到菜品库
   goToDishes() {
-    wx.switchTab({ url: '/pages/Dishes/index' })
+    wx.switchTab({ url: '/pages/dishes/index' })
   },
 })

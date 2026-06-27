@@ -46,16 +46,16 @@
 │   ├── components/
 │   │   └── bind-guard/         # 绑定状态提醒组件
 │   └── pages/
-│       ├── Index/           # 首页(情侣卡片、今日点菜、快捷入口)
-│       ├── Order/              # 点菜页(分类选菜、购物车)
-│       ├── Dishes/             # 菜品库浏览
-│       ├── DishAdd/            # 添加/编辑菜品
-│       ├── DishDetail/         # 菜品详情
-│       ├── OrderHistory/       # 历史记录
-│       ├── OrderDetail/        # 订单详情
-│       ├── Bind/               # 伴侣绑定
-│       ├── Settings/           # 个人设置
-│       └── CategoryManage/     # 分类管理
+│       ├── index/           # 首页(情侣卡片、今日点菜、快捷入口)
+│       ├── order/              # 点菜页(分类选菜、购物车)
+│       ├── dishes/             # 菜品库浏览
+│       ├── dish-add/            # 添加/编辑菜品
+│       ├── dish-detail/         # 菜品详情
+│       ├── order-history/       # 历史记录
+│       ├── order-detail/        # 订单详情
+│       ├── bind/               # 伴侣绑定
+│       ├── settings/           # 个人设置
+│       └── category-manage/     # 分类管理
 └── project.config.json         # 微信开发者工具配置 ← 需要修改
 ```
 

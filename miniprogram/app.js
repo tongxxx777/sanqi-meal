@@ -1,9 +1,9 @@
 // 全局页面绑定拦截器 - 白名单之外的页面自动校验绑定状态
 const _originalPage = Page
 const _bindWhitelist = [
-  'pages/Index/index',
-  'pages/Settings/index',
-  'pages/Bind/index'
+  'pages/index/index',
+  'pages/settings/index',
+  'pages/bind/index'
 ]
 
 Page = function(options) {

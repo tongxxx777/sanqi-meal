@@ -1,7 +1,7 @@
 <view class="container">
   <!-- 页面头部 -->
   <view class="page-header">
-    <image class="header-mascot" src="/images/123.jpg" mode="aspectFit"></image>
+    <image class="header-mascot" src="/images/share.jpg" mode="aspectFit"></image>
     <view class="header-info">
       <text class="header-title">{{appName}}</text>
       <text class="header-subtitle" wx:if="{{isBound}}">和{{partnerName}}的专属小厨房</text>

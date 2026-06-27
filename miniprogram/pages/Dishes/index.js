@@ -85,7 +85,7 @@ Page({
 
   // 跳转到添加页
   toAddPage() {
-    wx.navigateTo({ url: '/pages/DishAdd/index' })
+    wx.navigateTo({ url: '/pages/dish-add/index' })
   },
 
   // 跳转到详情页
@@ -93,7 +93,7 @@ Page({
     const id = e.currentTarget.dataset.id
     const dish = this.data.dishes.find(item => item._id === id)
     const imageUrl = dish?.imageUrl ? encodeURIComponent(dish.imageUrl) : ''
-    wx.navigateTo({ url: `/pages/DishDetail/index?id=${id}&imageUrl=${imageUrl}` })
+    wx.navigateTo({ url: `/pages/dish-detail/index?id=${id}&imageUrl=${imageUrl}` })
   },
 
   // 长按删除确认

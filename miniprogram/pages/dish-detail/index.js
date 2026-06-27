@@ -91,7 +91,7 @@ Page({
   // 编辑菜品
   editDish() {
     wx.navigateTo({
-      url: `/pages/DishAdd/index?id=${this.data._id}`
+      url: `/pages/dish-add/index?id=${this.data._id}`
     })
   },
 

@@ -36,7 +36,7 @@ exports.main = async (event, context) => {
 
     // 根据通知类型发送不同消息
     if (type === 'newOrder') {
-      const pagePath = orderId ? `pages/OrderDetail/index?id=${orderId}` : 'pages/OrderHistory/index'
+      const pagePath = orderId ? `pages/order-detail/index?id=${orderId}` : 'pages/order-history/index'
       result = await cloud.openapi.subscribeMessage.send({
         touser: targetOpenid,
         templateId,
@@ -51,7 +51,7 @@ exports.main = async (event, context) => {
       result = await cloud.openapi.subscribeMessage.send({
         touser: targetOpenid,
         templateId,
-        page: 'pages/Dishes/index',
+        page: 'pages/dishes/index',
         data: {
           time9: { value: formatTime(new Date()) },
           thing41: { value: dishName.substring(0, 20) },

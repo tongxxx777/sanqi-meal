@@ -81,7 +81,7 @@ Page({
       tmplIds: app.globalData.notifyTmplIds,
       complete: () => {
         wx.switchTab({
-          url: '/pages/Order/index',
+          url: '/pages/order/index',
           success: () => {
             app.globalData.reorderDishIds = dishIds
           }

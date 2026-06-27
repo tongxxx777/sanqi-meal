@@ -233,7 +233,7 @@ Page({
     wx.requestSubscribeMessage({
       tmplIds: app.globalData.notifyTmplIds,
       complete: () => {
-        wx.navigateTo({ url: `/pages/OrderDetail/index?id=${id}` })
+        wx.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
       }
     })
   },

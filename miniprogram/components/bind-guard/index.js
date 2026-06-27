@@ -18,10 +18,10 @@ Component({
   },
   methods: {
     goToBind() {
-      wx.navigateTo({ url: '/pages/Bind/index' })
+      wx.navigateTo({ url: '/pages/bind/index' })
     },
     goToSetProfile() {
-      wx.navigateTo({ url: '/pages/Settings/index?editProfile=true' })
+      wx.navigateTo({ url: '/pages/settings/index?editProfile=true' })
     }
   }
 })

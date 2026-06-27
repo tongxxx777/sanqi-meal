@@ -77,7 +77,7 @@ Page({
 
   // 跳转到绑定页面
   goToBind() {
-    wx.navigateTo({ url: '/pages/Bind/index' })
+    wx.navigateTo({ url: '/pages/bind/index' })
   },
 
   // 打开编辑个人信息弹窗
