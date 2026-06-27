@@ -149,7 +149,7 @@
   <view class="footer-decoration">
     <view class="footer-content">
           <text class="footer-text" wx:if="{{isBound}}">Made with 🎀 for {{partnerName}}</text>
-          <text class="footer-text" wx:else>Made with 🎀</text>
+          <text class="footer-text" wx:else>Made with love 🎀 share with you</text>
     </view>
   </view>
 </view>
