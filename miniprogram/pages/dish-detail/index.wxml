@@ -2,7 +2,7 @@
   <!-- 菜品图片 -->
   <view class="dish-image-wrapper">
     <image class="dish-image" wx:if="{{dish.imageUrl || previewImageUrl}}" src="{{dish.imageUrl || previewImageUrl}}" mode="widthFix"></image>
-    <image class="dish-image" wx:else src="/images/dish-default.jpg" mode="widthFix"></image>
+    <image class="dish-image" wx:else src="/images/default.jpg" mode="widthFix"></image>
   </view>
 
   <!-- 菜品信息卡片 -->

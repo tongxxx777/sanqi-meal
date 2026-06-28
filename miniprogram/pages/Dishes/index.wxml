@@ -19,7 +19,7 @@
 
   <!-- 空状态 - 仅在数据库真的没菜且非搜索时展示 -->
   <view class="empty-state" wx:if="{{allDishes.length === 0 && !loading && !searchKey}}">
-    <image class="empty-image" src="/images/dish-default.jpg" mode="aspectFit"></image>
+    <image class="empty-image" src="/images/default.jpg" mode="aspectFit"></image>
     <text class="empty-title">菜品库空空如也</text>
     <text class="empty-desc">快添加你们喜欢的菜品吧！</text>
     <view class="btn-primary" bindtap="toAddPage">添加第一道菜</view>
@@ -51,72 +51,26 @@
     <!-- 菜品列表 -->
     <scroll-view class="dish-list" scroll-y enhanced
                  scroll-top="{{dishScrollTop}}">
-      <!-- 搜索模式 -->
-      <block wx:if="{{searchKey}}">
-        <view class="dish-grid" wx:if="{{currentCategory !== '' && dishesByCategory[currentCategory].length > 0}}">
-          <view class="dish-card"
-                wx:for="{{dishesByCategory[currentCategory]}}" wx:key="_id"
-                data-id="{{item._id}}" bindtap="toDetailPage" bindlongpress="showDeleteConfirm">
-            <view class="card-image-wrap">
-              <image class="card-image" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
-              <image class="card-image" wx:else src="/images/dish-default.jpg" mode="aspectFill"></image>
-              <view class="card-order-badge" wx:if="{{item.orderCount > 0}}">
-                <text>🔥 {{item.orderCount}}</text>
-              </view>
-            </view>
-            <view class="card-body">
-              <text class="card-name">{{item.name}}</text>
-              <text class="card-desc" wx:if="{{item.description}}">{{item.description}}</text>
+      <view class="dish-grid" wx:if="{{dishesByCategory[currentCategory].length > 0}}">
+        <view class="dish-card"
+              wx:for="{{dishesByCategory[currentCategory]}}" wx:key="_id"
+              data-id="{{item._id}}" bindtap="toDetailPage" bindlongpress="showDeleteConfirm">
+          <view class="card-image-wrap">
+            <image class="card-image" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
+            <image class="card-image" wx:else src="/images/default.jpg" mode="aspectFill"></image>
+            <view class="card-order-badge" wx:if="{{item.orderCount > 0}}">
+              <text>🔥 {{item.orderCount}}</text>
             </view>
           </view>
-        </view>
-        <view class="dish-grid" wx:elif="{{currentCategory === ''}}">
-          <view class="dish-card"
-                wx:for="{{dishes}}" wx:key="_id"
-                data-id="{{item._id}}" bindtap="toDetailPage" bindlongpress="showDeleteConfirm">
-            <view class="card-image-wrap">
-              <image class="card-image" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
-              <image class="card-image" wx:else src="/images/dish-default.jpg" mode="aspectFill"></image>
-              <view class="card-order-badge" wx:if="{{item.orderCount > 0}}">
-                <text>🔥 {{item.orderCount}}</text>
-              </view>
-            </view>
-            <view class="card-body">
-              <text class="card-name">{{item.name}}</text>
-              <text class="card-desc" wx:if="{{item.description}}">{{item.description}}</text>
-            </view>
+          <view class="card-body">
+            <text class="card-name">{{item.name}}</text>
+            <text class="card-desc" wx:if="{{item.description}}">{{item.description}}</text>
           </view>
         </view>
-        <view class="list-empty" wx:else>
-          <text class="list-empty-text">该分类没有匹配结果</text>
-        </view>
-      </block>
-
-      <!-- 分类筛选模式：仅显示当前选中分类 -->
-      <block wx:else>
-        <view class="dish-grid" wx:if="{{dishesByCategory[currentCategory].length > 0}}">
-          <view class="dish-card"
-                wx:for="{{dishesByCategory[currentCategory]}}" wx:key="_id"
-                data-id="{{item._id}}" bindtap="toDetailPage" bindlongpress="showDeleteConfirm">
-            <!-- 图片区 -->
-            <view class="card-image-wrap">
-              <image class="card-image" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
-              <image class="card-image" wx:else src="/images/dish-default.jpg" mode="aspectFill"></image>
-              <view class="card-order-badge" wx:if="{{item.orderCount > 0}}">
-                <text>🔥 {{item.orderCount}}</text>
-              </view>
-            </view>
-            <!-- 信息区 -->
-            <view class="card-body">
-              <text class="card-name">{{item.name}}</text>
-              <text class="card-desc" wx:if="{{item.description}}">{{item.description}}</text>
-            </view>
-          </view>
-        </view>
-        <view class="list-empty" wx:else>
-          <text class="list-empty-text">该分类暂无菜品</text>
-        </view>
-      </block>
+      </view>
+      <view class="list-empty" wx:else>
+        <text class="list-empty-text">{{searchKey ? '该分类没有匹配结果' : '该分类暂无菜品'}}</text>
+      </view>
 
       <view class="list-bottom">— 已经到底啦 —</view>
     </scroll-view>

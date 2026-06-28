@@ -147,7 +147,7 @@ Page({
     return {
       title: `${nickname || '我'}邀请你一起使用叁柒食`,
       path: `/pages/bind-confirm/index?inviteCode=${inviteCode}`,
-      imageUrl: '/images/share.jpg'
+      imageUrl: '/images/default.jpg'
     }
   },
 

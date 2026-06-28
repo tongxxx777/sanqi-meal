@@ -236,7 +236,7 @@ Page({
 
       // 降级：无任何图片时，使用默认菜品图片
       if (!imageUrl) {
-        imageUrl = '/images/dish-default.jpg'
+        imageUrl = '/images/default.jpg'
       }
 
       const db = await app.database()

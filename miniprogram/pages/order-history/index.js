@@ -294,7 +294,7 @@ Page({
     return {
       title: '看看我们的美食记录',
       path: '/pages/order-history/index',
-      imageUrl: '/images/share.jpg'
+      imageUrl: '/images/default.jpg'
     }
   },
 
@@ -303,7 +303,7 @@ Page({
     return {
       title: '叁柒食 · 美食记忆',
       query: '',
-      imageUrl: '/images/share.jpg'
+      imageUrl: '/images/default.jpg'
     }
   },
 })

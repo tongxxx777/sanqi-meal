@@ -72,7 +72,9 @@
   box-shadow: var(--shadow-card);
 }
 
-mp-slideview { margin-bottom: 24rpx; }
+.history-item-wrapper {
+  margin-bottom: 32rpx;
+}
 
 .delete-btn,
 mp-slideview .delete-btn,

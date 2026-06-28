@@ -133,7 +133,7 @@ Page({
   onShareAppMessage() {
     const { dish, _id } = this.data
     const name = dish?.name || '这道菜'
-    const imageUrl = dish?.imageUrl || '/images/share.jpg'
+    const imageUrl = dish?.imageUrl || '/images/default.jpg'
     return {
       title: `来尝尝「${name}」吧`,
       path: `/pages/dish-detail/index?id=${_id}`,

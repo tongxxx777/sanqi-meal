@@ -8,7 +8,7 @@ Page({
     categories: [],
     dishesByCategory: {},
     categoryCount: {},
-    currentCategory: '',
+    currentCategory: '__all__',
     dishScrollTop: 0,
     loading: true,
     hasLoaded: false,
@@ -36,20 +36,15 @@ Page({
           ? allDishes.filter(d => d.name.includes(savedKey) || (d.description && d.description.includes(savedKey)))
           : allDishes
         const { dishesByCategory } = this._syncCategoryData(filtered, categories)
-        const categoryCount = {}
-        categories.forEach(cat => {
-          categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
-        })
-        const firstCategory = categories.find(cat => categoryCount[cat._id] > 0)
+        const { categories: catsWithAll, dishesByCategory: dbcWithAll, categoryCount } =
+          this._prependAllCategory(filtered, categories, dishesByCategory)
         this.setData({
           allDishes,
-          categories,
+          categories: catsWithAll,
           dishes: filtered,
-          dishesByCategory,
+          dishesByCategory: dbcWithAll,
           categoryCount,
-          currentCategory: savedKey
-            ? (savedCat || '')
-            : (firstCategory ? firstCategory._id : (categories[0] ? categories[0]._id : '')),
+          currentCategory: savedCat || '__all__',
           loading: false
         })
       }
@@ -98,20 +93,16 @@ Page({
       }
 
       const { dishesByCategory } = this._syncCategoryData(dishes, categories)
-      const categoryCount = {}
-      categories.forEach(cat => {
-        categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
-      })
-
-      const firstCategory = categories.find(cat => categoryCount[cat._id] > 0)
+      const { categories: catsWithAll, dishesByCategory: dbcWithAll, categoryCount } =
+        this._prependAllCategory(dishes, categories, dishesByCategory)
 
       this.setData({
         dishes,
         allDishes: dishes,
-        categories,
-        dishesByCategory,
+        categories: catsWithAll,
+        dishesByCategory: dbcWithAll,
         categoryCount,
-        currentCategory: firstCategory ? firstCategory._id : (categories[0] ? categories[0]._id : ''),
+        currentCategory: '__all__',
         loading: false,
         searchKey: '',
         dishScrollTop: 0
@@ -169,9 +160,25 @@ Page({
     const cats = categories || this.data.categories || []
     const dishesByCategory = {}
     cats.forEach(cat => {
-      dishesByCategory[cat._id] = dishes.filter(d => d.category === cat._id)
+      if (cat._id === '__all__') {
+        dishesByCategory[cat._id] = dishes
+      } else {
+        dishesByCategory[cat._id] = dishes.filter(d => d.category === cat._id)
+      }
     })
     return { dishesByCategory }
+  },
+  // 在分类列表首位插入“全部”并更新对应数据
+  _prependAllCategory(dishes, categories, existingDishesByCategory) {
+    const allCat = { _id: '__all__', name: '全部', icon: '📋' }
+    const cats = [allCat, ...categories]
+    const dishesByCategory = existingDishesByCategory || {}
+    dishesByCategory['__all__'] = dishes
+    const categoryCount = {}
+    cats.forEach(cat => {
+      categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
+    })
+    return { categories: cats, dishesByCategory, categoryCount }
   },
 
   // 选择分类 - 切换显示当前分类菜品
@@ -195,27 +202,24 @@ Page({
 
   // 过滤菜品
   filterDishes(searchKey) {
-    const { allDishes, categories } = this.data
-    let dishes = searchKey
+    const { allDishes } = this.data
+    const dishes = searchKey
       ? allDishes.filter(d =>
           d.name.includes(searchKey) ||
           (d.description && d.description.includes(searchKey))
         )
       : allDishes
-
-    const { dishesByCategory } = this._syncCategoryData(dishes, categories)
-    const categoryCount = {}
-    categories.forEach(cat => {
-      categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
-    })
-    const firstCategory = categories.find(cat => categoryCount[cat._id] > 0)
+    const realCategories = this.data.categories.filter(c => c._id !== '__all__')
+    const { dishesByCategory } = this._syncCategoryData(dishes, realCategories)
+    const { categories: catsWithAll, dishesByCategory: dbcWithAll, categoryCount } =
+      this._prependAllCategory(dishes, realCategories, dishesByCategory)
 
     this.setData({
       dishes,
-      dishesByCategory,
+      dishesByCategory: dbcWithAll,
       categoryCount,
-      // 搜索时 currentCategory 置空表示"显示全部"，分类时保留 firstCategory
-      currentCategory: searchKey ? '' : (firstCategory ? firstCategory._id : (categories[0] ? categories[0]._id : '')),
+      categories: catsWithAll,
+      currentCategory: '__all__',
       dishScrollTop: 0
     })
   },
@@ -298,7 +302,7 @@ Page({
     return {
       title: '来看看我们的小厨房菜单吧',
       path: '/pages/dishes/index',
-      imageUrl: '/images/share.jpg'
+      imageUrl: '/images/default.jpg'
     }
   },
 })

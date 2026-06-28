@@ -41,8 +41,4 @@ page {
   --shadow-button: 0 8rpx 24rpx rgba(255, 122, 158, 0.3);
   --shadow-fab: 0 8rpx 30rpx rgba(255, 122, 158, 0.4);
 
-  /* 布局 */
-  --footer-height: 10vh;
-  --button-size: 16vw;
-  --button-icon-size: 6vw;
 }

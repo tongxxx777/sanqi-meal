@@ -12,7 +12,6 @@ Page({
     submitting: false,
     statusBarHeight: 20,
     // 当前用户信息
-    nickName: '',
     avatarUrl: '',
     isBound: false
   },
@@ -75,7 +74,6 @@ Page({
         loading: false,
         inviterNickname: inviter.nickname || '',
         inviterAvatarUrl,
-        nickname: currentUser?.nickname || '',
         avatarUrl: currentUser?.avatarUrl || '',
         isBound
       })

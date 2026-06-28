@@ -275,7 +275,7 @@ Page({
     return {
       title: isBound ? `和${partnerName}的专属小厨房 · ${app.getKitchenName()}` : '叁柒食 · 和TA的专属小厨房',
       path: '/pages/index/index',
-      imageUrl: '/images/share.jpg'
+      imageUrl: '/images/default.jpg'
     }
   },
 
@@ -285,7 +285,7 @@ Page({
     return {
       title: app.getKitchenName() + ' · 叁柒食',
       query: '',
-      imageUrl: '/images/share.jpg'
+      imageUrl: '/images/default.jpg'
     }
   },
 })

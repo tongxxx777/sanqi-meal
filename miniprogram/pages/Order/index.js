@@ -26,7 +26,6 @@ Page({
     remark: '',
     submitting: false,
     partnerName: '对方',
-    categoryTops: [],
     searchKey: '',
   },
 
@@ -572,7 +571,7 @@ Page({
         }
       })
     } catch (e) {
-      console.log('通知发送失败（可忽略）', e)
+      // 通知发送失败不影响主流程
     }
   },
 
@@ -602,7 +601,7 @@ Page({
     return {
       title: `今天吃什么？和${partnerName}一起来点菜吧`,
       path: '/pages/order/index',
-      imageUrl: '/images/share.jpg'
+      imageUrl: '/images/default.jpg'
     }
   },
 })

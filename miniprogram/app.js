@@ -293,11 +293,6 @@ App({
     return this.globalData.partner?.nickname || '对方'
   },
 
-  // 获取当前用户名字
-  getCurrentUserName() {
-    return this.globalData.currentUser?.nickname || '我'
-  },
-
   // 根据 openid 获取显示名称
   getDisplayName(openid) {
     if (openid === this.globalData.currentUser?._id) {
@@ -431,7 +426,7 @@ App({
     return {
       title: shareTitles[route] || '叁柒食 · 和TA的专属小厨房',
       path: '/pages/index/index',
-      imageUrl: '/images/share.jpg'
+      imageUrl: '/images/default.jpg'
     }
   },
 
@@ -447,7 +442,7 @@ App({
 
     return {
       title: timelineTitles[route] || '叁柒食 · 和TA的专属小厨房',
-      imageUrl: '/images/share.jpg'
+      imageUrl: '/images/default.jpg'
     }
   },
 })

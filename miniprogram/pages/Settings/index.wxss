@@ -152,26 +152,6 @@
   color: var(--text-hint);
 }
 
-/* 客服按钮 */
-.contact-btn {
-  display: flex !important;
-  align-items: center !important;
-  width: 100% !important;
-  padding: 30rpx 24rpx !important;
-  margin: 0 !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  line-height: normal !important;
-  text-align: left !important;
-  box-sizing: border-box !important;
-  font-size: inherit !important;
-  color: inherit !important;
-  min-height: 0 !important;
-}
-
-.contact-btn::after { display: none !important; }
-
 /* ========================================
    头像昵称编辑 —— 居中弹窗
    ======================================== */

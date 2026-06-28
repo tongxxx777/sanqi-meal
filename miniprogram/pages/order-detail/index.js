@@ -193,7 +193,7 @@ Page({
     return {
       title: `${order.creatorName}点了：${dishNames}`,
       path: `/pages/order-detail/index?id=${order._id}`,
-      imageUrl: '/images/share.jpg'
+      imageUrl: '/images/default.jpg'
     }
   },
 })

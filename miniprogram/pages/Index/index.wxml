@@ -1,7 +1,7 @@
 <!-- 页面加载中 -->
 <view class="page-loading" wx:if="{{pageLoading}}">
   <view class="loading-content">
-    <image class="loading-image" src="/images/7b4bee27a7ccb84274ec7753e54c50c7.gif" mode="aspectFit"></image>
+    <image class="loading-image" src="/images/1.gif" mode="aspectFit"></image>
     <view class="loading-dots-wrap">
       <view class="loading-dot"></view>
       <view class="loading-dot"></view>
@@ -94,7 +94,7 @@
       </view>
     </view>
     <view class="empty-card" wx:else>
-      <image class="empty-image" src="/images/bc5fd6af900184aaa9ebabeb236e76b0.gif" mode="aspectFit"></image>
+      <image class="empty-image" src="/images/2.gif" mode="aspectFit"></image>
       <text class="empty-text">今天还没有点菜哦~</text>
       <view class="btn-primary" bindtap="goToOrder">去点菜</view>
     </view>

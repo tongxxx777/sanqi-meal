@@ -92,13 +92,6 @@
   color: var(--text-primary);
 }
 
-.label-optional {
-  font-size: 24rpx;
-  color: var(--text-hint);
-  font-weight: normal;
-  margin-left: 8rpx;
-}
-
 /* 必填/选填标签 */
 .label-tag {
   display: inline-flex;

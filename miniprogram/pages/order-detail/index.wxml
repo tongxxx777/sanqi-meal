@@ -18,7 +18,7 @@
     <view class="dish-list">
       <view class="dish-item" wx:for="{{order.dishes}}" wx:key="_id">
         <image class="dish-image" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
-        <image class="dish-image" wx:else src="/images/dish-default.jpg" mode="aspectFill"></image>
+        <image class="dish-image" wx:else src="/images/default.jpg" mode="aspectFill"></image>
         <text class="dish-name">{{item.name}}</text>
       </view>
     </view>

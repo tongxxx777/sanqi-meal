@@ -13,7 +13,7 @@
 
   <!-- 空状态 - 仅在数据库真的没菜且非搜索时展示 -->
   <view class="empty-state" wx:if="{{allDishes.length === 0 && !loading && !searchKey}}">
-    <image class="empty-image" src="/images/dish-default.jpg" mode="aspectFit"></image>
+    <image class="empty-image" src="/images/default.jpg" mode="aspectFit"></image>
     <text class="empty-title">菜品库还是空的</text>
     <text class="empty-desc">先去添加一些菜品吧~</text>
     <view class="btn-primary" bindtap="goToDishes">去添加菜品</view>
@@ -52,7 +52,7 @@
               wx:for="{{dishesByCategory[item._id]}}" wx:for-item="dish" wx:key="_id"
               data-id="{{dish._id}}" bindtap="toggleSelect">
           <image class="dish-image" wx:if="{{dish.imageUrl}}" src="{{dish.imageUrl}}" mode="aspectFill" data-id="{{dish._id}}" catchtap="openDishDetail"></image>
-          <image class="dish-image" wx:else src="/images/dish-default.jpg" mode="aspectFill" data-id="{{dish._id}}" catchtap="openDishDetail"></image>
+          <image class="dish-image" wx:else src="/images/default.jpg" mode="aspectFill" data-id="{{dish._id}}" catchtap="openDishDetail"></image>
           <view class="dish-info">
             <text class="dish-name">{{dish.name}}</text>
             <view class="dish-meta">
@@ -73,7 +73,7 @@
   <view class="footer" wx:if="{{dishes.length > 0}}">
     <view class="footer-cart" bindtap="toggleCartPanel">
       <view class="cart-icon-wrap">
-        <image class="cart-icon-img" src="/images/4240a5a23a03b63adf5962d90e183f0f-removebg-preview.png" mode="aspectFit"></image>
+        <image class="cart-icon-img" src="/images/3.png" mode="aspectFit"></image>
         <text class="cart-badge" wx:if="{{selectedCount > 0}}">{{selectedCount}}</text>
       </view>
       <text class="cart-hint" wx:if="{{selectedCount === 0}}">请选择菜品</text>
@@ -100,7 +100,7 @@
     </view>
     <view class="cart-item" wx:for="{{selectedDishes}}" wx:key="_id">
       <image class="cart-item-image" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
-      <image class="cart-item-image" wx:else src="/images/dish-default.jpg" mode="aspectFill"></image>
+      <image class="cart-item-image" wx:else src="/images/default.jpg" mode="aspectFill"></image>
       <view class="cart-item-info">
         <text class="cart-item-name">{{item.name}}</text>
         <view class="cart-item-meta">
@@ -133,7 +133,7 @@
 <!-- 成功弹窗 -->
 <view class="success-modal" wx:if="{{showSuccess}}">
   <view class="success-content">
-    <image class="success-image" src="/images/7b4bee27a7ccb84274ec7753e54c50c7.gif" mode="aspectFit"></image>
+    <image class="success-image" src="/images/1.gif" mode="aspectFit"></image>
     <text class="success-title">点菜成功！</text>
     <text class="success-desc">已通知{{partnerName}}啦~</text>
     <view class="btn-primary" bindtap="closeSuccess">好的</view>
@@ -153,7 +153,7 @@
         <view class="pull-chevron"></view>
       </view>
       <image class="detail-dish-image" wx:if="{{currentDish.imageUrl}}" src="{{currentDish.imageUrl}}" mode="widthFix"></image>
-      <image class="detail-dish-image" wx:else src="/images/dish-default.jpg" mode="widthFix"></image>
+      <image class="detail-dish-image" wx:else src="/images/default.jpg" mode="widthFix"></image>
     </view>
     <view class="detail-dish-info">
       <text class="detail-dish-name">{{currentDish.name}}</text>
