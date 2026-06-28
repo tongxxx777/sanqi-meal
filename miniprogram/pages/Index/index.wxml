@@ -47,7 +47,7 @@
       <text class="bind-tip-icon">🥺</text>
       <view class="bind-tip-content">
         <text class="bind-tip-title">还没有设置头像和昵称</text>
-        <text class="bind-tip-desc">点击设置，做个有身份的人儿~</text>
+        <text class="bind-tip-desc">点击设置 做个有身份的人儿~</text>
       </view>
     </view>
   </view>
@@ -70,7 +70,7 @@
       <text class="bind-tip-icon">🔔</text>
       <view class="bind-tip-content">
         <text class="bind-tip-title">开启点菜提醒通知</text>
-        <text class="bind-tip-desc">TA 点菜时你会收到提醒哦~</text>
+        <text class="bind-tip-desc">TA 点菜时你会收到提醒哦</text>
       </view>
       <text class="bind-tip-arrow">›</text>
     </view>

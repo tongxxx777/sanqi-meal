@@ -259,6 +259,10 @@ Page({
 
   // 跳转到类目管理
   goToCategoryManage() {
+    if (!app.isBound()) {
+      wx.showToast({ title: '请先绑定伴侣', icon: 'none' })
+      return
+    }
     wx.navigateTo({ url: '/pages/category-manage/index' })
   },
 

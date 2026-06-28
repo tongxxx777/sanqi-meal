@@ -1,5 +1,9 @@
 /* 蜜桃奶油系 */
 
+/* page 与导航同色渐变，彻底消灭白边 */
+page { background: var(--gradient-header); }
+
+/* 导航栏 */
 .custom-nav {
   background: var(--gradient-header);
 }

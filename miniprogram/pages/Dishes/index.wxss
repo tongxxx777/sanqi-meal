@@ -7,12 +7,12 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg-color);
+  background: #F5F5F5;
 }
 
 /* ========== 页面头部（渐变背景，与点菜页一致） ========== */
 .page-header {
-  padding: 28rpx 28rpx 20rpx;
+  padding: 30rpx 24rpx 20rpx;
   background: var(--gradient-header);
 }
 
@@ -20,14 +20,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4rpx;
+  margin-bottom: 6rpx;
 }
 
 .page-title {
-  font-size: 44rpx;
-  font-weight: 700;
+  font-size: 40rpx;
+  font-weight: 600;
   color: #FFFFFF;
-  letter-spacing: 2rpx;
 }
 
 .header-add {
@@ -53,9 +52,7 @@
 
 .page-subtitle {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.85);
-  margin-bottom: 20rpx;
-  display: block;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* 搜索框 */
@@ -65,12 +62,12 @@
   background: rgba(255, 255, 255, 0.9);
   border-radius: 40rpx;
   padding: 16rpx 24rpx;
+  margin-top: 20rpx;
 }
 
 .search-icon {
   font-size: 28rpx;
   margin-right: 12rpx;
-  opacity: 0.5;
 }
 
 .search-input {
@@ -252,7 +249,6 @@
   align-items: center;
   justify-content: center;
   padding: 60rpx;
-  background: var(--card-bg);
 }
 
 .search-empty-icon {
@@ -281,19 +277,17 @@
   align-items: center;
   justify-content: center;
   padding: 60rpx;
-  background: var(--card-bg);
 }
 
 .empty-image {
   width: 240rpx;
   height: 240rpx;
   margin-bottom: 30rpx;
-  opacity: 0.7;
 }
 
 .empty-title {
   font-size: 32rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-primary);
   margin-bottom: 12rpx;
 }

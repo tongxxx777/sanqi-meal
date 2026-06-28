@@ -71,8 +71,7 @@
   </view>
 
   <view class="footer">
-    <text class="footer-text" wx:if="{{isBound}}">Made with 🎀 for {{partnerName}}</text>
-    <text class="footer-text" wx:else>Made with 🎀</text>
+    <text class="footer-text">Made with love 🎀 shared with you</text>
   </view>
 
   <view wx:if="{{_showSheet}}" class="sheet-overlay {{showEditModal ? '' : 'sheet-overlay--hidden'}}" catchtap="closeEditModal">

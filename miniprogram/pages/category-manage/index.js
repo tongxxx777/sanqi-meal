@@ -52,6 +52,10 @@ Page({
 
   // 显示添加弹窗
   showAddModal() {
+    if (!app.isBound()) {
+      wx.showToast({ title: '请先绑定伴侣', icon: 'none' })
+      return
+    }
     this.setData({
       showModal: true,
       editingIndex: -1,

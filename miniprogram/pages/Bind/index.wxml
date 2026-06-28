@@ -1,14 +1,15 @@
-﻿<view class="container">
-  <!-- 自定义导航栏 -->
-  <view class="custom-nav" style="padding-top: {{statusBarHeight}}px;">
-    <view class="nav-content">
-      <view class="nav-back" bindtap="goBack">
-        <text class="back-icon">‹</text>
-      </view>
-      <text class="nav-title">伴侣绑定</text>
-      <view class="nav-placeholder"></view>
+﻿<!-- 自定义导航栏 -->
+<view class="custom-nav" style="padding-top: {{statusBarHeight}}px;">
+  <view class="nav-content">
+    <view class="nav-back" bindtap="goBack">
+      <text class="back-icon">‹</text>
     </view>
+    <text class="nav-title">伴侣绑定</text>
+    <view class="nav-placeholder"></view>
   </view>
+</view>
+
+<view class="container">
   <!-- 加载中 -->
   <view wx:if="{{loading}}" class="loading">
     <text>加载中...</text>

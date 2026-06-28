@@ -226,6 +226,10 @@ Page({
 
   // 跳转到添加页
   toAddPage() {
+    if (!app.isBound()) {
+      wx.showToast({ title: '请先绑定伴侣', icon: 'none' })
+      return
+    }
     wx.navigateTo({ url: '/pages/dish-add/index' })
   },
 
