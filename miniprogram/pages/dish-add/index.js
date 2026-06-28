@@ -153,9 +153,40 @@ Page({
     }
   },
 
-  // 重新搜索图片
+  // 重新搜索图片（传入 refresh 让云函数随机翻页）
   async regenerateAIImage() {
-    await this.generateAIImage()
+    if (!this.data.name.trim()) return
+
+    this.setData({
+      generating: true,
+      aiImages: [],
+      aiImageUrls: [],
+      selectedAIIndex: -1
+    })
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'generateAIImage',
+        data: { dishName: this.data.name.trim(), refresh: true }
+      })
+
+      if (!res.result?.success) {
+        wx.showToast({ title: res.result?.message || '图片搜索失败，请重试', icon: 'none' })
+        this.setData({ generating: false, showAIModal: false })
+        return
+      }
+
+      const images = res.result.data.images
+      this.setData({
+        aiImages: images,
+        aiImageUrls: images.map(img => img.tempFileURL),
+        generating: false
+      })
+    } catch (error) {
+      console.error('重新搜索图片失败', error)
+      wx.showToast({ title: '图片搜索失败，请手动上传', icon: 'none' })
+      this.setData({ generating: false, showAIModal: false })
+    }
   },
 
   // 上传图片到云存储

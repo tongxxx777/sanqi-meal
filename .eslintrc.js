@@ -1,30 +1,23 @@
-/*
- * Eslint config file
- * Documentation: https://eslint.org/docs/user-guide/configuring/
- * Install the Eslint extension before using this feature.
- */
 module.exports = {
   env: {
-    es6: true,
+    es2020: true,
     browser: true,
     node: true,
   },
-  ecmaFeatures: {
-    modules: true,
-  },
   parserOptions: {
-    ecmaVersion: 2018,
+    ecmaVersion: 2020,
     sourceType: 'module',
   },
   globals: {
-    wx: true,
-    App: true,
-    Page: true,
-    getCurrentPages: true,
-    getApp: true,
-    Component: true,
-    requirePlugin: true,
-    requireMiniProgram: true,
+    wx: 'readonly',
+    App: 'readonly',
+    Page: 'readonly',
+    getCurrentPages: 'readonly',
+    getApp: 'readonly',
+    Component: 'readonly',
+    Behavior: 'readonly',
+    requirePlugin: 'readonly',
+    requireMiniProgram: 'readonly',
   },
   rules: {},
 }

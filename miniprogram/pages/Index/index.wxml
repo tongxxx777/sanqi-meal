@@ -145,11 +145,9 @@
     </view>
   </view>
   <!-- 底部装饰 -->
-  <!-- 底部版权 -->
   <view class="footer-decoration">
     <view class="footer-content">
-          <text class="footer-text" wx:if="{{isBound}}">Made with 🎀 for {{partnerName}}</text>
-          <text class="footer-text" wx:else>Made with love 🎀 share with you</text>
+          <text class="footer-text">Made with love 🎀 shared with you</text>
     </view>
   </view>
 </view>

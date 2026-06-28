@@ -10,9 +10,10 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
  * @param {number} count - 需要获取的图片数量
  * @returns {Promise<Array<string>>} 图片 URL 列表
  */
-async function searchBaiduImages(keyword, count = 5) {
-  // 百度图片搜索接口（非官方，但稳定可用）
+async function searchBaiduImages(keyword, count = 5, refresh = false) {
+  // 百度图片搜索接口，refresh 时随机翻页获取不同结果
   const searchUrl = 'https://image.baidu.com/search/acjson'
+  const page = refresh ? Math.floor(Math.random() * 40) * 10 : 0
   
   const response = await axios.get(searchUrl, {
     params: {
@@ -45,8 +46,8 @@ async function searchBaiduImages(keyword, count = 5) {
       istype: 2,
       jc: '',
       nc: 1,
-      pn: 0,
-      rn: count + 5,  // 多请求几张，过滤掉无效的
+      pn: page,
+      rn: count + 5,
     },
     headers: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -101,7 +102,7 @@ async function downloadAndUploadImage(imageUrl, index) {
 }
 
 exports.main = async (event, context) => {
-  const { dishName } = event
+  const { dishName, refresh } = event
 
   if (!dishName || !dishName.trim()) {
     return { success: false, message: '菜品名称不能为空' }
@@ -109,10 +110,10 @@ exports.main = async (event, context) => {
 
   try {
     const name = dishName.trim()
-    console.log(`[搜索图片] 开始为"${name}"搜索图片...`)
+    console.log(`[搜索图片] 开始为"${name}"搜索图片${refresh ? '（刷新）' : ''}...`)
 
-    // 调用百度图片搜索（无需 API Key）
-    const imageUrls = await searchBaiduImages(name, 5)
+    // 调用百度图片搜索，refresh 时随机翻页
+    const imageUrls = await searchBaiduImages(name, 5, refresh)
     console.log(`[搜索图片] 关键词"${name}"，找到 ${imageUrls.length} 张图片`)
 
     if (!imageUrls || imageUrls.length === 0) {
