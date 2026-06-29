@@ -1,47 +1,9 @@
 /* 蜜桃奶油系 */
 
-/* page 与导航同色渐变，彻底消灭白边 */
-page { background: var(--gradient-header); }
-
-/* 导航栏 */
-.custom-nav {
-  background: var(--gradient-header);
-}
-
-.nav-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 88rpx;
-  padding: 0 20rpx;
-}
-
-.nav-back {
-  width: 80rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.back-icon {
-  font-size: 48rpx;
-  color: white;
-  font-weight: 300;
-}
-
-.nav-title {
-  font-size: 34rpx;
-  font-weight: 500;
-  color: white;
-}
-
-.nav-placeholder { width: 80rpx; }
-
 .container {
   min-height: 100vh;
   background: var(--bg-color);
-  padding-bottom: 0;
+  padding-bottom: calc(60rpx + env(safe-area-inset-bottom));
 }
 
 .loading {
@@ -52,13 +14,14 @@ page { background: var(--gradient-header); }
   color: var(--text-hint);
 }
 
-/* 页面头部 */
+/* 页面头部（未绑定状态） */
 .page-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 80rpx 40rpx 60rpx;
+  padding: 40rpx 40rpx 60rpx;
   background: var(--gradient-header);
+  margin: 0 -24rpx;
 }
 
 .header-emoji {
@@ -170,7 +133,6 @@ page { background: var(--gradient-header); }
   font-size: 32rpx;
   border-radius: 44rpx;
   border: none;
-  line-height: 88rpx;
 }
 
 .share-btn::after { display: none; }
@@ -191,10 +153,11 @@ page { background: var(--gradient-header); }
 /* 已绑定状态 - 情侣头部 */
 .couple-header-bound {
   background: var(--gradient-header);
-  padding: 80rpx 40rpx 60rpx;
+  padding: 40rpx 40rpx 60rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin: 0 -24rpx;
 }
 
 .couple-avatars {
@@ -293,15 +256,11 @@ page { background: var(--gradient-header); }
   align-items: center;
 }
 
-.info-code {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: var(--primary-color);
-  letter-spacing: 4rpx;
-  margin-right: 12rpx;
+.info-arrow {
+  font-size: 28rpx;
+  color: #ccc;
+  margin-left: 8rpx;
 }
-
-.copy-icon { font-size: 28rpx; }
 
 /* 解绑区域 */
 .unbind-section {
@@ -396,13 +355,6 @@ page { background: var(--gradient-header); }
   font-size: 26rpx;
   color: var(--primary-color);
   line-height: 1.6;
-}
-
-/* 信息行箭头 */
-.info-arrow {
-  font-size: 28rpx;
-  color: #ccc;
-  margin-left: 8rpx;
 }
 
 /* 弹窗样式 */
@@ -511,7 +463,6 @@ page { background: var(--gradient-header); }
   font-size: 32rpx;
   border-radius: 44rpx;
   border: none;
-  line-height: 88rpx;
 }
 
 .bind-btn::after { display: none; }

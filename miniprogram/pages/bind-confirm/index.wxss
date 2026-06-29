@@ -1,43 +1,5 @@
 /* 情侣邀请确认页 - 蜜桃奶油系 */
 
-/* page 与导航同色渐变，彻底消灭白边 */
-page { background: var(--gradient-header); }
-
-/* 导航栏 */
-.custom-nav {
-  background: var(--gradient-header);
-}
-
-.nav-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 88rpx;
-  padding: 0 20rpx;
-}
-
-.nav-back {
-  width: 80rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.back-icon {
-  font-size: 48rpx;
-  color: white;
-  font-weight: 300;
-}
-
-.nav-title {
-  font-size: 34rpx;
-  font-weight: 500;
-  color: white;
-}
-
-.nav-placeholder { width: 80rpx; }
-
 .container {
   min-height: 100vh;
   background: linear-gradient(180deg, #FFF6F8 0%, #FFFFFF 40%);

@@ -1,4 +1,4 @@
-const app = getApp()
+﻿const app = getApp()
 
 Page({
   data: {
@@ -17,14 +17,10 @@ Page({
     tempKitchenName: '',
     showKitchenNameModal: false,
     loading: true,
-    submitting: false,
-    statusBarHeight: 20,
+    isSubmitting: false,
   },
 
-  onLoad() {
-    const sysInfo = wx.getSystemInfoSync()
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight })
-  },
+  onLoad() {},
 
   async onShow() {
     await this.loadUserInfo()
@@ -88,13 +84,13 @@ Page({
   },
 
   async bindPartner() {
-    const { inputCode, submitting } = this.data
-    if (submitting || !inputCode || inputCode.length !== 6) {
+    const { inputCode, isSubmitting } = this.data
+    if (isSubmitting || !inputCode || inputCode.length !== 6) {
       wx.showToast({ title: '请输入6位邀请码', icon: 'none' })
       return
     }
 
-    this.setData({ submitting: true })
+    this.setData({ isSubmitting: true })
     wx.showLoading({ title: '绑定中...', mask: true })
 
     const result = await app.bindPartner(inputCode)
@@ -108,7 +104,7 @@ Page({
       wx.hideLoading()
       wx.showToast({ title: result.message, icon: 'none' })
     }
-    this.setData({ submitting: false })
+    this.setData({ isSubmitting: false })
   },
 
   unbindPartner() {
@@ -149,10 +145,6 @@ Page({
       path: `/pages/bind-confirm/index?inviteCode=${inviteCode}`,
       imageUrl: '/images/default.jpg'
     }
-  },
-
-  goBack() {
-    wx.switchTab({ url: '/pages/index/index' })
   },
 
   showKitchenNameModal() {

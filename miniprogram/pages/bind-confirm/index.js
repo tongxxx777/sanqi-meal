@@ -10,16 +10,12 @@ Page({
     failMessage: '',
     failCode: '',      // SELF_INVITE / NOT_FOUND / ALREADY_BOUND / PARTNER_BOUND
     submitting: false,
-    statusBarHeight: 20,
     // 当前用户信息
     avatarUrl: '',
     isBound: false
   },
 
   onLoad(options) {
-    const sysInfo = wx.getSystemInfoSync()
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight })
-
     const inviteCode = options.inviteCode || ''
     if (!inviteCode || inviteCode.length !== 6) {
       this.setData({
@@ -117,10 +113,5 @@ Page({
   // 跳转到绑定页面
   goToBindPage() {
     wx.redirectTo({ url: '/pages/bind/index' })
-  },
-
-  // 返回
-  goBack() {
-    wx.switchTab({ url: '/pages/index/index' })
   }
 })
