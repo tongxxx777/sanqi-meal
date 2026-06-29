@@ -1,5 +1,10 @@
 /* 蜜桃奶油系 */
 
+/* 与导航栏同色，消除下方间隙 */
+page {
+  background: var(--gradient-header) !important;
+}
+
 .container {
   min-height: 100vh;
   background: var(--bg-color);
