@@ -2,7 +2,7 @@
   <!-- 页面头部 -->
   <view class="page-header">
     <text class="page-title">点菜历史</text>
-    <text class="page-subtitle">和{{partnerName}}一起的美食记录 ~</text>
+    <text class="page-subtitle">和{{partnerName}}的每一餐 ~</text>
   </view>
 
   <!-- 空状态 -->

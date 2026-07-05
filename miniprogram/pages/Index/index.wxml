@@ -18,12 +18,12 @@
       <image class="avatar-image" src="{{userAvatar || '/images/user-default.jpg'}}" mode="aspectFill" bindtap="goToSettings"></image>
       <view class="welcome-text">
         <text class="greeting">{{greeting}}，{{userName || '新朋友'}}！</text>
-        <text class="sub-greeting">今天想吃点什么呀？</text>
+        <text class="sub-greeting">今天也是元气满满的一天~</text>
       </view>
     </view>
     <!-- 已绑定：情侣卡片 -->
     <view wx:else class="couple-header" bindtap="goToBind">
-      <view class="couple-greeting">{{greeting}}，一起吃点什么？</view>
+      <view class="couple-greeting">{{greeting}}，今天想吃什么？</view>
       <view class="couple-avatars-top">
         <view class="couple-avatar-item" catchtap="goToSettings">
           <image class="couple-avatar-img" src="{{userAvatar || '/images/user-default.jpg'}}" mode="aspectFill"></image>
@@ -139,7 +139,7 @@
 
   <!-- 菜品统计 -->
   <view class="stats-section" wx:if="{{isBound}}">
-    <view class="section-title">📊 小厨房统计</view>
+    <view class="section-title">🍳 小厨房统计</view>
     <view class="stats-card">
       <view class="stat-item">
         <text class="stat-number">{{dishCount}}</text>
