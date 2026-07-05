@@ -519,6 +519,7 @@ Page({
           })),
           remark,
           coupleId,
+          status: 'pending', // 待处理状态
           createTime: db.serverDate(),
         }
       })

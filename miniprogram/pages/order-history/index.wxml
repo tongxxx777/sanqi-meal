@@ -21,7 +21,7 @@
           <view class="history-item animate-fadeIn {{item.marked ? 'marked' : ''}}" data-id="{{item._id}}" bindtap="goToDetail">
             <view class="history-header">
               <view class="history-date">
-                <text class="date-icon">📅</text>
+                <text class="date-icon">🎀</text>
                 <text class="date-text">{{item.dateText}}</text>
               </view>
               <text class="history-time">{{item.timeText}}</text>
@@ -39,7 +39,12 @@
             </view>
             <view class="history-footer">
               <text class="history-creator">{{item.creatorName}} 点的菜</text>
-              <text class="dish-count">共 {{item.dishes.length}} 道</text>
+              <view class="history-footer-right">
+                <view class="status-tag-mini {{item.status === 'completed' ? 'status-completed' : 'status-pending'}}">
+                  {{item.status === 'completed' ? '已完成' : '进行中'}}
+                </view>
+                <text class="dish-count">共 {{item.dishes.length}} 道</text>
+              </view>
             </view>
           </view>
         </mp-slideview>

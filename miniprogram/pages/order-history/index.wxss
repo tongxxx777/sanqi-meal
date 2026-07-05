@@ -202,6 +202,29 @@ mp-slideview .mark-btn,
   flex-shrink: 0;
 }
 
+.history-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.status-tag-mini {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  font-weight: 500;
+}
+
+.status-tag-mini.status-pending {
+  background: #FFF3E0;
+  color: #FF9800;
+}
+
+.status-tag-mini.status-completed {
+  background: #E8F5E9;
+  color: #4CAF50;
+}
+
 /* 加载更多 */
 .load-more {
   text-align: center;

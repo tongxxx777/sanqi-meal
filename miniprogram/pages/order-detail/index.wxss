@@ -37,6 +37,24 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+/* 状态标签 */
+.status-tag {
+  font-size: 24rpx;
+  padding: 6rpx 20rpx;
+  border-radius: 20rpx;
+  font-weight: 500;
+}
+
+.status-pending {
+  background: rgba(255, 152, 0, 0.9);
+  color: white;
+}
+
+.status-completed {
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+}
+
 /* 区块 */
 .section {
   background: white;
@@ -109,24 +127,54 @@
   line-height: 1.6;
 }
 
-/* 再来一单按钮 */
-.reorder-btn {
+/* 标记为已完成按钮 */
+.complete-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--gradient-primary);
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
   color: white;
-  font-size: 32rpx;
-  font-weight: 500;
-  padding: 28rpx;
+  font-size: 34rpx;
+  font-weight: 600;
+  padding: 32rpx;
   border-radius: 50rpx;
-  margin-top: 20rpx;
-  box-shadow: var(--shadow-button);
+  margin: 10rpx 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 107, 0.4);
+  position: relative;
+  overflow: hidden;
+  animation: pulse 2s ease-in-out infinite;
 }
 
-.reorder-icon {
-  font-size: 36rpx;
+.complete-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.complete-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.4);
+  animation: none;
+}
+
+.complete-icon {
+  font-size: 40rpx;
   margin-right: 12rpx;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
 }
 
 /* 成品照片 */
@@ -200,6 +248,63 @@
 .photo-action-btn.delete {
   color: #E57373;
   background: #FFF5F5;
+}
+
+/* 点菜人查看照片提示 */
+.photo-viewer-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx;
+  margin-top: 16rpx;
+  background: #FFF5F2;
+  border-radius: 12rpx;
+}
+
+.viewer-text {
+  font-size: 26rpx;
+  color: var(--primary-deep);
+}
+
+/* 点菜人等待上传照片 */
+.photo-waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 30rpx;
+  background: var(--bg-color);
+  border-radius: 16rpx;
+  border: 2rpx dashed var(--border-color);
+}
+
+.waiting-icon {
+  font-size: 64rpx;
+  margin-bottom: 16rpx;
+}
+
+.waiting-text {
+  font-size: 28rpx;
+  color: var(--text-hint);
+}
+
+/* 点菜人等待确认完成 */
+.waiting-complete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx;
+  margin: 10rpx 24rpx;
+  background: #f5f5f5;
+  border-radius: 50rpx;
+  color: var(--text-hint);
+  font-size: 30rpx;
+}
+
+.waiting-complete .waiting-icon {
+  font-size: 36rpx;
+  margin-right: 12rpx;
+  margin-bottom: 0;
 }
 
 /* 加载中 */

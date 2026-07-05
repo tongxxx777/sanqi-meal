@@ -4,6 +4,7 @@ Page({
   data: {
     order: null,
     loading: true,
+    isCreator: false  // 当前用户是否是点菜人（创建者）
   },
 
   onLoad(options) {
@@ -31,6 +32,10 @@ Page({
       order.dateText = this.formatDate(order.createTime)
       order.timeText = this.formatTime(order.createTime)
       order.creatorName = await this.getCreatorName(order._openid)
+      // 处理旧数据：如果没有 status 字段，默认为 'pending'
+      if (!order.status) {
+        order.status = 'pending'
+      }
       // 转换菜品图片和成品照片
       await app.convertFileURLs(order.dishes || [], ['imageUrl'])
       if (order.finishedPhoto) {
@@ -38,7 +43,12 @@ Page({
         const urlMap = await app.getTempFileURLs([order.finishedPhoto])
         order.finishedPhoto = urlMap[order.finishedPhoto] || order.finishedPhoto
       }
-      this.setData({ order, loading: false })
+      
+      // 判断当前用户是否是点菜人（创建者）
+      const currentUserId = app.globalData.currentUser?._id
+      const isCreator = order._openid === currentUserId
+      
+      this.setData({ order, loading: false, isCreator })
     } catch (e) {
       console.error('加载订单失败', e)
       wx.showToast({ title: '加载失败', icon: 'none' })
@@ -67,13 +77,36 @@ Page({
     return `${hours}:${minutes}`
   },
 
-  // 再来一单
-  reorder() {
-    const dishIds = this.data.order.dishes.map(d => d._id).join(',')
-    wx.switchTab({
-      url: '/pages/order/index',
-      success: () => {
-        app.globalData.reorderDishIds = dishIds
+  // 标记为已完成
+  async markAsCompleted() {
+    wx.showModal({
+      title: '确认完成',
+      content: '确认将此订单标记为已完成吗？',
+      success: async (res) => {
+        if (!res.confirm) return
+
+        wx.showLoading({ title: '更新中...', mask: true })
+
+        try {
+          await wx.cloud.callFunction({
+            name: 'updateCoupleData',
+            data: {
+              collection: app.globalData.collectionOrderList,
+              docId: this.data.order._id,
+              action: 'update',
+              data: { status: 'completed' }
+            }
+          })
+
+          this.setData({ 'order.status': 'completed' })
+
+          wx.hideLoading()
+          wx.showToast({ title: '已完成', icon: 'success' })
+        } catch (e) {
+          wx.hideLoading()
+          console.error('更新订单状态失败', e)
+          wx.showToast({ title: '操作失败', icon: 'none' })
+        }
       }
     })
   },

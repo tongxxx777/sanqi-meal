@@ -65,11 +65,14 @@ Page({
       const data = res.result.data
       const newOrders = data.map(item => ({
         ...item,
+        // 处理旧数据：如果没有 status 字段，默认为 'pending'
+        status: item.status || 'pending',
         dateText: this.formatDate(item.createTime),
         timeText: this.formatTime(item.createTime),
         creatorName: this.getCreatorName(item._openid),
         slideButtons: this.getSlideButtons(item.marked)
       }))
+
       // 转换订单中菜品图片的临时链接
       const allDishes = newOrders.flatMap(o => o.dishes || [])
       await app.convertFileURLs(allDishes, ['imageUrl'])
@@ -104,6 +107,8 @@ Page({
       const data = res.result.data
       const newOrders = data.map(item => ({
         ...item,
+        // 处理旧数据：如果没有 status 字段，默认为 'pending'
+        status: item.status || 'pending',
         dateText: this.formatDate(item.createTime),
         timeText: this.formatTime(item.createTime),
         creatorName: this.getCreatorName(item._openid),

@@ -134,11 +134,19 @@ Page({
       if (res.result?.success && res.result.data?.length > 0) {
         const order = res.result.data[0]
         const creatorName = app.getDisplayName(order._openid)
+        // 处理旧数据：如果没有 status 字段，默认为 'pending'
+        if (!order.status) {
+          order.status = 'pending'
+        }
+        // 判断当前用户是否是点菜人（创建者）
+        const currentUserId = app.globalData.currentUser?._id
+        const isCreator = order._openid === currentUserId
         this.setData({
           todayOrder: {
             ...order,
             creatorName,
-            timeText: this.formatTime(order.createTime)
+            timeText: this.formatTime(order.createTime),
+            isCreator // 添加是否为点菜人的标识
           }
         })
       } else {

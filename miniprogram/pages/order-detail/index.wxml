@@ -3,7 +3,9 @@
   <view class="header-card">
     <view class="header-row">
       <text class="header-date">{{order.dateText}}</text>
-      <text class="header-time">{{order.timeText}}</text>
+      <view class="status-tag {{order.status === 'completed' ? 'status-completed' : 'status-pending'}}">
+        {{order.status === 'completed' ? '已完成' : '进行中'}}
+      </view>
     </view>
     <view class="header-creator">{{order.creatorName}}点的菜</view>
   </view>
@@ -40,12 +42,13 @@
     <view class="section-title">
       <text class="section-icon">📸</text>
       <text>成品照片</text>
-      <text class="photo-tip" wx:if="{{!order.finishedPhoto}}">记录美味时刻</text>
     </view>
+    
     <!-- 已有照片 -->
     <view class="photo-preview" wx:if="{{order.finishedPhoto}}">
       <image class="finished-photo" src="{{order.finishedPhoto}}" mode="aspectFill" bindtap="previewPhoto"></image>
-      <view class="photo-actions">
+      <!-- 做菜人（非点菜人）才能操作照片 -->
+      <view class="photo-actions" wx:if="{{!isCreator}}">
         <view class="photo-action-btn" bindtap="changePhoto">
           <text class="action-icon">🔄</text>
           <text>更换照片</text>
@@ -55,19 +58,35 @@
           <text>删除</text>
         </view>
       </view>
+      <!-- 点菜人查看提示 -->
+      <view class="photo-viewer-hint" wx:if="{{isCreator}}">
+        <text class="viewer-text">等待大厨上传成品照片 📷</text>
+      </view>
     </view>
+    
     <!-- 未上传照片 -->
-    <view class="photo-upload" wx:else bindtap="uploadPhoto">
+    <!-- 做菜人（非点菜人）才能上传 -->
+    <view class="photo-upload" wx:if="{{!order.finishedPhoto && !isCreator}}" bindtap="uploadPhoto">
       <view class="upload-icon">📷</view>
       <text class="upload-text">拍一张做好的菜</text>
       <text class="upload-hint">点击上传照片</text>
     </view>
+    <!-- 点菜人等待提示 -->
+    <view class="photo-waiting" wx:if="{{!order.finishedPhoto && isCreator}}">
+      <text class="waiting-icon">⏳</text>
+      <text class="waiting-text">等待大厨上传成品照片</text>
+    </view>
   </view>
 
-  <!-- 再来一单按钮 -->
-  <view class="reorder-btn" bindtap="reorder">
-    <text class="reorder-icon">🔄</text>
-    <text>再来一单</text>
+  <!-- 底部操作区域 -->
+  <!-- 做菜人（非点菜人）才能标记完成 -->
+  <view class="complete-btn" wx:if="{{order.status !== 'completed' && !isCreator}}" bindtap="markAsCompleted">
+    <text>确认完成</text>
+  </view>
+  <!-- 点菜人等待提示 -->
+  <view class="waiting-complete" wx:if="{{order.status !== 'completed' && isCreator}}">
+    <text class="waiting-icon">⏳</text>
+    <text class="waiting-text">等待大厨确认完成...</text>
   </view>
 </view>
 
