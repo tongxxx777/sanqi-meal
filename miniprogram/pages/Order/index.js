@@ -305,13 +305,31 @@ Page({
     visibleCats.forEach(cat => {
       query.select(`#cat-${cat._id}`).boundingClientRect()
     })
+    // 额外查询列表底部的占位元素，用于判断是否已滚动到底
+    query.select('.list-bottom').boundingClientRect()
     query.exec(rects => {
       if (!rects || !rects[0]) return
       const listTop = rects[0].top + 20
+      const listBottom = rects[0].bottom
       let activeId = visibleCats[0]._id
       for (let i = 0; i < visibleCats.length; i++) {
         if (rects[i + 1] && rects[i + 1].top <= listTop) {
           activeId = visibleCats[i]._id
+        }
+      }
+      // 修复：检查最后一个分类是否应该高亮
+      const lastIdx = visibleCats.length - 1
+      const lastCatRect = rects[lastIdx + 1]
+      if (lastCatRect) {
+        // 场景1：最后一个分类的标题已经滚动到顶部区域或上方
+        if (lastCatRect.top <= listTop) {
+          activeId = visibleCats[lastIdx]._id
+        }
+        // 场景2：列表已滚动到底部（最后一个分类的底部已在可视区域内）
+        // rects 最后一个是 .list-bottom 的 rect
+        const bottomHintRect = rects[rects.length - 1]
+        if (bottomHintRect && bottomHintRect.top <= listBottom) {
+          activeId = visibleCats[lastIdx]._id
         }
       }
       if (activeId !== this.data.currentCategory) {
@@ -319,7 +337,10 @@ Page({
         const now = Date.now()
         if (!this._lastHighlightTime || now - this._lastHighlightTime > 200) {
           this._lastHighlightTime = now
-          this.setData({ currentCategory: activeId })
+          this.setData({
+            currentCategory: activeId,
+            categoryScrollId: `catleft-${activeId}`
+          })
         }
       }
     })
