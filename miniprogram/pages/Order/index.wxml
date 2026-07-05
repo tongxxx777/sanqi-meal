@@ -42,7 +42,8 @@
 
     <!-- 右侧菜品 -->
     <scroll-view class="dish-list" scroll-y scroll-with-animation
-                 scroll-top="{{dishScrollTop}}" bindscroll="onDishScroll">
+                 scroll-top="{{dishScrollTop}}" bindscroll="onDishScroll"
+                 bindscrolltolower="onDishScrollToLower">
       <view wx:for="{{categories}}" wx:key="_id" wx:if="{{categoryCount[item._id] > 0}}">
         <view class="category-header" id="cat-{{item._id}}">
           <text class="category-header-icon">{{item.icon}}</text>

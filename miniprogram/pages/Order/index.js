@@ -274,6 +274,20 @@ Page({
     }, 100)
   },
 
+  // 滚动到底部——强制高亮最后一个分类
+  onDishScrollToLower() {
+    const visibleCats = this.data.categories.filter(c => this.data.categoryCount[c._id] > 0)
+    if (visibleCats.length === 0) return
+    const lastCat = visibleCats[visibleCats.length - 1]
+    if (lastCat && lastCat._id !== this.data.currentCategory) {
+      this._scrollToLowerTime = Date.now()
+      this.setData({
+        currentCategory: lastCat._id,
+        categoryScrollId: `catleft-${lastCat._id}`
+      })
+    }
+  },
+
   // 预测量所有分类标题在 scroll-view 内容中的位置（scrollTop=0 时测量，保证视野外元素也精确）
   _measureDishCategoryPositions() {
     const cats = this.data.categories.filter(c => this.data.categoryCount[c._id] > 0)
@@ -296,6 +310,8 @@ Page({
   _syncCategoryHighlight() {
     // 手动选分类后 600ms 内暂停自动同步，避免被滚动事件冲掉
     if (this._manualSelectTime && Date.now() - this._manualSelectTime < 600) return
+    // 滚动触底后 300ms 内暂停自动同步，避免把最后一个分类高亮冲掉
+    if (this._scrollToLowerTime && Date.now() - this._scrollToLowerTime < 300) return
 
     const visibleCats = this.data.categories.filter(c => this.data.categoryCount[c._id] > 0)
     if (visibleCats.length === 0) return
