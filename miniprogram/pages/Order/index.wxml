@@ -29,7 +29,7 @@
   <!-- 左右分栏布局 -->
   <view class="menu-container" wx:if="{{dishes.length > 0}}">
     <!-- 左侧分类 -->
-    <scroll-view class="category-list" scroll-y scroll-with-animation scroll-into-view="{{categoryScrollId}}">
+    <scroll-view class="category-list" scroll-y scroll-with-animation scroll-top="{{leftScrollTop}}">
       <view class="category-item {{currentCategory === item._id ? 'active' : ''}}"
             wx:for="{{categories}}" wx:key="_id"
             id="catleft-{{item._id}}"

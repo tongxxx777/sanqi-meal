@@ -10,7 +10,7 @@ Page({
     categoryCount: {},
     selectedByCategory: {},
     currentCategory: '',
-    categoryScrollId: '',
+    leftScrollTop: 0,
     dishScrollTop: 0,
     selectedCount: 0,
     selectedDishes: [],
@@ -199,9 +199,10 @@ Page({
   // 选择分类
   selectCategory(e) {
     const id = e.currentTarget.dataset.id
+    const leftPos = this._leftCategoryPositions?.[id] ?? 0
     this.setData({
       currentCategory: id,
-      categoryScrollId: `catleft-${id}`
+      leftScrollTop: leftPos
     })
     // 锁定手动选中，防止滚动动画期间 _syncCategoryHighlight 把高亮切回去
     this._manualSelectId = id
@@ -258,8 +259,17 @@ Page({
     const dishesByCategory = {}
     const selectedByCategory = {}
     cats.forEach(cat => {
-      dishesByCategory[cat._id] = dishes.filter(d => d.category === cat._id)
-      selectedByCategory[cat._id] = dishes.filter(d => d.category === cat._id && d.selected).length
+      const catDishes = dishes.filter(d => d.category === cat._id)
+      // 排序：先按点单次数降序，再按创建时间降序
+      catDishes.sort((a, b) => {
+        const countDiff = (b.orderCount || 0) - (a.orderCount || 0)
+        if (countDiff !== 0) return countDiff
+        const aTime = a.createTime ? new Date(a.createTime).getTime() : 0
+        const bTime = b.createTime ? new Date(b.createTime).getTime() : 0
+        return bTime - aTime
+      })
+      dishesByCategory[cat._id] = catDishes
+      selectedByCategory[cat._id] = catDishes.filter(d => d.selected).length
     })
     return { dishesByCategory, selectedByCategory }
   },
@@ -281,9 +291,10 @@ Page({
     const lastCat = visibleCats[visibleCats.length - 1]
     if (lastCat && lastCat._id !== this.data.currentCategory) {
       this._scrollToLowerTime = Date.now()
+      const leftPos = this._leftCategoryPositions?.[lastCat._id] ?? 0
       this.setData({
         currentCategory: lastCat._id,
-        categoryScrollId: `catleft-${lastCat._id}`
+        leftScrollTop: leftPos
       })
     }
   },
@@ -292,16 +303,31 @@ Page({
   _measureDishCategoryPositions() {
     const cats = this.data.categories.filter(c => this.data.categoryCount[c._id] > 0)
     if (cats.length === 0) return
-    const q = this.createSelectorQuery()
-    q.select('.dish-list').boundingClientRect()
-    cats.forEach(cat => q.select(`#cat-${cat._id}`).boundingClientRect())
-    q.exec(res => {
+    // 右侧菜品分类位置测量
+    const q1 = this.createSelectorQuery()
+    q1.select('.dish-list').boundingClientRect()
+    cats.forEach(cat => q1.select(`#cat-${cat._id}`).boundingClientRect())
+    q1.exec(res => {
       if (!res || !res[0]) return
       const listTop = res[0].top
       this._categoryPositions = {}
       cats.forEach((cat, i) => {
         if (res[i + 1]) {
           this._categoryPositions[cat._id] = Math.max(0, res[i + 1].top - listTop)
+        }
+      })
+    })
+    // 左侧分类位置测量（所有分类都要测，包括无菜品的分类）
+    const q2 = this.createSelectorQuery()
+    q2.select('.category-list').boundingClientRect()
+    this.data.categories.forEach(cat => q2.select(`#catleft-${cat._id}`).boundingClientRect())
+    q2.exec(res => {
+      if (!res || !res[0]) return
+      const listTop = res[0].top
+      this._leftCategoryPositions = {}
+      this.data.categories.forEach((cat, i) => {
+        if (res[i + 1]) {
+          this._leftCategoryPositions[cat._id] = Math.max(0, res[i + 1].top - listTop)
         }
       })
     })
@@ -353,9 +379,10 @@ Page({
         const now = Date.now()
         if (!this._lastHighlightTime || now - this._lastHighlightTime > 200) {
           this._lastHighlightTime = now
+          const leftPos = this._leftCategoryPositions?.[activeId] ?? 0
           this.setData({
             currentCategory: activeId,
-            categoryScrollId: `catleft-${activeId}`
+            leftScrollTop: leftPos
           })
         }
       }
