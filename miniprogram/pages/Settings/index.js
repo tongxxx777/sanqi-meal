@@ -187,4 +187,42 @@ Page({
     this.setData({ notifyEnabled: subscribed })
   },
 
+  // 手动触发订阅消息授权
+  manualSubscribe() {
+    wx.requestSubscribeMessage({
+      tmplIds: app.globalData.notifyTmplIds,
+      success: async (res) => {
+        const tmplId = app.globalData.notifyTmplIds[0]
+        if (res[tmplId] === 'accept') {
+          // 用户同意订阅
+          wx.showToast({ title: '订阅成功 🎉', icon: 'success', duration: 1500 })
+          // 更新数据库状态
+          await app.updateSubscribeStatus('subscribed')
+          this.setData({ notifyEnabled: true })
+        } else if (res[tmplId] === 'reject') {
+          // 用户拒绝
+          wx.showToast({
+            title: '已取消订阅',
+            icon: 'none',
+            duration: 2000
+          })
+          // 可选：也更新状态为未订阅
+          // await app.updateSubscribeStatus('unsubscribed')
+          // this.setData({ notifyEnabled: false })
+        } else {
+          // 其他情况（如系统弹窗被关闭）
+          wx.showToast({ title: '操作已取消', icon: 'none', duration: 1500 })
+        }
+      },
+      fail: (err) => {
+        console.error('manual subscribe error', err)
+        if (err.errMsg?.includes('requestSubscribeMessage:fail')) {
+          wx.showToast({ title: '请先配置消息模板', icon: 'none', duration: 2000 })
+        } else {
+          wx.showToast({ title: '操作失败，请重试', icon: 'none', duration: 1500 })
+        }
+      }
+    })
+  },
+
 })
