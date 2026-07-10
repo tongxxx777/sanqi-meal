@@ -34,6 +34,7 @@ Page({
     loading: true,
     hasLoaded: false,
     showSuccess: false,
+    notifyFailed: false,
     showRemarkModal: false,
     showCartPanel: false,
     showDishDetail: false,
@@ -808,7 +809,8 @@ Page({
       }
 
       // 发送通知
-      await this.sendNotification(selectedDishes, remark, orderId, expect.expectText)
+      const notifyResult = await this.sendNotification(selectedDishes, remark, orderId, expect.expectText)
+      const notifyFailed = !notifyResult || !notifyResult.success
 
       wx.hideLoading()
       // 记住本次选择：更新对应档位时间 + 记录上次选的档位
@@ -820,7 +822,8 @@ Page({
       // 显示成功弹窗
       this.setData({
         showSuccess: true,
-        submitting: false
+        submitting: false,
+        notifyFailed
       })
 
     } catch (e) {
@@ -865,6 +868,7 @@ Page({
 
     this.setData({
       showSuccess: false,
+      notifyFailed: false,
       dishes,
       dishesByCategory,
       selectedByCategory,
