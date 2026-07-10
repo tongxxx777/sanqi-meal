@@ -76,7 +76,6 @@ Page({
 
       // 转换订单中菜品图片的临时链接
       const allDishes = newOrders.flatMap(o => o.dishes || [])
-      await app.convertFileURLs(allDishes, ['imageUrl'])
 
       this.setData({
         orders: reset ? newOrders : [...existingOrders, ...newOrders],
@@ -117,7 +116,6 @@ Page({
         slideButtons: this.getSlideButtons(item.marked)
       }))
       const allDishes = newOrders.flatMap(o => o.dishes || [])
-      await app.convertFileURLs(allDishes, ['imageUrl'])
 
       this.setData({
         orders: newOrders,

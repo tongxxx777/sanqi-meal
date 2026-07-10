@@ -50,13 +50,9 @@ Page({
 
       const dish = res.result.data
       const categoryIndex = this.data.categories.findIndex(c => c._id === dish.category) || 0
-      // 保留原始 fileID 用于保存，转换临时链接用于展示
+      // 保留原始 fileID 用于保存，cloud:// 可直接用于展示
       let displayUrl = dish.imageUrl || ''
       this._rawImageUrl = dish.imageUrl || ''
-      if (displayUrl.startsWith('cloud://')) {
-        const urlMap = await app.getTempFileURLs([displayUrl])
-        displayUrl = urlMap[displayUrl] || displayUrl
-      }
       this.setData({
         name: dish.name,
         description: dish.description || '',

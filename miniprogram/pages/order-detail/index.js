@@ -44,32 +44,6 @@ Page({
         order.status = 'pending'
       }
 
-      // 批量收集所有需要转换的 cloud:// fileID（菜品图片 + 成品照片）
-      // 合并为一次批量请求，替代原来 convertFileURLs + getTempFileURLs 的两次串行 await
-      const allFileIds = []
-      for (const dish of (order.dishes || [])) {
-        if (dish.imageUrl && dish.imageUrl.startsWith('cloud://')) {
-          allFileIds.push(dish.imageUrl)
-        }
-      }
-      if (order.finishedPhoto && order.finishedPhoto.startsWith('cloud://')) {
-        order._rawFinishedPhoto = order.finishedPhoto
-        allFileIds.push(order.finishedPhoto)
-      }
-
-      if (allFileIds.length > 0) {
-        const urlMap = await app.getTempFileURLs(allFileIds)
-        for (const dish of (order.dishes || [])) {
-          if (dish.imageUrl && urlMap[dish.imageUrl]) {
-            dish._raw_imageUrl = dish.imageUrl
-            dish.imageUrl = urlMap[dish.imageUrl]
-          }
-        }
-        if (order._rawFinishedPhoto && urlMap[order._rawFinishedPhoto]) {
-          order.finishedPhoto = urlMap[order._rawFinishedPhoto]
-        }
-      }
-
       // 此时 currentUser 已在 onLoad 中确保加载完成
       order.creatorName = app.getDisplayName(order._openid)
       // 判断当前用户是否是点菜人（创建者）
@@ -185,8 +159,8 @@ Page({
       }
     })
 
-    const urlMap = await app.getTempFileURLs([fileID])
-    this.setData({ 'order.finishedPhoto': urlMap[fileID] || fileID })
+    // cloud:// 可直接渲染，无需临时链接
+    this.setData({ 'order.finishedPhoto': fileID })
   },
 
   // 预览照片
@@ -214,8 +188,8 @@ Page({
         wx.showLoading({ title: '删除中...', mask: true })
 
         try {
-          // 删除云存储文件（使用原始 fileID）
-          const rawId = this.data.order._rawFinishedPhoto || this.data.order.finishedPhoto
+          // 删除云存储文件（cloud:// 即原始 fileID）
+          const rawId = this.data.order.finishedPhoto
           if (rawId) {
             await wx.cloud.deleteFile({
               fileList: [rawId]

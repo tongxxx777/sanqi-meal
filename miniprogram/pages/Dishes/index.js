@@ -80,7 +80,6 @@ Page({
         createTimeText: this.formatDate(item.createTime),
         category: item.category || 'meat'
       }))
-      await app.convertFileURLs(dishes, ['imageUrl'])
 
       let categories = app.globalData.categories || []
       if (categories.length === 0) {
@@ -133,7 +132,6 @@ Page({
         createTimeText: this.formatDate(item.createTime),
         category: item.category || 'meat'
       }))
-      await app.convertFileURLs(dishes, ['imageUrl'])
 
       let categories = app.globalData.categories || []
       if (categories.length === 0) {

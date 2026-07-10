@@ -57,14 +57,8 @@ Page({
       const { currentUser } = await app.loadUserInfo()
       const isBound = app.isBound()
 
-      // 将 cloud:// 格式的头像转为临时链接
+      // cloud:// 可直接渲染，无需临时链接
       let inviterAvatarUrl = inviter.avatarUrl || ''
-      if (inviterAvatarUrl.startsWith('cloud://')) {
-        const urlMap = await app.getTempFileURLs([inviterAvatarUrl])
-        if (urlMap[inviterAvatarUrl]) {
-          inviterAvatarUrl = urlMap[inviterAvatarUrl]
-        }
-      }
 
       this.setData({
         loading: false,
