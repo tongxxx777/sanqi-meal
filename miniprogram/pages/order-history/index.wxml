@@ -26,7 +26,7 @@
               </view>
               <text class="history-time">{{item.timeText}}</text>
             </view>
-            <view class="history-expect" wx:if="{{item.expectText}}">🕗 期望用餐：{{item.expectText}}</view>
+            <view class="history-expect" wx:if="{{item.expectText}}">🕗 期望用餐时间：{{item.expectText}}</view>
             <view class="history-dishes">
               <view class="history-dish" wx:for="{{item.dishes}}" wx:for-item="dish" wx:key="_id">
                 <image class="history-dish-image" wx:if="{{!dish.imageUrl}}" src="/images/default.jpg" mode="aspectFill"></image>

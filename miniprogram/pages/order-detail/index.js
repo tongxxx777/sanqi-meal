@@ -39,13 +39,11 @@ Page({
       order.dateText = this.formatDate(order.createTime)
       order.timeText = this.formatTime(order.createTime)
       order.expectText = order.expectText || ''
+      order.creatorName = app.getDisplayName(order._openid)
       // 处理旧数据：如果没有 status 字段，默认为 'pending'
       if (!order.status) {
         order.status = 'pending'
       }
-
-      // 此时 currentUser 已在 onLoad 中确保加载完成
-      order.creatorName = app.getDisplayName(order._openid)
       // 判断当前用户是否是点菜人（创建者）
       const currentUserId = app.globalData.currentUser?._id
       const isCreator = order._openid === currentUserId
@@ -188,7 +186,7 @@ Page({
         wx.showLoading({ title: '删除中...', mask: true })
 
         try {
-          // 删除云存储文件（cloud:// 即原始 fileID）
+          // 删除云存储文件（finishedPhoto 保存的即原始 cloud:// fileID）
           const rawId = this.data.order.finishedPhoto
           if (rawId) {
             await wx.cloud.deleteFile({
