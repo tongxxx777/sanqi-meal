@@ -808,9 +808,21 @@ Page({
         }).catch(() => {})
       }
 
-      // 发送通知
-      const notifyResult = await this.sendNotification(selectedDishes, remark, orderId, expect.expectText)
-      const notifyFailed = !notifyResult || !notifyResult.success
+      // 发送通知（fire，不依赖其脆弱返回值判定，避免"对方已收到却误判失败"）
+      await this.sendNotification(selectedDishes, remark, orderId, expect.expectText)
+
+      // 以云函数写回的 notifyStatus 为准：服务端已成功发送会写 'sent'
+      let notifyFailed = false
+      try {
+        const r = await wx.cloud.callFunction({
+          name: 'getCoupleData',
+          data: { collection: app.globalData.collectionOrderList, docId: orderId }
+        })
+        notifyFailed = r.result?.data?.notifyStatus === 'failed'
+      } catch (e) {
+        // 读不到回执则保守按成功处理，不冤枉对方已收到的消息
+        notifyFailed = false
+      }
 
       wx.hideLoading()
       // 记住本次选择：更新对应档位时间 + 记录上次选的档位

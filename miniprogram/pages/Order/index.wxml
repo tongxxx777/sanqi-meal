@@ -177,7 +177,13 @@
     <image class="success-image" src="/images/1.gif" mode="aspectFit"></image>
     <text class="success-title">点菜成功！</text>
     <text wx:if="{{!notifyFailed}}" class="success-desc">已通知{{partnerName}}啦~</text>
-    <text wx:else class="success-desc">太频繁啦，这次需要你微信去通知一下{{partnerName}}哟~</text>
+    <view wx:else class="notify-tips">
+      <view class="notify-tips-head">
+        <text class="notify-tips-emoji">🌸</text>
+        <text class="notify-tips-line1">太频繁啦</text>
+      </view>
+      <text class="notify-tips-line2">这次需要去微信通知下{{partnerName}}哟~</text>
+    </view>
     <view class="btn-primary" bindtap="closeSuccess">好的</view>
   </view>
 </view>

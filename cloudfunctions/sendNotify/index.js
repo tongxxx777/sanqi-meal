@@ -77,10 +77,14 @@ exports.main = async (event, context) => {
       await db.collection('OrderList').doc(orderId).update({
         data: { notifyStatus: 'failed', notifyReceiverOpenid: targetOpenid }
       }).catch(e => console.error('回写 notifyStatus=failed 失败', e))
-      // 通知未送达：将接收方订阅状态置为未订阅，下次进入首页重新提醒订阅
-      await db.collection('User').doc(targetOpenid).update({
-        data: { subscribeStatus: 'unsubscribed' }
-      }).catch(e => console.error('重置接收方订阅状态失败', e))
+      // 仅当确为"用户额度耗尽/拒收"时，才把接收方标记未订阅；
+      // 瞬时错误（网络抖动、openapi 超时、参数异常）不误伤，避免对方已订阅却被永久禁用
+      const isQuotaError = err.errCode === 43101 || (err.errMsg && /43101|refuse|额度|user refuse/i.test(String(err.errMsg)))
+      if (isQuotaError) {
+        await db.collection('User').doc(targetOpenid).update({
+          data: { subscribeStatus: 'unsubscribed' }
+        }).catch(e => console.error('重置接收方订阅状态失败', e))
+      }
     }
     return { success: false, error: err }
   }

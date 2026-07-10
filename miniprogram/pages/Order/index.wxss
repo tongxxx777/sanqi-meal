@@ -715,12 +715,62 @@
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 12rpx;
+  text-align: center;
 }
 
 .success-desc {
   font-size: 26rpx;
   color: var(--text-secondary);
   margin-bottom: 30rpx;
+  text-align: center;
+}
+
+/* 通知失败 · 可爱小 tips 气泡 */
+.notify-tips {
+  position: relative;
+  background: #FFF0F5;
+  border: 2rpx solid #FFC4DD;
+  border-radius: 22rpx;
+  padding: 22rpx 28rpx 24rpx;
+  margin-bottom: 30rpx;
+  max-width: 520rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* 气泡小尾巴，指向上面的标题，增加“对话感” */
+.notify-tips::after {
+  content: '';
+  position: absolute;
+  top: -14rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 14rpx solid transparent;
+  border-right: 14rpx solid transparent;
+  border-bottom: 14rpx solid #FFF0F5;
+}
+.notify-tips-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 10rpx;
+}
+.notify-tips-emoji {
+  font-size: 24rpx;
+  margin-right: 6rpx;
+}
+.notify-tips-line1 {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #FF6FA5;
+}
+.notify-tips-line2 {
+  width: 100%;
+  font-size: 24rpx;
+  color: #C76B96;
+  line-height: 1.6;
+  text-align: center;
 }
 
 /* 通用按钮 */
