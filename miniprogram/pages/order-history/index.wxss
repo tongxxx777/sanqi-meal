@@ -232,6 +232,25 @@ mp-slideview .mark-btn,
   color: #4CAF50;
 }
 
+/* 通知状态标签 */
+.notify-tag {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.notify-tag.notify-sent {
+  background: #E8F5E9;
+  color: #4CAF50;
+}
+
+.notify-tag.notify-failed {
+  background: #FFEBEE;
+  color: #E57373;
+}
+
 /* 加载更多 */
 .load-more {
   text-align: center;

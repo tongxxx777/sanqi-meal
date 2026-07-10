@@ -79,6 +79,9 @@ Page({
 
   // 标记为已完成
   async markAsCompleted() {
+    // 在 tap 手势同步上下文内先给自己补 1 条订阅额度（已勾"不再提示"则不弹窗）
+    app.bufferSubscribe().catch(e => console.error('订阅额度补充失败', e))
+
     wx.showModal({
       title: '确认完成',
       content: '确认将此订单标记为已完成吗？',

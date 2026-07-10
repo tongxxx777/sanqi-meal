@@ -48,6 +48,12 @@ exports.main = async (event, context) => {
           thing3: { value: buildThing3(expectText, remark) } // 备注
         }
       })
+      // 回写推送结果（成功）：用于历史页展示"已通知/未通知"
+      if (orderId) {
+        await db.collection('OrderList').doc(orderId).update({
+          data: { notifyStatus: 'sent', notifyReceiverOpenid: targetOpenid }
+        }).catch(e => console.error('回写 notifyStatus=sent 失败', e))
+      }
     } else if (type === 'newDish') {
       result = await cloud.openapi.subscribeMessage.send({
         touser: targetOpenid,
@@ -66,6 +72,16 @@ exports.main = async (event, context) => {
     return { success: true, result }
   } catch (err) {
     console.error('发送失败', err)
+    // 回写推送结果（失败）：用于历史页展示"未通知"
+    if (type === 'newOrder' && orderId) {
+      await db.collection('OrderList').doc(orderId).update({
+        data: { notifyStatus: 'failed', notifyReceiverOpenid: targetOpenid }
+      }).catch(e => console.error('回写 notifyStatus=failed 失败', e))
+      // 通知未送达：将接收方订阅状态置为未订阅，下次进入首页重新提醒订阅
+      await db.collection('User').doc(targetOpenid).update({
+        data: { subscribeStatus: 'unsubscribed' }
+      }).catch(e => console.error('重置接收方订阅状态失败', e))
+    }
     return { success: false, error: err }
   }
 }

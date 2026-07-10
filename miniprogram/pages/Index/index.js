@@ -204,22 +204,21 @@ Page({
   },
 
 
-  // 首页提醒卡片 - 请求订阅消息
+  // 首页提醒卡片 - 订阅一次性订阅消息
   goToSubscribe() {
-    wx.requestSubscribeMessage({
-      tmplIds: app.globalData.notifyTmplIds,
-      success: async (res) => {
-        if (res[app.globalData.notifyTmplIds[0]] === 'accept') {
-          wx.showToast({ title: '订阅成功 🎉', icon: 'success' })
-          // 持久化到数据库，多设备同步
-          await app.updateSubscribeStatus('subscribed')
-          this.setData({ subscribeRequested: true })
-        }
-      },
-      fail: (err) => {
-        console.error('subscribe error', err)
-        wx.showToast({ title: '请先申请消息模板', icon: 'none' })
+    wx.showLoading({ title: '开启中...', mask: true })
+    app.bufferSubscribe().then((added) => {
+      wx.hideLoading()
+      if (added > 0) {
+        wx.showToast({ title: '已开启', icon: 'success' })
+        this.setData({ subscribeRequested: true })
+      } else {
+        wx.showToast({ title: '未获得授权，请重试', icon: 'none' })
       }
+    }).catch((err) => {
+      wx.hideLoading()
+      console.error('subscribe error', err)
+      wx.showToast({ title: '请先申请消息模板', icon: 'none' })
     })
   },
 

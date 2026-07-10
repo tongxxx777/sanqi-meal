@@ -64,7 +64,7 @@
     </view>
   </view>
 
-  <!-- 订阅消息提醒 -->
+  <!-- 订阅消息提醒（由用户 subscribeStatus 字段驱动：未订阅才显示） -->
   <view wx:if="{{!subscribeRequested}}" class="bind-tip-section">
     <view class="bind-tip-card subscribe-tip-card" bindtap="goToSubscribe">
       <text class="bind-tip-icon">🔔</text>

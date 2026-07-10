@@ -236,6 +236,32 @@ App({
     }
   },
 
+  // 订阅一次性订阅消息（正常单次订阅）
+  // 微信一次性订阅：调一次 requestSubscribeMessage 并返回 accept，就订阅 1 条发送额度
+  // 返回 1 表示订阅成功，0 表示未订阅成功
+  async bufferSubscribe() {
+    const tmplIds = this.globalData.notifyTmplIds
+    if (!tmplIds || !tmplIds.length) {
+      console.warn('[bufferSubscribe] 未配置消息模板')
+      return 0
+    }
+    const tmplId = tmplIds[0]
+    try {
+      const res = await wx.requestSubscribeMessage({ tmplIds })
+      const status = res[tmplId]
+      if (status === 'accept') {
+        // 订阅成功，同步订阅状态（更新数据库与 globalData）
+        await this.updateSubscribeStatus('subscribed').catch(() => {})
+        return 1
+      }
+      // reject / ban / 用户关闭弹窗 → 未订阅成功
+      return 0
+    } catch (e) {
+      console.error('[bufferSubscribe] error', e)
+      return 0
+    }
+  },
+
   // 绑定伴侣
   async bindPartner(inviteCode) {
     try {

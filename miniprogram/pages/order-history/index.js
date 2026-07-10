@@ -67,6 +67,7 @@ Page({
         ...item,
         // 处理旧数据：如果没有 status 字段，默认为 'pending'
         status: item.status || 'pending',
+        notifyStatus: item.notifyStatus,
         dateText: this.formatDate(item.createTime),
         timeText: this.formatTime(item.createTime),
         expectText: item.expectText || '',
@@ -109,6 +110,7 @@ Page({
         ...item,
         // 处理旧数据：如果没有 status 字段，默认为 'pending'
         status: item.status || 'pending',
+        notifyStatus: item.notifyStatus,
         dateText: this.formatDate(item.createTime),
         timeText: this.formatTime(item.createTime),
         expectText: item.expectText || '',

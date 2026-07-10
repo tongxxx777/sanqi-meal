@@ -41,6 +41,7 @@
             <view class="history-footer">
               <text class="history-creator">{{item.creatorName}} 点的菜</text>
               <view class="history-footer-right">
+                <view wx:if="{{item.notifyStatus === 'failed'}}" class="notify-tag notify-failed">未通知</view>
                 <view class="status-tag-mini {{item.status === 'completed' ? 'status-completed' : 'status-pending'}}">
                   {{item.status === 'completed' ? '已完成' : '进行中'}}
                 </view>
