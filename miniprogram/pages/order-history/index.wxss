@@ -119,6 +119,13 @@ mp-slideview .mark-btn,
   color: var(--text-hint);
 }
 
+/* 期望用餐时间 */
+.history-expect {
+  font-size: 24rpx;
+  color: var(--primary-color);
+  margin-bottom: 16rpx;
+}
+
 /* 菜品列表 */
 .history-dishes {
   display: flex;

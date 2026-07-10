@@ -116,17 +116,57 @@
   </scroll-view>
 </view>
 
-<!-- 备注输入弹窗 -->
+<!-- 确认点菜弹窗（期望用餐时间 + 备注） -->
 <view class="remark-modal" wx:if="{{showRemarkModal}}" bindtap="closeRemarkModal">
   <view class="remark-content" catchtap="preventClose">
     <view class="remark-close" bindtap="closeRemarkModal">✕</view>
-    <text class="remark-title">添加备注</text>
-    <text class="remark-hint">给对方留句话吧~（最多100字）</text>
-    <textarea class="remark-input" placeholder="例如：今天想吃清淡点~" bindinput="onRemarkInput" value="{{remark}}"></textarea>
-    <view class="remark-counter">{{remark.length}}/100</view>
+    <text class="remark-title">确认点菜</text>
+
+    <!-- 期望用餐时间 -->
+    <view class="expect-section">
+      <text class="expect-title">🕗 期望用餐时间</text>
+      <view class="expect-dates">
+        <view wx:for="{{dateOptions}}" wx:key="dateStr"
+              class="expect-date {{expectDateIndex === index ? 'active' : ''}}"
+              data-index="{{index}}" bindtap="selectExpectDate">
+          <text class="ed-label">{{item.label}}</text>
+          <text class="ed-sub">{{item.month}}/{{item.day}}</text>
+        </view>
+      </view>
+      <view class="expect-slots">
+        <block wx:for="{{slotOptions}}" wx:key="key">
+          <!-- 自定义：picker 选时间 -->
+          <picker wx:if="{{item.key === 'custom'}}" mode="time"
+                  value="{{expectSlot === 'custom' ? expectTimeStr : customTimeStr}}" start="{{timeStart}}"
+                  bindchange="onCustomTimeChange">
+            <view class="expect-slot custom-slot {{expectSlot === 'custom' ? 'active' : ''}}">
+              <text class="custom-label">自定义</text>
+              <text wx:if="{{expectSlot === 'custom' && expectTimeLabel}}" class="custom-time-text">{{expectTimeLabel}}</text>
+            </view>
+          </picker>
+          <!-- 早/午/晚：普通按钮 -->
+          <view wx:else
+                class="expect-slot {{expectSlot === item.key ? 'active' : ''}} {{item.disabled ? 'disabled' : ''}}"
+                data-key="{{item.key}}" bindtap="selectExpectSlot">
+            {{item.label}}
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 备注（选填） -->
+    <view class="remark-block">
+      <view class="remark-block-head">
+        <view class="remark-block-left">
+          <text class="remark-block-icon">💬</text>
+          <text class="remark-block-title">给对方留句话</text>
+        </view>
+      </view>
+      <textarea class="remark-input" placeholder="（选填）例如：今天想吃清淡点~" maxlength="50" bindinput="onRemarkInput" value="{{remark}}"></textarea>
+      <view class="remark-counter">{{remark.length}}/50</view>
+    </view>
     <view class="remark-buttons">
-      <view class="btn-skip" bindtap="skipRemark">跳过</view>
-      <view class="btn-confirm" bindtap="confirmRemark">确认</view>
+      <view class="btn-confirm" bindtap="confirmRemark">确认点菜</view>
     </view>
   </view>
 </view>

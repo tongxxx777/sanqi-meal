@@ -1,6 +1,5 @@
 /* 蜜桃奶油系 - 轻甜情侣风主题 */
 @import './theme.wxss';
-@import './miniprogram_npm/weui-miniprogram/weui-wxss/dist/style/weui.wxss';
 
 page {
   background: var(--bg-color);

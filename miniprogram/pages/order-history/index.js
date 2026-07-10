@@ -69,6 +69,7 @@ Page({
         status: item.status || 'pending',
         dateText: this.formatDate(item.createTime),
         timeText: this.formatTime(item.createTime),
+        expectText: item.expectText || '',
         creatorName: this.getCreatorName(item._openid),
         slideButtons: this.getSlideButtons(item.marked)
       }))
@@ -111,6 +112,7 @@ Page({
         status: item.status || 'pending',
         dateText: this.formatDate(item.createTime),
         timeText: this.formatTime(item.createTime),
+        expectText: item.expectText || '',
         creatorName: this.getCreatorName(item._openid),
         slideButtons: this.getSlideButtons(item.marked)
       }))
@@ -251,6 +253,24 @@ Page({
             }
 
             wx.showToast({ title: '已删除', icon: 'success' })
+
+            // 回收菜品点菜次数：已删除的订单不应再计入“已点X次”
+            const target = this.data.orders.find(item => item._id === id)
+            if (target?.dishes?.length) {
+              for (const dish of target.dishes) {
+                if (!dish._id) continue
+                wx.cloud.callFunction({
+                  name: 'updateCoupleData',
+                  data: {
+                    collection: app.globalData.collectionDishList,
+                    docId: dish._id,
+                    action: 'inc',
+                    data: { orderCount: -1 }
+                  }
+                }).catch(() => {})
+              }
+            }
+
             const orders = this.data.orders.filter(item => item._id !== id)
             this.setData({ orders })
           } catch (e) {

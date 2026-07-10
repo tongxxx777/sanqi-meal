@@ -79,33 +79,36 @@
   <!-- 今日状态卡片 -->
   <view class="status-section" wx:if="{{isBound}}">
     <view class="section-title">🍽️ 今日点菜</view>
-    <view class="status-card" wx:if="{{todayOrder}}" bindtap="goToTodayOrder">
-      <view class="status-header">
-        <view class="status-label-wrap">
-          <text class="status-label">{{todayOrder.creatorName}} 点了菜</text>
-          <view class="status-tag-mini {{todayOrder.status === 'completed' ? 'status-completed' : 'status-pending'}}">
-            {{todayOrder.status === 'completed' ? '已完成' : '进行中'}}
+    <block wx:if="{{todayOrders.length > 0}}">
+      <view class="status-card" wx:for="{{todayOrders}}" wx:key="_id"
+            data-id="{{item._id}}" bindtap="goToTodayOrder">
+        <view class="status-header">
+          <view class="status-label-wrap">
+            <text class="status-label">{{item.creatorName}} 点了菜</text>
+            <view class="status-tag-mini {{item.status === 'completed' ? 'status-completed' : 'status-pending'}}">
+              {{item.status === 'completed' ? '已完成' : '进行中'}}
+            </view>
+          </view>
+          <text class="status-time">{{item.timeText}}</text>
+        </view>
+        <view class="status-dishes">
+          <view class="dish-tag" wx:for="{{item.dishes}}" wx:for-item="dish" wx:key="index">
+            {{dish.name}}
           </view>
         </view>
-        <text class="status-time">{{todayOrder.timeText}}</text>
-      </view>
-      <view class="status-dishes">
-        <view class="dish-tag" wx:for="{{todayOrder.dishes}}" wx:key="index">
-          {{item.name}}
+        <!-- 只有做菜人（非点菜人）才显示拍照提示 -->
+        <view class="photo-hint" wx:if="{{!item.finishedPhoto && item.status !== 'completed' && !item.isCreator}}">
+          <text>📷 做好了记得拍一张~</text>
+        </view>
+        <!-- 点菜人显示等待提示 -->
+        <view class="photo-hint viewer-hint" wx:if="{{!item.finishedPhoto && item.status !== 'completed' && item.isCreator}}">
+          <text>⏳ 等待大厨拍照上传~</text>
+        </view>
+        <view class="photo-hint completed-hint" wx:if="{{item.status === 'completed'}}">
+          <text>🎉 今天也好好吃饭了，真棒！</text>
         </view>
       </view>
-      <!-- 只有做菜人（非点菜人）才显示拍照提示 -->
-      <view class="photo-hint" wx:if="{{!todayOrder.finishedPhoto && todayOrder.status !== 'completed' && !todayOrder.isCreator}}">
-        <text>📷 做好了记得拍一张~</text>
-      </view>
-      <!-- 点菜人显示等待提示 -->
-      <view class="photo-hint viewer-hint" wx:if="{{!todayOrder.finishedPhoto && todayOrder.status !== 'completed' && todayOrder.isCreator}}">
-        <text>⏳ 等待大厨拍照上传~</text>
-      </view>
-      <view class="photo-hint completed-hint" wx:if="{{todayOrder.status === 'completed'}}">
-        <text>🎉 今天也好好吃饭了，真棒！</text>
-      </view>
-    </view>
+    </block>
     <view class="empty-card" wx:else>
       <image class="empty-image" src="/images/2.gif" mode="aspectFit"></image>
       <text class="empty-text">今天还没有点菜哦~</text>

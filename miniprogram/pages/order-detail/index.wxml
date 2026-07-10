@@ -8,6 +8,7 @@
       </view>
     </view>
     <view class="header-creator">{{order.creatorName}}点的菜</view>
+    <view class="header-expect" wx:if="{{order.expectText}}">🕗 期望用餐：{{order.expectText}}</view>
   </view>
 
   <!-- 菜品列表 -->

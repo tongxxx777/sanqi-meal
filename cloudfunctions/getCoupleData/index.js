@@ -14,7 +14,8 @@ exports.main = async (event, context) => {
     limit = 100,
     skip = 0,
     countOnly = false,
-    todayOnly = false
+    todayOnly = false,
+    sinceDays = 0
   } = event
 
   try {
@@ -51,8 +52,15 @@ exports.main = async (event, context) => {
     // 构建 where 条件：按 coupleId 查询
     let whereCondition = { coupleId }
 
-    // 如果只查今天的数据
-    if (todayOnly) {
+    // 按天数范围查询：拉取最近 sinceDays 天内创建的数据（优先于 todayOnly）
+    // 用于首页按“期望用餐日”聚合时，把提前几天下的单也捞回来
+    if (sinceDays > 0) {
+      const since = new Date()
+      since.setDate(since.getDate() - sinceDays)
+      since.setHours(0, 0, 0, 0)
+      whereCondition.createTime = _.gte(since)
+    } else if (todayOnly) {
+      // 如果只查今天的数据
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       whereCondition.createTime = _.gte(today)

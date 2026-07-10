@@ -2,7 +2,8 @@ Component({
   data: {
     show: false,
     type: '', // 'profile' 或 'bind'
-    _mounted: false // 控制首次挂载动画
+    _mounted: false, // 控制首次挂载动画
+    _checking: false // 防止并发检查（attached 与 pageLifetimes.show 可能同时触发）
   },
 
   lifetimes: {
@@ -23,15 +24,32 @@ Component({
   },
 
   methods: {
-    _check() {
-      const app = getApp()
-      if (!app) return
-      if (!app.isProfileComplete()) {
-        this.setData({ show: true, type: 'profile' })
-      } else if (!app.isBound()) {
-        this.setData({ show: true, type: 'bind' })
-      } else {
-        this.setData({ show: false, type: '' })
+    async _check() {
+      // 防重入：避免 attached 和 pageLifetimes.show 同时触发导致并发竞态
+      if (this.data._checking) return
+      this.setData({ _checking: true })
+
+      try {
+        const app = getApp()
+        if (!app) return
+
+        // 等待全局用户信息加载完成，避免因异步未完成导致状态误判
+        // loadUserInfo 有缓存，已加载时立即返回，不影响性能
+        if (typeof app.loadUserInfo === 'function') {
+          await app.loadUserInfo()
+        }
+
+        if (!app.isProfileComplete()) {
+          this.setData({ show: true, type: 'profile' })
+        } else if (!app.isBound()) {
+          this.setData({ show: true, type: 'bind' })
+        } else {
+          this.setData({ show: false, type: '' })
+        }
+      } catch (e) {
+        console.error('[bind-guard] check error', e)
+      } finally {
+        this.setData({ _checking: false })
       }
     },
 

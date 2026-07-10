@@ -20,19 +20,13 @@ Page({
   },
 
   async onShow() {
-    await this.getOpenId()
-    await this.loadDish()
-  },
-
-  // 获取openid
-  async getOpenId() {
-    try {
-      const res = await wx.cloud.callFunction({ name: 'getOpenId' })
-      const openid = res.result?.openid || ''
-      this.setData({ openid })
-    } catch (e) {
-      console.error('获取openid失败', e)
+    // 确保用户信息已加载，避免 getDisplayName 返回"未知"
+    // 同时复用 currentUser._id 作为 openid，省去一次云函数调用
+    const { currentUser } = await app.loadUserInfo()
+    if (currentUser?._id) {
+      this.setData({ openid: currentUser._id })
     }
+    await this.loadDish()
   },
 
   // 加载菜品详情

@@ -1,9 +1,26 @@
 const app = getApp()
 
+// 用餐类型档位（time 为该档位默认时刻，24 小时制）
+const SLOT_OPTIONS = [
+  { key: 'breakfast', label: '早餐', time: '07:00' },
+  { key: 'lunch',     label: '午餐', time: '12:00' },
+  { key: 'dinner',    label: '晚餐', time: '18:00' },
+]
+
 Page({
   data: {
     isBound: false,
     dishes: [],
+    // ===== 期望用餐时间 =====
+    dateOptions: [],        // [{label:'今天', dateStr:'2026-07-10', month, day}]
+    expectDateIndex: 0,     // 选中的日期下标
+    slotOptions: [],        // 带 disabled 的档位列表
+    expectSlot: '',         // 选中的档位 key
+    expectTimeStr: '',      // 具体时刻 24h "HH:mm"（提交/校验用）
+    expectTimeLabel: '',    // 具体时刻 12h 中文（展示用）
+    customTimeStr: '',      // 自定义 picker 默认展示值（未选自定义时=下一个整点）
+    expectText: '',         // 预览文案
+    timeStart: '00:00',     // picker 可选起始时间（选"今天"时为当前时刻）
     allDishes: [],
     categories: [],
     dishesByCategory: {},
@@ -32,6 +49,7 @@ Page({
   async onShow() {
     app.setKitchenTitle()
     this.loadPartnerName()
+    this.initExpect()
     await app.loadCategories()
     if (!this.data.hasLoaded) {
       await this.loadDishes()
@@ -77,6 +95,195 @@ Page({
     this.setData({ partnerName })
   },
 
+  // ==================== 期望用餐时间 ====================
+
+  // 初始化：构建日期选项 + 默认档位
+  initExpect() {
+    const dateOptions = this.buildExpectDateOptions()
+    this._expectPref = this._loadExpectPref()   // 缓存本次会话偏好
+    this.setData({ dateOptions, expectDateIndex: 0 }, () => {
+      this.refreshSlots()      // 计算各档位是否过期
+      // 默认选中「上一次点的档位」，若当天已过期则退回第一个可用档位
+      const last = this._expectPref?.lastSlot
+      if (last) {
+        const lastSlot = this.data.slotOptions.find(s => s.key === last && !s.disabled)
+        if (lastSlot) {
+          let t
+          if (last === 'custom') {
+            t = this._expectPref?.times?.['custom'] || this._nextHourStr()
+            // 今天且自定义时间已过 → 用下一个整点
+            if (this.data.expectDateIndex === 0 && !this._isTimeFuture(t)) t = this._nextHourStr()
+          } else {
+            t = this._slotTime(last, this._expectPref)
+          }
+          this.setData({ expectSlot: last, expectTimeStr: t, expectTimeLabel: this.format12h(t) }, () => this.updatePreview())
+          return
+        }
+      }
+      this.pickDefaultSlot()
+    })
+  },
+
+  // 构建今天/明天两个日期选项
+  buildExpectDateOptions() {
+    const labels = ['今天', '明天']
+    const today = new Date()
+    const opts = []
+    for (let i = 0; i < 2; i++) {
+      const d = new Date(today)
+      d.setDate(today.getDate() + i)
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      opts.push({ label: labels[i], dateStr, month: d.getMonth() + 1, day: d.getDate() })
+    }
+    return opts
+  },
+
+  // 24h "HH:mm" -> 12h 中文：上午10:00 / 中午12:00 / 下午5:00
+  format12h(hhmm) {
+    if (!hhmm) return ''
+    let [h, m] = hhmm.split(':').map(Number)
+    const ap = h === 12 ? '中午' : (h < 12 ? '上午' : '下午')
+    let h12 = h % 12
+    if (h12 === 0) h12 = 12
+    return `${ap}${h12}:${String(m).padStart(2, '0')}`
+  },
+
+  // 选"今天"时，当前时间 ≥ 档位时间则置灰；选"明天"时全部可选
+  isSlotDisabled(slot) {
+    if (this.data.expectDateIndex !== 0) return false
+    const now = new Date()
+    const [h, m] = slot.time.split(':').map(Number)
+    const slotMin = h * 60 + m
+    const nowMin = now.getHours() * 60 + now.getMinutes()
+    return nowMin >= slotMin
+  },
+
+  // 重新计算档位 disabled 状态 + picker 起始时间
+  refreshSlots() {
+    const slotOptions = SLOT_OPTIONS.map(s => ({ ...s, disabled: this.isSlotDisabled(s) }))
+    // 追加"自定义"档位，始终可选
+    slotOptions.push({ key: 'custom', label: '自定义', time: '', disabled: false })
+    // 选"今天"时，picker 最早只能选当前时刻
+    let timeStart = '00:00'
+    if (this.data.expectDateIndex === 0) {
+      const now = new Date()
+      timeStart = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    }
+    this.setData({ slotOptions, timeStart, customTimeStr: this._nextHourStr() })
+  },
+
+  // 选中第一个未过期的档位；若早/午/晚全过期则默认选"自定义"+当前时间
+  pickDefaultSlot() {
+    const avail = this.data.slotOptions.find(s => !s.disabled)
+    if (!avail) return
+    let t
+    if (avail.key === 'custom') {
+      t = this._nextHourStr()
+    } else {
+      t = this._slotTime(avail.key, this._expectPref) || avail.time
+    }
+    this.setData({
+      expectSlot: avail.key,
+      expectTimeStr: t,
+      expectTimeLabel: this.format12h(t)
+    }, () => this.updatePreview())
+  },
+
+  // 选择日期
+  selectExpectDate(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    this.setData({ expectDateIndex: index }, () => {
+      this.refreshSlots()
+      // 切换日期后，若当前选中的档位在新日期下已过期，重新选默认档位
+      const cur = this.data.slotOptions.find(s => s.key === this.data.expectSlot)
+      if (!cur || cur.disabled) {
+        this.pickDefaultSlot()
+      } else {
+        this.updatePreview()
+      }
+    })
+  },
+
+  // 选择档位
+  selectExpectSlot(e) {
+    const key = e.currentTarget.dataset.key
+    const slot = this.data.slotOptions.find(s => s.key === key)
+    if (!slot || slot.disabled) return
+    const t = this._slotTime(key, this._expectPref) || slot.time
+    this.setData({ expectSlot: key, expectTimeStr: t, expectTimeLabel: this.format12h(t) }, () => this.updatePreview())
+  },
+
+  // 自定义时间选择（picker bindchange）
+  onCustomTimeChange(e) {
+    const t = e.detail.value
+    this.setData({ expectSlot: 'custom', expectTimeStr: t, expectTimeLabel: this.format12h(t), customTimeStr: t }, () => this.updatePreview())
+  },
+
+  // 自定义档位默认时间：当前时刻向上取整到下一个整点（如 9:30 → 10:00）
+  _nextHourStr() {
+    const now = new Date()
+    const h = (now.getHours() + 1) % 24
+    return `${String(h).padStart(2, '0')}:00`
+  },
+
+  // 判断某时间在今天是否还未到
+  _isTimeFuture(hhmm) {
+    if (this.data.expectDateIndex !== 0) return true
+    const now = new Date()
+    const [h, m] = hhmm.split(':').map(Number)
+    return (h * 60 + m) > (now.getHours() * 60 + now.getMinutes())
+  },
+
+  // 更新预览文案
+  updatePreview() {
+    const expect = this._buildExpect()
+    this.setData({ expectText: expect ? expect.expectText : '' })
+  },
+
+  // 组装期望时间字段（数据不完整时返回 null）
+  _buildExpect() {
+    const { expectDateIndex, expectSlot, expectTimeStr, dateOptions, slotOptions } = this.data
+    if (!expectTimeStr || !dateOptions[expectDateIndex]) return null
+    const slot = slotOptions.find(s => s.key === expectSlot)
+    const [hh, mm] = expectTimeStr.split(':').map(Number)
+    const [Y, M, D] = dateOptions[expectDateIndex].dateStr.split('-').map(Number)
+    const expectTime = new Date(Y, M - 1, D, hh, mm)
+    const timeLabel = this.format12h(expectTimeStr)
+    const slotLabel = (!slot || slot.key === 'custom') ? '' : slot.label
+    const dateLabel = dateOptions[expectDateIndex].label
+    const expectText = `${dateLabel} ${timeLabel}${slotLabel ? ' · ' + slotLabel : ''}`
+    return {
+      expectTime,
+      expectDateText: dateLabel,
+      expectTimeText: timeLabel,
+      expectSlot: expectSlot || 'custom',
+      expectText
+    }
+  },
+
+  // 某档位应使用的时间：记忆优先，否则 SLOT 默认
+  _slotTime(slotKey, pref) {
+    if (pref?.times?.[slotKey]) return pref.times[slotKey]
+    const def = SLOT_OPTIONS.find(s => s.key === slotKey)
+    return def ? def.time : ''
+  },
+
+  // 读取偏好（按 openid 区分媳妇/你）
+  _loadExpectPref() {
+    try {
+      const id = app.globalData.currentUser?._id
+      return id ? (wx.getStorageSync('expectPref_' + id) || null) : null
+    } catch (e) { return null }
+  },
+
+  // 保存偏好：各档位各自时间 + 上次选的档位
+  _saveExpectPref(lastSlot, times) {
+    try {
+      const id = app.globalData.currentUser?._id
+      if (id) wx.setStorageSync('expectPref_' + id, { lastSlot, times })
+    } catch (e) {}
+  },
+
   // 加载菜品
   async loadDishes() {
     this.setData({ loading: true })
@@ -95,13 +302,9 @@ Page({
       }
       const data = res.result.data
 
-      // 检查是否有再来一单的菜品
-      const reorderIds = app.globalData.reorderDishIds ? app.globalData.reorderDishIds.split(',') : []
-      app.globalData.reorderDishIds = null
-
       const dishes = data.map(item => ({
         ...item,
-        selected: reorderIds.includes(item._id),
+        selected: false,
         category: item.category || 'meat'
       }))
       await app.convertFileURLs(dishes, ['imageUrl'])
@@ -145,9 +348,6 @@ Page({
       // 等 DOM 渲染完，预测量所有分类在 scroll 内容中的位置
       setTimeout(() => { this._measureDishCategoryPositions() }, 200)
 
-      if (reorderIds.length > 0) {
-        wx.showToast({ title: '已选好菜品~', icon: 'none' })
-      }
     } catch (e) {
       console.error('加载菜品失败', e)
       this.setData({ loading: false })
@@ -531,7 +731,7 @@ Page({
   // 输入备注
   onRemarkInput(e) {
     let value = e.detail.value
-    if (value.length > 100) value = value.slice(0, 100)
+    if (value.length > 50) value = value.slice(0, 50)
     this.setData({ remark: value })
     return value
   },
@@ -543,12 +743,6 @@ Page({
 
   // 阻止冒泡
   preventClose() {},
-
-  // 跳过备注
-  skipRemark() {
-    this.setData({ showRemarkModal: false })
-    this.doSubmitOrder('')
-  },
 
   // 确认备注
   confirmRemark() {
@@ -564,6 +758,13 @@ Page({
     }
 
     const { selectedDishes } = this.data
+
+    // 校验期望用餐时间
+    const expect = this._buildExpect()
+    if (!expect) {
+      wx.showToast({ title: '请选择期望用餐时间', icon: 'none' })
+      return
+    }
 
     this.setData({ submitting: true })
     wx.showLoading({ title: '提交中...', mask: true })
@@ -585,6 +786,12 @@ Page({
           coupleId,
           status: 'pending', // 待处理状态
           createTime: db.serverDate(),
+          // 期望用餐时间
+          expectTime: expect.expectTime,
+          expectDateText: expect.expectDateText,
+          expectTimeText: expect.expectTimeText,
+          expectSlot: expect.expectSlot,
+          expectText: expect.expectText,
         }
       })
       const orderId = addRes._id
@@ -603,9 +810,15 @@ Page({
       }
 
       // 发送通知
-      await this.sendNotification(selectedDishes, remark, orderId)
+      await this.sendNotification(selectedDishes, remark, orderId, expect.expectText)
 
       wx.hideLoading()
+      // 记住本次选择：更新对应档位时间 + 记录上次选的档位
+      const slot = expect.expectSlot
+      const prev = this._expectPref || {}
+      const times = { ...(prev.times || {}) }
+      if (slot) times[slot] = expect.expectTimeStr
+      this._saveExpectPref(slot, times)
       // 显示成功弹窗
       this.setData({
         showSuccess: true,
@@ -621,10 +834,10 @@ Page({
   },
 
   // 发送通知
-  async sendNotification(dishes, remark, orderId) {
+  async sendNotification(dishes, remark, orderId, expectText) {
     const dishNames = dishes.map(d => d.name).join('、')
     try {
-      await wx.cloud.callFunction({
+      const res = await wx.cloud.callFunction({
         name: 'sendNotify',
         data: {
           type: 'newOrder',
@@ -632,11 +845,18 @@ Page({
           dishNames,
           count: dishes.length,
           remark,
-          orderId
+          orderId,
+          expectText: expectText || ''
         }
       })
+      // 通知发送失败（如对方授权额度耗尽）不影响点菜主流程，但需暴露出来便于排查
+      if (!res.result?.success) {
+        console.error('[sendNotification] 通知未送达：', res.result?.message || res.result?.error)
+      }
+      return res.result
     } catch (e) {
-      // 通知发送失败不影响主流程
+      console.error('[sendNotification] 通知发送异常', e)
+      return null
     }
   },
 

@@ -9,7 +9,7 @@ Page({
     partnerName: '',
     partnerAvatar: '',
     bindDays: 0,
-    todayOrder: null,
+    todayOrders: [],
     dishCount: 0,
     orderCount: 0,
     togetherDays: 0,
@@ -36,6 +36,8 @@ Page({
     await this.loadUserInfo(isFirstLoad)
     if (showSeq !== this._showSeq) return
     app.setKitchenTitle()
+    // 每次回到首页静默补一次订阅额度（已勾"总是保持"的用户不弹窗）
+    app.rearmSubscribe()
     if (isFirstLoad) {
       this.hasLoaded = true
     }
@@ -75,7 +77,7 @@ Page({
 
     if (!isBound) {
       this.setData({
-        todayOrder: null,
+        todayOrders: [],
         dishCount: 0,
         orderCount: 0,
         togetherDays: 0
@@ -117,44 +119,55 @@ Page({
     this.setData({ greeting })
   },
 
-  // 加载今日点菜
+  // 加载今日点菜（按“期望用餐日”聚合，支持一天多条）
   async loadTodayOrder() {
     try {
       const res = await wx.cloud.callFunction({
         name: 'getCoupleData',
         data: {
           collection: app.globalData.collectionOrderList,
-          todayOnly: true,
+          // 拉最近 30 天创建的订单，覆盖“提前几天下单、今天食用”的情况
+          sinceDays: 30,
           orderBy: 'createTime',
           order: 'desc',
-          limit: 1
+          limit: 100
         }
       })
 
       if (res.result?.success && res.result.data?.length > 0) {
-        const order = res.result.data[0]
-        const creatorName = app.getDisplayName(order._openid)
-        // 处理旧数据：如果没有 status 字段，默认为 'pending'
-        if (!order.status) {
-          order.status = 'pending'
-        }
-        // 判断当前用户是否是点菜人（创建者）
+        const now = new Date()
         const currentUserId = app.globalData.currentUser?._id
-        const isCreator = order._openid === currentUserId
-        this.setData({
-          todayOrder: {
-            ...order,
-            creatorName,
-            timeText: this.formatTime(order.createTime),
-            isCreator // 添加是否为点菜人的标识
-          }
-        })
+        const list = res.result.data
+          // 计算有效用餐时间：优先期望时间，老数据兜底用创建时间
+          .map(o => ({ ...o, _eff: o.expectTime ? new Date(o.expectTime) : new Date(o.createTime) }))
+          // 只保留“今天食用”的
+          .filter(o => this.isSameDay(o._eff, now))
+          // 按用餐时间从早到晚排
+          .sort((a, b) => a._eff - b._eff)
+          .map(o => {
+            if (!o.status) o.status = 'pending'
+            return {
+              ...o,
+              creatorName: app.getDisplayName(o._openid),
+              isCreator: o._openid === currentUserId,
+              // 有期望时间就展示期望文案，否则展示下单时刻
+              timeText: o.expectText || this.formatTime(o.createTime)
+            }
+          })
+        this.setData({ todayOrders: list })
       } else {
-        this.setData({ todayOrder: null })
+        this.setData({ todayOrders: [] })
       }
     } catch (e) {
       console.error('load today order error', e)
     }
+  },
+
+  // 判断两个日期是否同一天
+  isSameDay(d1, d2) {
+    return d1.getFullYear() === d2.getFullYear()
+      && d1.getMonth() === d2.getMonth()
+      && d1.getDate() === d2.getDate()
   },
 
   // 加载统计数据
@@ -212,23 +225,16 @@ Page({
 
   // 跳转到点菜页
   goToOrder() {
+    app.rearmSubscribe()
     wx.switchTab({ url: '/pages/order/index' })
   },
 
   // 跳转到今日订单详情
-  goToTodayOrder() {
-    if (!this.data.todayOrder?._id) return
-    wx.navigateTo({ url: `/pages/order-detail/index?id=${this.data.todayOrder._id}` })
-  },
-
-  // 跳转到菜品库
-  goToDishes() {
-    wx.switchTab({ url: '/pages/dishes/index' })
-  },
-
-  // 跳转到历史
-  goToHistory() {
-    wx.switchTab({ url: '/pages/order-history/index' })
+  goToTodayOrder(e) {
+    const id = e.currentTarget.dataset.id
+    if (!id) return
+    app.rearmSubscribe()
+    wx.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
   },
 
   // 跳转到最近点菜记录

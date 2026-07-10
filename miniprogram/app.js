@@ -9,14 +9,19 @@ const _bindWhitelist = [
 
 Page = function(options) {
   const originalOnShow = options.onShow
-  options.onShow = function(...args) {
+  options.onShow = async function(...args) {
     const app = getApp()
     const pages = getCurrentPages()
     const route = pages[pages.length - 1]?.route || ''
     const whitelisted = _bindWhitelist.some(w => route.includes(w))
 
-    if (!whitelisted && app && app.bindGuard && !app.bindGuard(this)) {
-      return
+    if (!whitelisted && app && app.bindGuard) {
+      // 等待全局用户信息加载完成后再校验绑定状态
+      // loadUserInfo 有缓存，已加载时立即返回，不影响性能
+      if (typeof app.loadUserInfo === 'function') {
+        await app.loadUserInfo()
+      }
+      app.bindGuard(this)
     }
 
     if (originalOnShow) {
@@ -215,21 +220,31 @@ App({
     return false
   },
 
-  // 更新用户昵称
-  async updateNickname(nickname) {
+  // 重新申请订阅消息授权（补额度）
+  // 微信一次性订阅：每成功调一次 requestSubscribeMessage 并返回 accept，就补 1 条发送额度
+  // 已勾选「总是保持以上选择」的用户会静默返回 accept，不弹窗
+  _rearmTs: 0,
+  async rearmSubscribe() {
+    // 仅对已订阅的人补授权，避免打扰未订阅用户
+    if (this.globalData.currentUser?.subscribeStatus !== 'subscribed') return
+    // 节流：同一前台会话内 10 分钟内不重复补，避免额度疯涨
+    const now = Date.now()
+    if (now - (this._rearmTs || 0) < 10 * 60 * 1000) return
+    this._rearmTs = now
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'createUser',
-        data: { nickname }
+      const res = await wx.requestSubscribeMessage({
+        tmplIds: this.globalData.notifyTmplIds
       })
-      if (res.result && res.result.success) {
-        this.globalData.currentUser = res.result.user
-        return true
+      const status = res[this.globalData.notifyTmplIds[0]]
+      if (status === 'reject') {
+        console.warn('[rearmSubscribe] 订阅已被拒绝/不再询问，需用户去设置页重新开启')
+      } else if (status === 'ban') {
+        console.warn('[rearmSubscribe] 该模板已被封禁，需用户去小程序设置重新开启')
       }
+      // status === 'accept' 时静默补到 1 条额度，无需任何 UI
     } catch (e) {
-      console.error('update nickname error', e)
+      console.error('[rearmSubscribe] error', e)
     }
-    return false
   },
 
   // 绑定伴侣

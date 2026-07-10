@@ -7,10 +7,17 @@ Page({
     isCreator: false  // 当前用户是否是点菜人（创建者）
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     if (options.id) {
+      // 确保用户信息已加载，避免 isCreator 误判和 getDisplayName 返回"未知"
+      await app.loadUserInfo()
       this.loadOrder(options.id)
     }
+  },
+
+  // 点开订单（含点开通知）时补一次订阅额度
+  onShow() {
+    app.rearmSubscribe()
   },
 
 
@@ -31,19 +38,40 @@ Page({
       const order = res.result.data
       order.dateText = this.formatDate(order.createTime)
       order.timeText = this.formatTime(order.createTime)
-      order.creatorName = await this.getCreatorName(order._openid)
+      order.expectText = order.expectText || ''
       // 处理旧数据：如果没有 status 字段，默认为 'pending'
       if (!order.status) {
         order.status = 'pending'
       }
-      // 转换菜品图片和成品照片
-      await app.convertFileURLs(order.dishes || [], ['imageUrl'])
-      if (order.finishedPhoto) {
-        order._rawFinishedPhoto = order.finishedPhoto
-        const urlMap = await app.getTempFileURLs([order.finishedPhoto])
-        order.finishedPhoto = urlMap[order.finishedPhoto] || order.finishedPhoto
+
+      // 批量收集所有需要转换的 cloud:// fileID（菜品图片 + 成品照片）
+      // 合并为一次批量请求，替代原来 convertFileURLs + getTempFileURLs 的两次串行 await
+      const allFileIds = []
+      for (const dish of (order.dishes || [])) {
+        if (dish.imageUrl && dish.imageUrl.startsWith('cloud://')) {
+          allFileIds.push(dish.imageUrl)
+        }
       }
-      
+      if (order.finishedPhoto && order.finishedPhoto.startsWith('cloud://')) {
+        order._rawFinishedPhoto = order.finishedPhoto
+        allFileIds.push(order.finishedPhoto)
+      }
+
+      if (allFileIds.length > 0) {
+        const urlMap = await app.getTempFileURLs(allFileIds)
+        for (const dish of (order.dishes || [])) {
+          if (dish.imageUrl && urlMap[dish.imageUrl]) {
+            dish._raw_imageUrl = dish.imageUrl
+            dish.imageUrl = urlMap[dish.imageUrl]
+          }
+        }
+        if (order._rawFinishedPhoto && urlMap[order._rawFinishedPhoto]) {
+          order.finishedPhoto = urlMap[order._rawFinishedPhoto]
+        }
+      }
+
+      // 此时 currentUser 已在 onLoad 中确保加载完成
+      order.creatorName = app.getDisplayName(order._openid)
       // 判断当前用户是否是点菜人（创建者）
       const currentUserId = app.globalData.currentUser?._id
       const isCreator = order._openid === currentUserId

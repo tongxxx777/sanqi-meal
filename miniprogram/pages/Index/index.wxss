@@ -122,6 +122,10 @@
   box-shadow: var(--shadow-card-medium);
 }
 
+.status-card + .status-card {
+  margin-top: 20rpx;
+}
+
 .status-label-wrap {
   display: flex;
   align-items: center;

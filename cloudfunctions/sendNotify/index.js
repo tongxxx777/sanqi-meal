@@ -12,7 +12,7 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const currentOpenid = wxContext.OPENID
 
-  const { type, dishNames, count, dishName, remark, orderId, templateId } = event
+  const { type, dishNames, count, dishName, remark, orderId, templateId, expectText } = event
 
   if (!templateId) {
     return { success: false, message: '缺少模板ID' }
@@ -44,7 +44,8 @@ exports.main = async (event, context) => {
         data: {
           time9: { value: formatTime(new Date()) }, // 时间(精确到分钟)
           thing41: { value: dishNames.substring(0, 20) }, // 提醒内容(菜名)
-          thing3: { value: (remark || '快来看看今天吃什么~').substring(0, 20) } // 备注
+          // 备注：优先展示期望用餐时间，其次备注，再兜底默认文案
+          thing3: { value: buildThing3(expectText, remark) } // 备注
         }
       })
     } else if (type === 'newDish') {
@@ -67,6 +68,16 @@ exports.main = async (event, context) => {
     console.error('发送失败', err)
     return { success: false, error: err }
   }
+}
+
+// 组装通知“备注”字段：期望用餐时间 + 备注，限制 20 字
+function buildThing3(expectText, remark) {
+  const parts = []
+  if (expectText) parts.push(expectText)
+  if (remark) parts.push(remark)
+  let text = parts.join(' · ')
+  if (!text) text = '快来看看今天吃什么~'
+  return text.substring(0, 20)
 }
 
 // 格式化时间（精确到分钟，北京时间 UTC+8）
