@@ -743,7 +743,7 @@
   content: '';
   position: absolute;
   top: -14rpx;
-  left: 50%;
+  left: 40%;
   transform: translateX(-50%);
   border-left: 14rpx solid transparent;
   border-right: 14rpx solid transparent;
@@ -758,7 +758,7 @@
 }
 .notify-tips-emoji {
   font-size: 24rpx;
-  margin-right: 6rpx;
+  margin-right: 3rpx;
 }
 .notify-tips-line1 {
   font-size: 26rpx;
