@@ -12,7 +12,7 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const currentOpenid = wxContext.OPENID
 
-  const { type, dishNames, count, dishName, remark, orderId, templateId, expectText } = event
+  const { type, dishNames, dishName, remark, orderId, templateId, expectText } = event
 
   if (!templateId) {
     return { success: false, message: '缺少模板ID' }

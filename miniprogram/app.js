@@ -366,6 +366,23 @@ App({
     }
   },
 
+  // 获取菜品与订单数量统计（并发查询，无缓存，每次 onShow 拉取最新）
+  async getStats() {
+    try {
+      const [dishRes, orderRes] = await Promise.all([
+        wx.cloud.callFunction({ name: 'getCoupleData', data: { collection: this.globalData.collectionDishList, countOnly: true } }),
+        wx.cloud.callFunction({ name: 'getCoupleData', data: { collection: this.globalData.collectionOrderList, countOnly: true } })
+      ])
+      return {
+        dishCount: dishRes.result?.total || 0,
+        orderCount: orderRes.result?.total || 0
+      }
+    } catch (e) {
+      console.error('get stats error', e)
+      return { dishCount: 0, orderCount: 0 }
+    }
+  },
+
   // ========== 全局分享配置 ==========
 
   /**

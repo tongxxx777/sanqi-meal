@@ -56,10 +56,6 @@ Page({
     }
   },
 
-  getCreatorName(openid) {
-    return app.getDisplayName(openid)
-  },
-
   formatDate(date) {
     if (!date) return ''
     const d = new Date(date)

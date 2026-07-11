@@ -59,21 +59,8 @@ Page({
 
   async loadStats() {
     try {
-      const [dishRes, orderRes] = await Promise.all([
-        wx.cloud.callFunction({
-          name: 'getCoupleData',
-          data: { collection: app.globalData.collectionDishList, countOnly: true }
-        }),
-        wx.cloud.callFunction({
-          name: 'getCoupleData',
-          data: { collection: app.globalData.collectionOrderList, countOnly: true }
-        })
-      ])
-
-      this.setData({
-        dishCount: dishRes.result?.total || 0,
-        orderCount: orderRes.result?.total || 0
-      })
+      const { dishCount, orderCount } = await app.getStats()
+      this.setData({ dishCount, orderCount })
     } catch (e) {
       console.error('loadStats error', e)
     }

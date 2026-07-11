@@ -75,9 +75,6 @@ Page({
         slideButtons: this.getSlideButtons(item.marked)
       }))
 
-      // 转换订单中菜品图片的临时链接
-      const allDishes = newOrders.flatMap(o => o.dishes || [])
-
       this.setData({
         orders: reset ? newOrders : [...existingOrders, ...newOrders],
         hasMore: data.length === pageSize,
@@ -117,8 +114,6 @@ Page({
         creatorName: this.getCreatorName(item._openid),
         slideButtons: this.getSlideButtons(item.marked)
       }))
-      const allDishes = newOrders.flatMap(o => o.dishes || [])
-
       this.setData({
         orders: newOrders,
         hasMore: data.length === this.data.pageSize,

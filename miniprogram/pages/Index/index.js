@@ -173,21 +173,11 @@ Page({
   // 加载统计数据
   async loadStats() {
     try {
-      const [dishRes, orderRes] = await Promise.all([
-        wx.cloud.callFunction({
-          name: 'getCoupleData',
-          data: { collection: app.globalData.collectionDishList, countOnly: true }
-        }),
-        wx.cloud.callFunction({
-          name: 'getCoupleData',
-          data: { collection: app.globalData.collectionOrderList, countOnly: true }
-        })
-      ])
-
+      const { dishCount, orderCount } = await app.getStats()
       this.setData({
-        dishCount: dishRes.result?.total || 0,
-        orderCount: orderRes.result?.total || 0,
-        togetherDays: (orderRes.result?.total || 0) > 0 ? Math.max(1, orderRes.result.total) : 0
+        dishCount,
+        orderCount,
+        togetherDays: orderCount > 0 ? Math.max(1, orderCount) : 0
       })
     } catch (e) {
       console.error('load stats error', e)

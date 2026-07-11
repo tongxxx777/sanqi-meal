@@ -75,21 +75,9 @@ Page({
         throw new Error(res.result?.message || '加载失败')
       }
 
-      let dishes = res.result.data.map(item => ({
-        ...item,
-        createTimeText: this.formatDate(item.createTime),
-        category: item.category || 'meat'
-      }))
+      let dishes = this._mapDishes(res.result.data)
 
-      let categories = app.globalData.categories || []
-      if (categories.length === 0) {
-        const catMap = {}
-        dishes.forEach(d => {
-          const cid = d.category || 'other'
-          if (!catMap[cid]) catMap[cid] = { _id: cid, name: cid, icon: '🍽️' }
-        })
-        categories = Object.values(catMap)
-      }
+      let categories = this._resolveCategories(dishes)
 
       const { dishesByCategory } = this._syncCategoryData(dishes, categories)
       const { categories: catsWithAll, dishesByCategory: dbcWithAll, categoryCount } =
@@ -127,21 +115,9 @@ Page({
       })
       if (!res.result?.success) return null
 
-      let dishes = res.result.data.map(item => ({
-        ...item,
-        createTimeText: this.formatDate(item.createTime),
-        category: item.category || 'meat'
-      }))
+      let dishes = this._mapDishes(res.result.data)
 
-      let categories = app.globalData.categories || []
-      if (categories.length === 0) {
-        const catMap = {}
-        dishes.forEach(d => {
-          const cid = d.category || 'other'
-          if (!catMap[cid]) catMap[cid] = { _id: cid, name: cid, icon: '🍽️' }
-        })
-        categories = Object.values(catMap)
-      }
+      let categories = this._resolveCategories(dishes)
 
       // 仅更新 allDishes 和 categories，不写入 dishes/dishesByCategory
       // 避免与搜索/分类状态冲突造成闪屏
@@ -151,6 +127,29 @@ Page({
       console.error('静默刷新菜品失败', e)
       return null
     }
+  },
+
+  // 将原始菜品数据映射为页面展示结构
+  _mapDishes(data) {
+    return data.map(item => ({
+      ...item,
+      createTimeText: this.formatDate(item.createTime),
+      category: item.category || 'meat'
+    }))
+  },
+
+  // 兜底：分类为空时用菜品自带的 category 生成临时分组
+  _resolveCategories(dishes) {
+    let categories = app.globalData.categories || []
+    if (categories.length === 0) {
+      const catMap = {}
+      dishes.forEach(d => {
+        const cid = d.category || 'other'
+        if (!catMap[cid]) catMap[cid] = { _id: cid, name: cid, icon: '🍽️' }
+      })
+      categories = Object.values(catMap)
+    }
+    return categories
   },
 
   // 重新按分类整理菜品数据

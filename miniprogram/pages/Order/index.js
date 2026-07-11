@@ -303,22 +303,9 @@ Page({
       }
       const data = res.result.data
 
-      const dishes = data.map(item => ({
-        ...item,
-        selected: false,
-        category: item.category || 'meat'
-      }))
+      const dishes = this._mapDishes(data)
 
-      let categories = app.globalData.categories || []
-      if (categories.length === 0) {
-        // 兜底：分类为空时用菜品自带的 category 值生成临时分组，确保菜品能正常展示
-        const catMap = {}
-        dishes.forEach(d => {
-          const cid = d.category || 'other'
-          if (!catMap[cid]) catMap[cid] = { _id: cid, name: cid, icon: '🍽️' }
-        })
-        categories = Object.values(catMap)
-      }
+      let categories = this._resolveCategories(dishes)
 
       const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes, categories)
       const categoryCount = {}
@@ -369,21 +356,9 @@ Page({
       if (!res.result?.success) return null
 
       const data = res.result.data
-      const dishes = data.map(item => ({
-        ...item,
-        selected: false,
-        category: item.category || 'meat'
-      }))
+      const dishes = this._mapDishes(data)
 
-      let categories = app.globalData.categories || []
-      if (categories.length === 0) {
-        const catMap = {}
-        dishes.forEach(d => {
-          const cid = d.category || 'other'
-          if (!catMap[cid]) catMap[cid] = { _id: cid, name: cid, icon: '🍽️' }
-        })
-        categories = Object.values(catMap)
-      }
+      let categories = this._resolveCategories(dishes)
 
       // 仅更新 allDishes 和 categories，不写入 dishes/dishesByCategory
       // 避免与搜索状态冲突造成闪屏
@@ -450,6 +425,29 @@ Page({
       dishScrollTop: 0
     })
     setTimeout(() => { this._measureDishCategoryPositions() }, 200)
+  },
+
+  // 将原始菜品数据映射为页面展示结构
+  _mapDishes(data) {
+    return data.map(item => ({
+      ...item,
+      selected: false,
+      category: item.category || 'meat'
+    }))
+  },
+
+  // 兜底：分类为空时用菜品自带的 category 生成临时分组
+  _resolveCategories(dishes) {
+    let categories = app.globalData.categories || []
+    if (categories.length === 0) {
+      const catMap = {}
+      dishes.forEach(d => {
+        const cid = d.category || 'other'
+        if (!catMap[cid]) catMap[cid] = { _id: cid, name: cid, icon: '🍽️' }
+      })
+      categories = Object.values(catMap)
+    }
+    return categories
   },
 
   // 重新按分类整理菜品数据

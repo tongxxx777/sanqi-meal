@@ -102,16 +102,25 @@ Page({
     })
   },
 
-  // 搜索图片（原 generateAIImage，保留函数名以兼容 wxml）
-  async generateAIImage() {
+  // 搜索图片（兼容 wxml 中 generateAIImage / regenerateAIImage 两个入口）
+  generateAIImage() {
+    this.searchImages(false)
+  },
+
+  regenerateAIImage() {
+    this.searchImages(true)
+  },
+
+  // 调用云函数搜索图片；refresh=true 时让云函数随机翻页获取不同结果
+  async searchImages(refresh = false) {
     if (!this.data.name.trim()) {
-      wx.showToast({ title: '请先输入菜品名称', icon: 'none' })
+      if (!refresh) wx.showToast({ title: '请先输入菜品名称', icon: 'none' })
       return
     }
 
     this.setData({
       generating: true,
-      showAIModal: true,
+      showAIModal: refresh ? this.data.showAIModal : true,
       aiImages: [],
       aiImageUrls: [],
       selectedAIIndex: -1
@@ -120,7 +129,7 @@ Page({
     try {
       const res = await wx.cloud.callFunction({
         name: 'generateAIImage',
-        data: { dishName: this.data.name.trim() }
+        data: { dishName: this.data.name.trim(), refresh }
       })
 
       if (!res.result?.success) {
@@ -130,57 +139,19 @@ Page({
       }
 
       const images = res.result.data.images
-
       this.setData({
         aiImages: images,
         aiImageUrls: images.map(img => img.tempFileURL),
         generating: false
       })
-
     } catch (error) {
       console.error('搜索图片失败', error)
       const errMsg = String(error)
-      if (errMsg.includes('TIME_LIMIT_EXCEEDED') || errMsg.includes('-504003')) {
+      if (!refresh && (errMsg.includes('TIME_LIMIT_EXCEEDED') || errMsg.includes('-504003'))) {
         wx.showToast({ title: '图片搜索超时，请稍后重试', icon: 'none', duration: 3000 })
       } else {
         wx.showToast({ title: '图片搜索失败，请手动上传', icon: 'none' })
       }
-      this.setData({ generating: false, showAIModal: false })
-    }
-  },
-
-  // 重新搜索图片（传入 refresh 让云函数随机翻页）
-  async regenerateAIImage() {
-    if (!this.data.name.trim()) return
-
-    this.setData({
-      generating: true,
-      aiImages: [],
-      aiImageUrls: [],
-      selectedAIIndex: -1
-    })
-
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'generateAIImage',
-        data: { dishName: this.data.name.trim(), refresh: true }
-      })
-
-      if (!res.result?.success) {
-        wx.showToast({ title: res.result?.message || '图片搜索失败，请重试', icon: 'none' })
-        this.setData({ generating: false, showAIModal: false })
-        return
-      }
-
-      const images = res.result.data.images
-      this.setData({
-        aiImages: images,
-        aiImageUrls: images.map(img => img.tempFileURL),
-        generating: false
-      })
-    } catch (error) {
-      console.error('重新搜索图片失败', error)
-      wx.showToast({ title: '图片搜索失败，请手动上传', icon: 'none' })
       this.setData({ generating: false, showAIModal: false })
     }
   },
