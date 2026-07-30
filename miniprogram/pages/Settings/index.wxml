@@ -59,6 +59,22 @@
     </view>
   </view>
 
+  <view class="settings-section">
+    <view class="section-title">帮助与反馈</view>
+    <view class="contact-card">
+      <view class="contact-card__inner">
+        <view class="contact-icon-wrap">
+          <text class="contact-icon">💬</text>
+        </view>
+        <text class="contact-title">需要帮助？</text>
+        <text class="contact-desc">遇到 Bug 或者有想法，随时告诉我~</text>
+        <button class="contact-btn" open-type="contact" session-from="settings">
+          <text class="contact-btn-text">联系客服</text>
+        </button>
+      </view>
+    </view>
+  </view>
+
   <view class="footer">
     <text class="footer-text">Made with love 🎀 shared with you</text>
   </view>
