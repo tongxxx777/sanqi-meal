@@ -68,7 +68,7 @@ Page({
           collection: app.globalData.collectionDishList,
           orderBy: 'createTime',
           order: 'desc',
-          limit: 100
+          limit: 500
         }
       })
       if (!res.result?.success) {
@@ -110,7 +110,7 @@ Page({
           collection: app.globalData.collectionDishList,
           orderBy: 'createTime',
           order: 'desc',
-          limit: 100
+          limit: 500
         }
       })
       if (!res.result?.success) return null

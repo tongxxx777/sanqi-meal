@@ -20,7 +20,7 @@
     </view>
     <view class="dish-list">
       <view class="dish-item" wx:for="{{order.dishes}}" wx:key="_id">
-        <image class="dish-image" src="{{item.imageUrl || '/images/default.jpg'}}" mode="aspectFill"></image>
+        <image class="dish-image" src="{{item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
         <text class="dish-name">{{item.name}}</text>
       </view>
     </view>

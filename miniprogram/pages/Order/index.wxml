@@ -52,7 +52,7 @@
         <view class="dish-item {{dish.selected ? 'selected' : ''}}"
               wx:for="{{dishesByCategory[item._id]}}" wx:for-item="dish" wx:key="_id"
               data-id="{{dish._id}}" bindtap="toggleSelect">
-          <image class="dish-image" src="{{dish.imageUrl || '/images/default.jpg'}}" mode="aspectFill" data-id="{{dish._id}}" catchtap="openDishDetail"></image>
+          <image class="dish-image" src="{{dish.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load data-id="{{dish._id}}" catchtap="openDishDetail"></image>
           <view class="dish-info">
             <text class="dish-name">{{dish.name}}</text>
             <view class="dish-meta">
@@ -99,7 +99,7 @@
       <text>还没有选择菜品哦~</text>
     </view>
     <view class="cart-item" wx:for="{{selectedDishes}}" wx:key="_id">
-      <image class="cart-item-image" src="{{item.imageUrl || '/images/default.jpg'}}" mode="aspectFill"></image>
+      <image class="cart-item-image" src="{{item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
       <view class="cart-item-info">
         <text class="cart-item-name">{{item.name}}</text>
         <view class="cart-item-meta">

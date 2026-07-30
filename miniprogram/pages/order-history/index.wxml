@@ -29,7 +29,7 @@
             <view class="history-expect" wx:if="{{item.expectText}}">🕗 期望用餐时间：{{item.expectText}}</view>
             <view class="history-dishes">
               <view class="history-dish" wx:for="{{item.dishes}}" wx:for-item="dish" wx:key="_id">
-                <image class="history-dish-image" src="{{dish.imageUrl || '/images/default.jpg'}}" mode="aspectFill"></image>
+                <image class="history-dish-image" src="{{dish.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
                 <text class="history-dish-name">{{dish.name}}</text>
               </view>
             </view>
