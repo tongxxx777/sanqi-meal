@@ -27,11 +27,6 @@
   color: white;
 }
 
-.header-time {
-  font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.9);
-}
-
 .header-creator {
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.85);
@@ -174,11 +169,6 @@
   animation: none;
 }
 
-.complete-icon {
-  font-size: 40rpx;
-  margin-right: 12rpx;
-}
-
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.02); }
@@ -186,13 +176,6 @@
 
 /* 成品照片 */
 .photo-section .section-title { position: relative; }
-
-.photo-tip {
-  margin-left: auto;
-  font-size: 24rpx;
-  color: var(--text-hint);
-  font-weight: normal;
-}
 
 .photo-upload {
   display: flex;

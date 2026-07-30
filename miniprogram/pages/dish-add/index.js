@@ -76,7 +76,7 @@ Page({
   // 输入菜品描述
   onDescInput(e) {
     let value = e.detail.value
-    if (value.length > 6) value = value.slice(0, 6)
+    if (value.length > 10) value = value.slice(0, 10)
     this.setData({ description: value })
     return value
   },

@@ -249,7 +249,7 @@
 }
 
 .quick-icon-green { background: var(--border-color); }
-.quick-icon-pink { background: #FFE8EE; }
+.quick-icon-pink,
 .quick-icon-purple { background: #FFE8EE; }
 .quick-icon-orange { background: #FFF3E0; }
 

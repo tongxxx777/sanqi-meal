@@ -117,7 +117,7 @@
       <input class="input-field" placeholder="例如：超下饭"
              placeholderClass="input-placeholder"
              bindinput="onDescInput" value="{{description}}" />
-      <text class="input-counter">{{description.length}}/6</text>
+      <text class="input-counter">{{description.length}}/10</text>
     </view>
   </view>
 

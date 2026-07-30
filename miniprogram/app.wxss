@@ -17,10 +17,6 @@ page {
   overflow-x: hidden;
 }
 
-.container.white {
-  background-color: var(--card-bg);
-}
-
 /* ---- 卡片 ---- */
 .card {
   background: var(--card-bg);
@@ -54,86 +50,6 @@ button::after {
   box-shadow: var(--shadow-button);
 }
 
-/* 次要按钮 */
-.btn-secondary {
-  background: var(--border-color);
-  color: var(--primary-color);
-  border-radius: 50rpx;
-  padding: 24rpx 60rpx;
-  font-size: 32rpx;
-}
-
-/* ---- 表单 ---- */
-.form-group {
-  width: calc(100% - 40px);
-  margin: 10px 20px;
-  border-radius: 20rpx;
-  background: var(--card-bg);
-  box-shadow: var(--shadow-card-light);
-}
-
-.form-group_label {
-  align-self: flex-start;
-  margin-top: 20px;
-  margin-left: 20px;
-  color: var(--text-secondary);
-  font-size: 28rpx;
-  font-weight: 500;
-}
-
-.form-group_label:not(:first-child) {
-  margin-top: 20px;
-}
-
-.form-cell {
-  padding: 30rpx;
-}
-
-.form-cell:not(:last-child) {
-  border-bottom: 1rpx solid var(--border-color);
-}
-
-.form-cell.inline {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-/* ---- 列表项 ---- */
-.list-item {
-  display: flex;
-  align-items: center;
-  padding: 30rpx;
-  background: var(--card-bg);
-  margin: 16rpx 24rpx;
-  border-radius: 20rpx;
-  box-shadow: var(--shadow-card-light);
-}
-
-.list-item-image {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 16rpx;
-  margin-right: 24rpx;
-  object-fit: cover;
-}
-
-.list-item-content {
-  flex: 1;
-}
-
-.list-item-title {
-  font-size: 32rpx;
-  color: var(--text-primary);
-  font-weight: 500;
-  margin-bottom: 8rpx;
-}
-
-.list-item-desc {
-  font-size: 26rpx;
-  color: var(--text-hint);
-}
-
 /* ---- 空状态 ---- */
 .empty-state {
   display: flex;
@@ -141,18 +57,6 @@ button::after {
   align-items: center;
   justify-content: center;
   padding: 100rpx 60rpx;
-}
-
-.empty-state-image {
-  width: 300rpx;
-  height: 300rpx;
-  margin-bottom: 40rpx;
-}
-
-.empty-state-text {
-  font-size: 28rpx;
-  color: var(--text-hint);
-  text-align: center;
 }
 
 /* ---- FAB 悬浮按钮 ---- */
@@ -169,30 +73,6 @@ button::after {
   justify-content: center;
   box-shadow: var(--shadow-fab);
   z-index: 999;
-}
-
-.fab-icon {
-  width: 50rpx;
-  height: 50rpx;
-}
-
-/* ---- 标签 ---- */
-.tag {
-  display: inline-block;
-  padding: 8rpx 20rpx;
-  border-radius: 20rpx;
-  font-size: 24rpx;
-  margin-right: 12rpx;
-}
-
-.tag-green {
-  background: var(--border-color);
-  color: var(--primary-color);
-}
-
-.tag-orange {
-  background: #FFF3E0;
-  color: #F57C00;
 }
 
 /* ---- 动画 ---- */
