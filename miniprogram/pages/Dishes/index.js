@@ -14,6 +14,8 @@ Page({
     hasLoaded: false,
     partnerName: '',
     searchKey: '',
+    // 下拉刷新状态
+    refresherTriggered: false,
   },
 
   async onShow() {
@@ -150,14 +152,21 @@ Page({
         currentCategory: '__all__',
         loading: false,
         searchKey: '',
-        dishScrollTop: 0
+        dishScrollTop: 0,
+        refresherTriggered: false
       })
       this._saveCache(dishes, categories)
     } catch (e) {
       console.error('加载菜品失败', e)
-      this.setData({ loading: false })
+      this.setData({ loading: false, refresherTriggered: false })
       wx.showToast({ title: '加载失败', icon: 'none' })
     }
+  },
+
+  // 下拉刷新 - 强制忽略缓存，拉取最新菜品
+  async onRefresh() {
+    this.setData({ refresherTriggered: true })
+    await this.loadDishes()
   },
 
   // 静默刷新菜品（仅更新后台数据，不触发显示渲染，返回原始数据供调用方使用）

@@ -13,6 +13,8 @@ Page({
     partnerName: '',
     showTipModal: false,
     tipText: '',
+    // 下拉刷新状态
+    refresherTriggered: false,
   },
 
   async onShow() {
@@ -297,11 +299,18 @@ Page({
     wx.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
   },
 
-  // 下拉刷新
+  // 下拉刷新（系统级，页面无 scroll-view 时可触发；当前使用 scroll-view 内置 refresher）
   onPullDownRefresh() {
     this.loadOrders(true).then(() => {
       wx.stopPullDownRefresh()
     })
+  },
+
+  // 下拉刷新（scroll-view 内置 refresher，强制拿最新）
+  async onRefresh() {
+    this.setData({ refresherTriggered: true })
+    await this.loadOrders(true)
+    this.setData({ refresherTriggered: false })
   },
 
   // 上拉加载

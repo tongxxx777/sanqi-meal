@@ -50,7 +50,10 @@
 
     <!-- 菜品列表 -->
     <scroll-view class="dish-list" scroll-y enhanced
-                 scroll-top="{{dishScrollTop}}">
+                 scroll-top="{{dishScrollTop}}"
+                 refresher-enabled="{{true}}"
+                 refresher-triggered="{{refresherTriggered}}"
+                 bindrefresherrefresh="onRefresh">
       <view class="dish-grid" wx:if="{{dishesByCategory[currentCategory].length > 0}}">
         <view class="dish-card"
               wx:for="{{dishesByCategory[currentCategory]}}" wx:key="_id"

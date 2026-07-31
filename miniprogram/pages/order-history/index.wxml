@@ -13,7 +13,10 @@
   </view>
 
   <!-- 可滚动内容区 -->
-  <scroll-view class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:if="{{orders.length > 0}}">
+  <scroll-view class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:if="{{orders.length > 0}}"
+               refresher-enabled="{{true}}"
+               refresher-triggered="{{refresherTriggered}}"
+               bindrefresherrefresh="onRefresh">
     <!-- 历史列表 -->
     <view class="history-list">
       <view class="history-item-wrapper" wx:for="{{orders}}" wx:key="_id">

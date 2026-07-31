@@ -104,6 +104,17 @@ Page({
     ])
   },
 
+  // 下拉刷新 - 强制忽略缓存，拉取最新数据
+  async onPullDownRefresh() {
+    const coupleId = app.globalData.currentUser?.coupleId
+    if (coupleId) {
+      try { wx.removeStorageSync('stats_' + coupleId) } catch (e) {}
+    }
+    this._homeTs = 0
+    await this.loadHomeData()
+    wx.stopPullDownRefresh()
+  },
+
   // 设置问候语
   setGreeting() {
     const hour = new Date().getHours()
