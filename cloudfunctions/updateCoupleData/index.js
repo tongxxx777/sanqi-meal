@@ -6,7 +6,7 @@ const _ = db.command
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const currentOpenid = wxContext.OPENID
-  const { collection, docId, action, data } = event
+  const { collection, docId, docIds, action, data, field, by } = event
 
   try {
     // 获取当前用户信息
@@ -48,6 +48,24 @@ exports.main = async (event, context) => {
         }
         result = await db.collection(collection).doc(docId).update({ data: incData })
         return { success: true, updated: result.stats.updated }
+
+      case 'batchInc':
+        // 批量自增：对多个菜品统一加 orderCount，一次云函数完成，避免 N 道菜 N 次调用
+        if (!docIds || !Array.isArray(docIds) || !docIds.length) {
+          return { success: false, message: 'docIds 不能为空' }
+        }
+        if (!field || !by) {
+          return { success: false, message: 'field 和 by 不能为空' }
+        }
+        // 批量更新（云函数内循环不计入调用次数）
+        const batchResult = await Promise.all(
+          docIds.map(id =>
+            db.collection(collection).doc(id).update({
+              data: { [field]: _.inc(by) }
+            })
+          )
+        )
+        return { success: true, updated: batchResult.length }
 
       default:
         return { success: false, message: '不支持的操作' }

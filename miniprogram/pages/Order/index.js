@@ -53,9 +53,23 @@ Page({
     this.initExpect()
     await app.loadCategories()
     if (!this.data.hasLoaded) {
+      // 首次加载：检查 storage 缓存（2 分钟内有效，避免冷启动重拉）
+      const cache = this._readCache()
+      if (cache) {
+        this._renderFromCache(cache)
+        this.setData({ hasLoaded: true })
+        return
+      }
       await this.loadDishes()
       this.setData({ hasLoaded: true })
     } else {
+      // 非首次 onShow：检查缓存，2 分钟内直接用缓存跳过云函数调用
+      const now = Date.now()
+      const cache = this._readCache()
+      if (cache && (now - cache.ts) < 2 * 60 * 1000) {
+        this.setData({ loading: false })
+        return
+      }
       // 保存当前搜索状态
       const savedKey = this.data.searchKey
       // 静默刷新仅更新后台数据，不触发显示层渲染
@@ -94,6 +108,53 @@ Page({
     await app.loadUserInfo()
     const partnerName = app.getPartnerName()
     this.setData({ partnerName })
+  },
+
+  // 读取菜品缓存（2 分钟有效期）
+  _readCache() {
+    try {
+      const key = 'order_dishes_cache_' + app.globalData.coupleId
+      const raw = wx.getStorageSync(key)
+      if (!raw) return null
+      const cache = JSON.parse(raw)
+      const now = Date.now()
+      if ((now - cache.ts) > 2 * 60 * 1000) return null
+      return cache
+    } catch (e) { return null }
+  },
+
+  // 写入菜品缓存
+  _saveCache(allDishes, categories) {
+    try {
+      const key = 'order_dishes_cache_' + app.globalData.coupleId
+      wx.setStorageSync(key, JSON.stringify({
+        data: { allDishes, categories },
+        ts: Date.now()
+      }))
+    } catch (e) { /* ignore quota error */ }
+  },
+
+  // 从缓存渲染页面（不发起云函数请求）
+  _renderFromCache(cache) {
+    const { allDishes, categories } = cache.data
+    const dishes = this._mapDishes(allDishes)
+    const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes, categories)
+    const categoryCount = {}
+    categories.forEach(cat => {
+      categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
+    })
+    const firstCategory = categories.find(cat => categoryCount[cat._id] > 0)
+    this.setData({
+      dishes,
+      allDishes,
+      categories,
+      dishesByCategory,
+      categoryCount,
+      selectedByCategory,
+      currentCategory: firstCategory ? firstCategory._id : (categories[0] ? categories[0]._id : ''),
+      loading: false
+    })
+    setTimeout(() => { this._measureDishCategoryPositions() }, 200)
   },
 
   // ==================== 期望用餐时间 ====================
@@ -298,7 +359,7 @@ Page({
           collection: app.globalData.collectionDishList,
           orderBy: 'createTime',
           order: 'desc',
-          limit: 500
+          limit: 300
         }
       })
       if (!res.result?.success) {
@@ -335,6 +396,7 @@ Page({
         searchKey: '',
         dishScrollTop: 0
       })
+      this._saveCache(dishes, categories)
       // 等 DOM 渲染完，预测量所有分类在 scroll 内容中的位置
       setTimeout(() => { this._measureDishCategoryPositions() }, 200)
 
@@ -353,7 +415,7 @@ Page({
           collection: app.globalData.collectionDishList,
           orderBy: 'createTime',
           order: 'desc',
-          limit: 500
+          limit: 300
         }
       })
       if (!res.result?.success) return null
@@ -366,6 +428,7 @@ Page({
       // 仅更新 allDishes 和 categories，不写入 dishes/dishesByCategory
       // 避免与搜索状态冲突造成闪屏
       this.setData({ allDishes: dishes, categories, loading: false })
+      this._saveCache(dishes, categories)
       return { allDishes: dishes, categories }
     } catch (e) {
       console.error('静默刷新菜品失败', e)
@@ -796,18 +859,17 @@ Page({
       })
       const orderId = addRes._id
 
-      // 更新菜品点单次数（异步执行，不阻塞）
-      for (const dish of selectedDishes) {
-        wx.cloud.callFunction({
-          name: 'updateCoupleData',
-          data: {
-            collection: app.globalData.collectionDishList,
-            docId: dish._id,
-            action: 'inc',
-            data: { orderCount: 1 }
-          }
-        }).catch(() => {})
-      }
+      // 更新菜品点单次数（批量一次调用，避免 N 道菜 N 次云函数）
+      wx.cloud.callFunction({
+        name: 'updateCoupleData',
+        data: {
+          collection: app.globalData.collectionDishList,
+          action: 'batchInc',
+          docIds: selectedDishes.map(d => d._id),
+          field: 'orderCount',
+          by: 1
+        }
+      }).catch(() => {})
 
       // 发送通知（fire，不依赖其脆弱返回值判定，避免"对方已收到却误判失败"）
       await this.sendNotification(selectedDishes, remark, orderId, expect.expectText)

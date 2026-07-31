@@ -166,6 +166,21 @@ App({
 
   async _doLoadCategories(forceRefresh = false) {
     try {
+      // 优先读 storage 缓存，避免冷启动重复跑 init
+      const coupleId = this.globalData.currentUser?.coupleId
+      const cacheKey = 'categories_' + (coupleId || 'default')
+      if (!forceRefresh) {
+        try {
+          const cached = wx.getStorageSync(cacheKey)
+          if (cached && Array.isArray(cached) && cached.length > 0) {
+            this.globalData.categories = cached
+            this.globalData.categoriesLoaded = true
+            this.globalData.categoriesInited = true
+            return cached
+          }
+        } catch (e) { /* ignore read error */ }
+      }
+
       // 先确保初始化默认分类
       if (!this.globalData.categoriesInited || forceRefresh) {
         await wx.cloud.callFunction({
@@ -182,6 +197,9 @@ App({
       if (res.result?.success) {
         this.globalData.categories = res.result.data
         this.globalData.categoriesLoaded = true
+        try {
+          wx.setStorageSync(cacheKey, res.result.data)
+        } catch (e) { /* ignore write error */ }
         return res.result.data
       }
     } catch (e) {
@@ -366,17 +384,33 @@ App({
     }
   },
 
-  // 获取菜品与订单数量统计（并发查询，无缓存，每次 onShow 拉取最新）
+  // 获取菜品与订单数量统计（带 5 分钟缓存）
   async getStats() {
+    const coupleId = this.globalData.currentUser?.coupleId
+    const cacheKey = 'stats_' + (coupleId || 'default')
+    try {
+      const cached = wx.getStorageSync(cacheKey)
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (Date.now() - parsed.ts < 5 * 60 * 1000) {
+          return parsed.data
+        }
+      }
+    } catch (e) { /* ignore */ }
+
     try {
       const [dishRes, orderRes] = await Promise.all([
         wx.cloud.callFunction({ name: 'getCoupleData', data: { collection: this.globalData.collectionDishList, countOnly: true } }),
         wx.cloud.callFunction({ name: 'getCoupleData', data: { collection: this.globalData.collectionOrderList, countOnly: true } })
       ])
-      return {
+      const stats = {
         dishCount: dishRes.result?.total || 0,
         orderCount: orderRes.result?.total || 0
       }
+      try {
+        wx.setStorageSync(cacheKey, JSON.stringify({ data: stats, ts: Date.now() }))
+      } catch (e) { /* ignore */ }
+      return stats
     } catch (e) {
       console.error('get stats error', e)
       return { dishCount: 0, orderCount: 0 }

@@ -21,9 +21,23 @@ Page({
     this.getPartnerName()
     await app.loadCategories()
     if (!this.data.hasLoaded) {
+      // 首次加载：检查 storage 缓存（2 分钟内有效，避免冷启动重拉）
+      const cache = this._readCache()
+      if (cache) {
+        this._renderFromCache(cache)
+        this.setData({ hasLoaded: true })
+        return
+      }
       await this.loadDishes()
       this.setData({ hasLoaded: true })
     } else {
+      // 非首次 onShow：检查缓存，2 分钟内直接用缓存跳过云函数调用
+      const now = Date.now()
+      const cache = this._readCache()
+      if (cache && (now - cache.ts) < 2 * 60 * 1000) {
+        this.setData({ loading: false })
+        return
+      }
       // 保存当前搜索/分类状态
       const savedKey = this.data.searchKey
       const savedCat = this.data.currentCategory
@@ -51,6 +65,50 @@ Page({
     }
   },
 
+  // 读取菜品缓存（2 分钟有效期）
+  _readCache() {
+    try {
+      const key = 'dishes_cache_' + app.globalData.coupleId
+      const raw = wx.getStorageSync(key)
+      if (!raw) return null
+      const cache = JSON.parse(raw)
+      const now = Date.now()
+      if ((now - cache.ts) > 2 * 60 * 1000) return null
+      return cache
+    } catch (e) { return null }
+  },
+
+  // 写入菜品缓存
+  _saveCache(allDishes, categories) {
+    try {
+      const key = 'dishes_cache_' + app.globalData.coupleId
+      wx.setStorageSync(key, JSON.stringify({
+        data: { allDishes, categories },
+        ts: Date.now()
+      }))
+    } catch (e) { /* ignore quota error */ }
+  },
+
+  // 从缓存渲染页面（不发起云函数请求）
+  _renderFromCache(cache) {
+    const { allDishes, categories } = cache.data
+    const filtered = allDishes
+    const { dishesByCategory } = this._syncCategoryData(filtered, categories)
+    const { categories: catsWithAll, dishesByCategory: dbcWithAll, categoryCount } =
+      this._prependAllCategory(filtered, categories, dishesByCategory)
+    this.setData({
+      allDishes,
+      categories: catsWithAll,
+      dishes: filtered,
+      dishesByCategory: dbcWithAll,
+      categoryCount,
+      currentCategory: '__all__',
+      loading: false,
+      searchKey: '',
+      dishScrollTop: 0
+    })
+  },
+
   // 获取伴侣名字
   async getPartnerName() {
     await app.loadUserInfo()
@@ -68,7 +126,7 @@ Page({
           collection: app.globalData.collectionDishList,
           orderBy: 'createTime',
           order: 'desc',
-          limit: 500
+          limit: 300
         }
       })
       if (!res.result?.success) {
@@ -94,6 +152,7 @@ Page({
         searchKey: '',
         dishScrollTop: 0
       })
+      this._saveCache(dishes, categories)
     } catch (e) {
       console.error('加载菜品失败', e)
       this.setData({ loading: false })
@@ -110,7 +169,7 @@ Page({
           collection: app.globalData.collectionDishList,
           orderBy: 'createTime',
           order: 'desc',
-          limit: 500
+          limit: 300
         }
       })
       if (!res.result?.success) return null
@@ -122,6 +181,7 @@ Page({
       // 仅更新 allDishes 和 categories，不写入 dishes/dishesByCategory
       // 避免与搜索/分类状态冲突造成闪屏
       this.setData({ allDishes: dishes, categories, loading: false })
+      this._saveCache(dishes, categories)
       return { allDishes: dishes, categories }
     } catch (e) {
       console.error('静默刷新菜品失败', e)

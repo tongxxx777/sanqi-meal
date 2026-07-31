@@ -26,23 +26,34 @@ Page({
   },
 
   async onShow() {
-    const showSeq = (this._showSeq || 0) + 1
-    this._showSeq = showSeq
+    const now = Date.now()
     const isFirstLoad = !this.hasLoaded
     // 首次进入显示 loading，之后直接显示页面
     if (isFirstLoad) {
       this.setData({ pageLoading: true })
     }
-    await this.loadUserInfo(isFirstLoad)
-    if (showSeq !== this._showSeq) return
+    // 用户信息：首次加载 + 之后 5 分钟内不重复拉
+    const needUser = !this._userLoaded || now - (this._userTs || 0) > 5 * 60 * 1000
+    if (needUser) {
+      await this.loadUserInfo(isFirstLoad)
+      this._userLoaded = true
+      this._userTs = now
+    }
     app.setKitchenTitle()
     // 每次回到首页静默补一次订阅额度（已勾"总是保持"的用户不弹窗）
     app.rearmSubscribe()
     if (isFirstLoad) {
       this.hasLoaded = true
+      this._homeLoaded = true
+      this._homeTs = now
     }
-    this.loadHomeData()
-    this.refreshUserInfoInBackground(showSeq)
+    // 首页数据：首次加载 + 之后 60 秒内不重复拉（去掉原 refreshUserInfoInBackground 双重拉取）
+    const needHome = !this._homeLoaded || now - (this._homeTs || 0) > 60 * 1000
+    if (needHome) {
+      this.loadHomeData()
+      this._homeLoaded = true
+      this._homeTs = now
+    }
   },
 
   // 加载用户信息
@@ -82,18 +93,6 @@ Page({
         orderCount: 0,
         togetherDays: 0
       })
-    }
-  },
-
-  async refreshUserInfoInBackground(showSeq) {
-    try {
-      await app.loadUserInfo(true)
-      if (showSeq !== this._showSeq) return
-      await this.loadUserInfo()
-      app.setKitchenTitle()
-      this.loadHomeData()
-    } catch (e) {
-      console.error('refresh user info error', e)
     }
   },
 
