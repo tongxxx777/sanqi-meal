@@ -249,10 +249,13 @@ Page({
     const [hh, mm] = expectTimeStr.split(':').map(Number)
     const [Y, M, D] = dateOptions[expectDateIndex].dateStr.split('-').map(Number)
     const expectTime = new Date(Y, M - 1, D, hh, mm)
-    const timeLabel = this.format12h(expectTimeStr)
-    const slotLabel = (!slot || slot.key === 'custom') ? '' : slot.label
+    const isCustom = !slot || slot.key === 'custom'
+    // 仅自定义显示具体时间；早/午/晚只显示档位名
+    const timeLabel = isCustom ? this.format12h(expectTimeStr) : ''
+    const slotLabel = isCustom ? '' : slot.label
     const dateLabel = dateOptions[expectDateIndex].label
-    const expectText = `${dateLabel} ${timeLabel}${slotLabel ? ' · ' + slotLabel : ''}`
+    const middle = [timeLabel, slotLabel].filter(Boolean).join(' · ')
+    const expectText = `${dateLabel} ${middle}`.trim()
     return {
       expectTime,
       expectDateText: dateLabel,
