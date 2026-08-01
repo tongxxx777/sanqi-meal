@@ -47,6 +47,11 @@
   font-weight: 500;
 }
 
+.status-waiting {
+  background: rgba(255, 183, 77, 0.9);
+  color: white;
+}
+
 .status-pending {
   background: rgba(255, 152, 0, 0.9);
   color: white;
@@ -167,6 +172,82 @@
   transform: scale(0.98);
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.4);
   animation: none;
+}
+
+/* 发送通知分享按钮 */
+.share-btn {
+  background: linear-gradient(135deg, #FFB347 0%, #FF8E53 100%);
+  box-shadow: 0 8rpx 24rpx rgba(255, 179, 71, 0.5);
+}
+
+.share-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+.share-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 12rpx rgba(255, 179, 71, 0.5);
+  animation: none;
+}
+
+/* 接单按钮（做菜人专用） */
+.accept-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #43E97B 0%, #38F9D7 100%);
+  color: white;
+  font-size: 36rpx;
+  font-weight: 700;
+  padding: 36rpx;
+  border-radius: 50rpx;
+  margin: 10rpx 24rpx 32rpx;
+  box-shadow: 0 8rpx 24rpx rgba(67, 233, 123, 0.45);
+  position: relative;
+  overflow: hidden;
+  animation: pulse-green 1.8s ease-in-out infinite;
+}
+
+.accept-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: shimmer 2s infinite;
+}
+
+.accept-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 4rpx 16rpx rgba(67, 233, 123, 0.45);
+  animation: none;
+}
+
+@keyframes pulse-green {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+/* 已完成提示 */
+.done-tip {
+  background: #F1F8E9;
+  color: var(--text-secondary);
+  border-radius: 16rpx;
+  margin: 16rpx 24rpx;
+}
+
+.done-tip .waiting-text {
+  color: #66BB6A;
+  font-weight: 500;
 }
 
 @keyframes pulse {

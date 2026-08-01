@@ -694,6 +694,7 @@
 }
 
 .success-content {
+  position: relative;
   background: white;
   border-radius: 32rpx;
   padding: 50rpx 40rpx;
@@ -723,6 +724,14 @@
   color: var(--text-secondary);
   margin-bottom: 30rpx;
   text-align: center;
+}
+
+.success-subtitle {
+  font-size: 28rpx;
+  color: var(--primary-deep);
+  margin-bottom: 32rpx;
+  text-align: center;
+  font-weight: 500;
 }
 
 /* 通知失败 · 可爱小 tips 气泡 */
@@ -771,6 +780,56 @@
   color: #C76B96;
   line-height: 1.6;
   text-align: center;
+}
+
+/* 成功弹窗双按钮 */
+.success-actions {
+  display: flex;
+  gap: 20rpx;
+  width: 100%;
+}
+
+.btn-ghost {
+  flex: 1;
+  padding: 22rpx 0;
+  background: transparent;
+  border: 2rpx solid #C76B96;
+  border-radius: 44rpx;
+  font-size: 28rpx;
+  color: #C76B96;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.btn-ghost::after {
+  border: none;
+}
+
+.btn-ghost:active {
+  background: rgba(199, 107, 150, 0.08);
+}
+
+.success-actions .btn-primary {
+  flex: 1;
+  padding: 22rpx 0;
+  text-align: center;
+}
+
+.success-actions .btn-primary::after {
+  border: none;
+}
+
+.success-close {
+  position: absolute;
+  top: 16rpx;
+  right: 20rpx;
+  width: 48rpx;
+  height: 48rpx;
+  font-size: 32rpx;
+  color: #999;
+  text-align: center;
+  line-height: 48rpx;
 }
 
 /* 通用按钮 */

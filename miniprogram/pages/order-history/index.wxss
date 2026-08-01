@@ -222,6 +222,11 @@ mp-slideview .mark-btn,
   font-weight: 500;
 }
 
+.status-tag-mini.status-waiting {
+  background: #FFF8E1;
+  color: #FFA000;
+}
+
 .status-tag-mini.status-pending {
   background: #FFF3E0;
   color: #FF9800;

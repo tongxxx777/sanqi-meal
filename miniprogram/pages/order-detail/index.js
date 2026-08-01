@@ -4,7 +4,9 @@ Page({
   data: {
     order: null,
     loading: true,
-    isCreator: false  // 当前用户是否是点菜人（创建者）
+    isCreator: false, // 当前用户是否是点菜人（创建者）
+    isCook: false,    // 当前用户是否是做菜人（非创建者）
+    partnerName: ''   // 对方昵称
   },
 
   async onLoad(options) {
@@ -40,15 +42,17 @@ Page({
       order.timeText = this.formatTime(order.createTime)
       order.expectText = order.expectText || ''
       order.creatorName = app.getDisplayName(order._openid)
-      // 处理旧数据：如果没有 status 字段，默认为 'pending'
+      // 处理旧数据：如果没有 status 字段，默认为 'waiting'
       if (!order.status) {
-        order.status = 'pending'
+        order.status = 'waiting'
       }
-      // 判断当前用户是否是点菜人（创建者）
+      // 判断当前用户身份
       const currentUserId = app.globalData.currentUser?._id
       const isCreator = order._openid === currentUserId
-      
-      this.setData({ order, loading: false, isCreator })
+      const isCook = !isCreator
+      const partnerName = app.getPartnerName() || 'TA'
+
+      this.setData({ order, loading: false, isCreator, isCook, partnerName })
     } catch (e) {
       console.error('加载订单失败', e)
       wx.showToast({ title: '加载失败', icon: 'none' })
@@ -73,7 +77,39 @@ Page({
     return `${hours}:${minutes}`
   },
 
-  // 标记为已完成
+  // 做菜人接单：waiting → pending
+  async acceptOrder() {
+    const { order } = this.data
+    if (!order || order.status !== 'waiting') return
+
+    // 在 tap 手势同步上下文内先给自己补 1 条订阅额度
+    app.bufferSubscribe().catch(e => console.error('订阅额度补充失败', e))
+
+    wx.showLoading({ title: '接单中...', mask: true })
+
+    try {
+      await wx.cloud.callFunction({
+        name: 'updateCoupleData',
+        data: {
+          collection: app.globalData.collectionOrderList,
+          docId: order._id,
+          action: 'update',
+          data: { status: 'pending' }
+        }
+      })
+
+      this.setData({ 'order.status': 'pending' })
+
+      wx.hideLoading()
+      wx.showToast({ title: '已接单，开始准备吧！', icon: 'success' })
+    } catch (e) {
+      wx.hideLoading()
+      console.error('接单失败', e)
+      wx.showToast({ title: '操作失败', icon: 'none' })
+    }
+  },
+
+  // 标记为已完成：pending → completed
   async markAsCompleted() {
     // 在 tap 手势同步上下文内先给自己补 1 条订阅额度（已勾"不再提示"则不弹窗）
     app.bufferSubscribe().catch(e => console.error('订阅额度补充失败', e))
@@ -217,13 +253,13 @@ Page({
     })
   },
 
-  // 分享订单
+  // 分享订单（伴侣视角）
   onShareAppMessage() {
-    const { order } = this.data
+    const { order, partnerName } = this.data
     if (!order) return { title: '叁柒食', path: '/pages/index/index' }
     const dishNames = (order.dishes || []).map(d => d.name).join('、')
     return {
-      title: `${order.creatorName}点了：${dishNames}`,
+      title: `${partnerName}，你的伴侣下单啦，快去准备吧 🍳`,
       path: `/pages/order-detail/index?id=${order._id}`,
       imageUrl: '/images/default.jpg'
     }

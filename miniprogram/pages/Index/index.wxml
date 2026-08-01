@@ -85,8 +85,8 @@
         <view class="status-header">
           <view class="status-label-wrap">
             <text class="status-label">{{item.creatorName}} 点了菜</text>
-            <view class="status-tag-mini {{item.status === 'completed' ? 'status-completed' : 'status-pending'}}">
-              {{item.status === 'completed' ? '已完成' : '进行中'}}
+            <view class="status-tag-mini {{item.status === 'completed' ? 'status-completed' : item.status === 'waiting' ? 'status-waiting' : 'status-pending'}}">
+              {{item.status === 'completed' ? '已完成' : item.status === 'waiting' ? '待接单' : '进行中'}}
             </view>
           </view>
           <text class="status-time">{{item.timeText}}</text>

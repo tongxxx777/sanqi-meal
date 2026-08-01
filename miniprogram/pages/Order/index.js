@@ -43,6 +43,7 @@ Page({
     detailTranslateY: 0,
     remark: '',
     submitting: false,
+    orderId: '',
     partnerName: '对方',
     searchKey: '',
     // 下拉刷新状态
@@ -857,7 +858,7 @@ Page({
           })),
           remark,
           coupleId,
-          status: 'pending', // 待处理状态
+          status: 'waiting', // 待接单状态
           createTime: db.serverDate(),
           // 期望用餐时间
           expectTime: expect.expectTime,
@@ -908,7 +909,8 @@ Page({
       this.setData({
         showSuccess: true,
         submitting: false,
-        notifyFailed
+        notifyFailed,
+        orderId
       })
       app.markDataDirty('order')
 
@@ -949,18 +951,22 @@ Page({
 
   // 关闭成功弹窗
   closeSuccess() {
-    const dishes = this.data.dishes.map(item => ({ ...item, selected: false }))
-    const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes)
+    // 重置购物车并跳转订单详情页
+    const cart = wx.getStorageSync('cart') || []
+    const newCart = cart.filter(item => !item.checked || item.checked === false)
+    wx.setStorageSync('cart', newCart)
 
-    this.setData({
-      showSuccess: false,
-      notifyFailed: false,
-      dishes,
-      dishesByCategory,
-      selectedByCategory,
-      selectedDishes: [],
-      selectedCount: 0
+    wx.redirectTo({
+      url: '/pages/order-detail/index?id=' + this.data.orderId
     })
+  },
+
+  // 关闭成功弹窗（仅关闭弹窗，不跳转）
+  dismissSuccess() {
+    const cart = wx.getStorageSync('cart') || []
+    const newCart = cart.filter(item => !item.checked || item.checked === false)
+    wx.setStorageSync('cart', newCart)
+    this.setData({ showSuccess: false })
   },
 
   // 跳转到菜品库
@@ -970,7 +976,15 @@ Page({
 
   // 分享给好友
   onShareAppMessage() {
-    const { partnerName } = this.data
+    const { partnerName, orderId } = this.data
+    // 如果刚下单成功，分享卡片指向订单详情页
+    if (orderId) {
+      return {
+        title: `我刚刚下单啦，${partnerName}记得准备哦~ 🍳`,
+        path: `/pages/order-detail/index?id=${orderId}`,
+        imageUrl: '/images/default.jpg'
+      }
+    }
     return {
       title: `今天吃什么？和${partnerName}一起来点菜吧`,
       path: '/pages/order/index',
