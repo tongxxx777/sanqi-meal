@@ -321,7 +321,13 @@ App({
 
   // 检查是否已绑定伴侣
   isBound() {
-    return this.globalData.currentUser?.bindStatus === 'bound' && this.globalData.partner
+    const user = this.globalData.currentUser
+    if (user?.bindStatus !== 'bound') return false
+    if (!this.globalData.partner) {
+      console.warn('[isBound] bindStatus=bound but partner is null, data may be inconsistent')
+      return false
+    }
+    return true
   },
 
   // 检查用户信息是否完整(有昵称和头像)
@@ -415,6 +421,42 @@ App({
       console.error('get stats error', e)
       return { dishCount: 0, orderCount: 0 }
     }
+  },
+
+  // ========== 数据脏标记机制 ==========
+  // 写操作成功后标记对应类型的数据已变更，各页 onShow 检测到脏标记后立即刷新
+  // type: 'order' | 'dish' | 'category'
+
+  markDataDirty(type) {
+    try {
+      const dirty = this._readDirty()
+      dirty[type] = Date.now()
+      wx.setStorageSync('data_dirty', JSON.stringify(dirty))
+    } catch (e) { /* ignore */ }
+  },
+
+  isDataDirty(type, sinceTs) {
+    try {
+      const dirty = this._readDirty()
+      return (dirty[type] || 0) > sinceTs
+    } catch (e) { return false }
+  },
+
+  clearDataDirty(type) {
+    try {
+      const dirty = this._readDirty()
+      if (dirty[type]) {
+        delete dirty[type]
+        wx.setStorageSync('data_dirty', JSON.stringify(dirty))
+      }
+    } catch (e) { /* ignore */ }
+  },
+
+  _readDirty() {
+    try {
+      const raw = wx.getStorageSync('data_dirty')
+      return raw ? JSON.parse(raw) : {}
+    } catch (e) { return {} }
   },
 
   // ========== 全局分享配置 ==========

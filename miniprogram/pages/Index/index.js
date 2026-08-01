@@ -44,15 +44,15 @@ Page({
     app.rearmSubscribe()
     if (isFirstLoad) {
       this.hasLoaded = true
-      this._homeLoaded = true
-      this._homeTs = now
     }
-    // 首页数据：首次加载 + 之后 60 秒内不重复拉（去掉原 refreshUserInfoInBackground 双重拉取）
-    const needHome = !this._homeLoaded || now - (this._homeTs || 0) > 60 * 1000
-    if (needHome) {
+    // 首页数据：_homeReady 且 2 分钟内且无脏数据 → 跳过；否则刷新
+    // 有脏数据（下单/改菜等写入操作）时即使未到期也强制刷新
+    const homeFresh = this._homeReady
+      && (now - (this._homeTs || 0)) < 2 * 60 * 1000
+      && !app.isDataDirty('order', this._homeTs)
+      && !app.isDataDirty('dish', this._homeTs)
+    if (!homeFresh) {
       this.loadHomeData()
-      this._homeLoaded = true
-      this._homeTs = now
     }
   },
 
@@ -94,14 +94,35 @@ Page({
         togetherDays: 0
       })
     }
+
+    // 修复C: 用户信息加载完成后，若已绑定但首页数据未就绪，立即补拉
+    // 处理冷启动时 partner 延迟导致 loadHomeData 被跳过的场景
+    if (isBound && !this._homeReady) {
+      this.loadHomeData()
+    }
   },
 
   async loadHomeData() {
     if (!app.isBound()) return
-    await Promise.all([
-      this.loadTodayOrder(),
-      this.loadStats()
-    ])
+    // 防止并发重复调用
+    if (this._homeLoading) return
+    this._homeLoading = true
+    try {
+      await Promise.all([
+        this.loadTodayOrder(),
+        this.loadStats()
+      ])
+      // 只有真正加载成功才标记就绪，后续 onShow 才会启用节流
+      this._homeReady = true
+      this._homeTs = Date.now()
+      app.clearDataDirty('order')
+      app.clearDataDirty('dish')
+    } catch (e) {
+      console.error('loadHomeData error', e)
+      // 不标记 _homeReady，下次 onShow 会自动重试
+    } finally {
+      this._homeLoading = false
+    }
   },
 
   // 下拉刷新 - 强制忽略缓存，拉取最新数据
@@ -110,6 +131,8 @@ Page({
     if (coupleId) {
       try { wx.removeStorageSync('stats_' + coupleId) } catch (e) {}
     }
+    // 重置就绪标记，确保 loadHomeData 会重新走完整流程
+    this._homeReady = false
     this._homeTs = 0
     await this.loadHomeData()
     wx.stopPullDownRefresh()

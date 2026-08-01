@@ -33,10 +33,10 @@ Page({
       await this.loadDishes()
       this.setData({ hasLoaded: true })
     } else {
-      // 非首次 onShow：检查缓存，2 分钟内直接用缓存跳过云函数调用
+      // 非首次 onShow：检查缓存，2 分钟内且无脏数据直接用缓存跳过云函数调用
       const now = Date.now()
       const cache = this._readCache()
-      if (cache && (now - cache.ts) < 2 * 60 * 1000) {
+      if (cache && (now - cache.ts) < 2 * 60 * 1000 && !app.isDataDirty('dish', cache.ts)) {
         this.setData({ loading: false })
         return
       }
@@ -191,6 +191,7 @@ Page({
       // 避免与搜索/分类状态冲突造成闪屏
       this.setData({ allDishes: dishes, categories, loading: false })
       this._saveCache(dishes, categories)
+      app.clearDataDirty('dish')
       return { allDishes: dishes, categories }
     } catch (e) {
       console.error('静默刷新菜品失败', e)
@@ -351,6 +352,7 @@ Page({
 
       this.setData({ dishes, allDishes: dishes, dishesByCategory, categoryCount })
       wx.showToast({ title: '已删除', icon: 'success' })
+      app.markDataDirty('dish')
     } catch (e) {
       wx.hideLoading()
       console.error('删除失败', e)

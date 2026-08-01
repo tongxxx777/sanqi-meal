@@ -107,6 +107,7 @@ Page({
             }
 
             wx.showToast({ title: '已删除', icon: 'success' })
+            app.markDataDirty('dish')
             setTimeout(() => {
               wx.navigateBack()
             }, 1500)

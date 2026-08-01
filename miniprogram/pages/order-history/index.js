@@ -20,12 +20,24 @@ Page({
   async onShow() {
     app.setKitchenTitle()
     await this.loadUserInfo()
-    // 首次加载显示 loading，后续静默刷新避免闪屏
+    // 首次加载：先尝试恢复缓存，有缓存就跳过云函数
     if (!this.data.hasLoaded) {
+      const cache = this._readCache()
+      if (cache) {
+        const { orders, hasMore, page } = cache.data
+        this.setData({ orders, hasMore, page, loading: false, hasLoaded: true })
+        return
+      }
       await this.loadOrders(true)
       this.setData({ hasLoaded: true })
     } else {
-      this.refreshOrdersSilently()
+      // 检查缓存（2 分钟）和脏标记；有脏数据（新下单/删订单等）时即使未到期也刷新
+      const cache = this._readCache()
+      if (cache && (Date.now() - cache.ts) < 2 * 60 * 1000 && !app.isDataDirty('order', cache.ts)) {
+        return
+      }
+      await this.refreshOrdersSilently()
+      app.clearDataDirty('order')
     }
   },
 
@@ -36,6 +48,32 @@ Page({
       openid: currentUser?._id || '',
       partnerName: partner?.nickname || '对方'
     })
+  },
+
+  // 读取历史缓存（2 分钟有效期）
+  _readCache() {
+    try {
+      const coupleId = app.globalData.currentUser?.coupleId
+      if (!coupleId) return null
+      const key = 'order_history_cache_' + coupleId
+      const raw = wx.getStorageSync(key)
+      if (!raw) return null
+      const cache = JSON.parse(raw)
+      if (Date.now() - cache.ts > 2 * 60 * 1000) return null
+      return cache
+    } catch (e) { return null }
+  },
+
+  // 写入历史缓存
+  _saveCache(orders, hasMore, page) {
+    try {
+      const coupleId = app.globalData.currentUser?.coupleId
+      if (!coupleId) return
+      wx.setStorageSync('order_history_cache_' + coupleId, JSON.stringify({
+        data: { orders, hasMore, page },
+        ts: Date.now()
+      }))
+    } catch (e) { /* ignore */ }
   },
 
   // 加载历史记录
@@ -83,6 +121,10 @@ Page({
         page: page + 1,
         loading: false
       })
+      if (reset) {
+        this._saveCache(newOrders, data.length === pageSize, page + 1)
+        app.clearDataDirty('order')
+      }
     } catch (e) {
       console.error('加载历史失败', e)
       this.setData({ loading: false })
@@ -122,6 +164,7 @@ Page({
         page: 1,
         loading: false
       })
+      this._saveCache(newOrders, data.length === this.data.pageSize, 1)
     } catch (e) {
       console.error('静默刷新历史失败', e)
     }
@@ -216,6 +259,7 @@ Page({
       orders[index].slideButtons = this.getSlideButtons(newMarked)
       this.setData({ orders })
       wx.showToast({ title: newMarked ? '已标记' : '已取消标记', icon: 'success' })
+      app.markDataDirty('order')
     } catch (e) {
       wx.hideLoading()
       console.error('标记失败', e)
@@ -250,6 +294,7 @@ Page({
             }
 
             wx.showToast({ title: '已删除', icon: 'success' })
+            app.markDataDirty('order')
 
             // 回收菜品点菜次数：已删除的订单不应再计入“已点X次”
             const target = this.data.orders.find(item => item._id === id)
@@ -267,6 +312,7 @@ Page({
                 }).catch(() => {})
               }
             }
+            app.markDataDirty('dish')
 
             const orders = this.data.orders.filter(item => item._id !== id)
             this.setData({ orders })
