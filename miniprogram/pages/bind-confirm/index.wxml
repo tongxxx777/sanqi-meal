@@ -80,11 +80,11 @@
     <view class="tips-card">
       <view class="tips-item">
         <text class="tips-dot">●</text>
-        <text class="tips-text">点菜后对方会收到通知提醒</text>
+        <text class="tips-text">菜品库内容双方共享</text>
       </view>
       <view class="tips-item">
         <text class="tips-dot">●</text>
-        <text class="tips-text">菜品库内容双方共享</text>
+        <text class="tips-text">点菜后可分享通知对方</text>
       </view>
       <view class="tips-item">
         <text class="tips-dot">●</text>
