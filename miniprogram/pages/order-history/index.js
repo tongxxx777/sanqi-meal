@@ -31,13 +31,12 @@ Page({
       await this.loadOrders(true)
       this.setData({ hasLoaded: true })
     } else {
-      // 检查缓存（2 分钟）和脏标记；有脏数据（新下单/删订单等）时即使未到期也刷新
+      // 检查缓存（60 秒），到期后静默刷新
       const cache = this._readCache()
-      if (cache && (Date.now() - cache.ts) < 2 * 60 * 1000 && !app.isDataDirty('order', cache.ts)) {
+      if (cache && (Date.now() - cache.ts) < 60 * 1000) {
         return
       }
       await this.refreshOrdersSilently()
-      app.clearDataDirty('order')
     }
   },
 
@@ -59,7 +58,7 @@ Page({
       const raw = wx.getStorageSync(key)
       if (!raw) return null
       const cache = JSON.parse(raw)
-      if (Date.now() - cache.ts > 2 * 60 * 1000) return null
+      if (Date.now() - cache.ts > 60 * 1000) return null
       return cache
     } catch (e) { return null }
   },
@@ -73,6 +72,14 @@ Page({
         data: { orders, hasMore, page },
         ts: Date.now()
       }))
+    } catch (e) { /* ignore */ }
+  },
+
+  // 清除历史缓存（写操作后调用，确保下次 onShow 拉最新）
+  _clearCache() {
+    try {
+      const coupleId = app.globalData.currentUser?.coupleId
+      if (coupleId) wx.removeStorageSync('order_history_cache_' + coupleId)
     } catch (e) { /* ignore */ }
   },
 
@@ -122,7 +129,6 @@ Page({
       })
       if (reset) {
         this._saveCache(newOrders, data.length === pageSize, page + 1)
-        app.clearDataDirty('order')
       }
     } catch (e) {
       console.error('加载历史失败', e)
@@ -257,7 +263,6 @@ Page({
       orders[index].slideButtons = this.getSlideButtons(newMarked)
       this.setData({ orders })
       wx.showToast({ title: newMarked ? '已标记' : '已取消标记', icon: 'success' })
-      app.markDataDirty('order')
     } catch (e) {
       wx.hideLoading()
       console.error('标记失败', e)
@@ -292,7 +297,6 @@ Page({
             }
 
             wx.showToast({ title: '已删除', icon: 'success' })
-            app.markDataDirty('order')
 
             // 回收菜品点菜次数：已删除的订单不应再计入“已点X次”
             const target = this.data.orders.find(item => item._id === id)
@@ -310,7 +314,8 @@ Page({
                 }).catch(() => {})
               }
             }
-            app.markDataDirty('dish')
+            // 回收点单次数后清除菜品库缓存，确保下次 onShow 拉最新
+        this._clearCache()
 
             const orders = this.data.orders.filter(item => item._id !== id)
             this.setData({ orders })
@@ -350,8 +355,14 @@ Page({
     })
   },
 
-  // 下拉刷新 - 强制清缓存 + 拉最新数据（底线：绝不读旧缓存）
+  // 下拉刷新（30s 节流）- 强制清缓存 + 拉最新数据
   async onRefresh() {
+    const now = Date.now()
+    if (now - app.globalData.lastPullTs < 30000) {
+      this.setData({ refresherTriggered: false })
+      return
+    }
+    app.globalData.lastPullTs = now
     this.setData({ refresherTriggered: true })
     try {
       // 清除历史记录 storage 缓存

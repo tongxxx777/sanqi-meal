@@ -36,7 +36,7 @@ Page({
       // 非首次 onShow：检查缓存，2 分钟内且无脏数据直接用缓存跳过云函数调用
       const now = Date.now()
       const cache = this._readCache()
-      if (cache && (now - cache.ts) < 2 * 60 * 1000 && !app.isDataDirty('dish', cache.ts)) {
+      if (cache && (now - cache.ts) < 60 * 1000) {
         this.setData({ loading: false })
         return
       }
@@ -75,7 +75,7 @@ Page({
       if (!raw) return null
       const cache = JSON.parse(raw)
       const now = Date.now()
-      if ((now - cache.ts) > 2 * 60 * 1000) return null
+      if ((now - cache.ts) > 60 * 1000) return null
       return cache
     } catch (e) { return null }
   },
@@ -89,6 +89,14 @@ Page({
         ts: Date.now()
       }))
     } catch (e) { /* ignore quota error */ }
+  },
+
+  // 清除菜品库缓存（写操作后调用，确保下次 onShow 拉最新）
+  _clearCache() {
+    try {
+      const coupleId = app.globalData.currentUser?.coupleId
+      if (coupleId) wx.removeStorageSync('dishes_cache_' + coupleId)
+    } catch (e) { /* ignore */ }
   },
 
   // 从缓存渲染页面（不发起云函数请求）
@@ -165,8 +173,14 @@ Page({
     }
   },
 
-  // 下拉刷新 - 强制清缓存 + 拉最新数据（底线：绝不读旧缓存）
+  // 下拉刷新（30s 节流）- 强制清缓存 + 拉最新数据
   async onRefresh() {
+    const now = Date.now()
+    if (now - app.globalData.lastPullTs < 30000) {
+      this.setData({ refresherTriggered: false })
+      return
+    }
+    app.globalData.lastPullTs = now
     this.setData({ refresherTriggered: true })
     try {
       // 清除菜品 storage 缓存
@@ -187,11 +201,6 @@ Page({
   // 静默刷新菜品（仅更新后台数据，不触发显示渲染，返回原始数据供调用方使用）
   async refreshDishesSilently() {
     try {
-      // 检测分类脏标记：分类变更后必须强制刷新，否则新分类下的菜品会被过滤
-      if (app.isDataDirty('category', Date.now() - 2 * 60 * 1000)) {
-        await app.loadCategories(true)
-        app.clearDataDirty('category')
-      }
       const res = await wx.cloud.callFunction({
         name: 'getCoupleData',
         data: {
@@ -211,7 +220,6 @@ Page({
       // 避免与搜索/分类状态冲突造成闪屏
       this.setData({ allDishes: dishes, categories, loading: false })
       this._saveCache(dishes, categories)
-      app.clearDataDirty('dish')
       return { allDishes: dishes, categories }
     } catch (e) {
       console.error('静默刷新菜品失败', e)
@@ -372,7 +380,8 @@ Page({
 
       this.setData({ dishes, allDishes: dishes, dishesByCategory, categoryCount })
       wx.showToast({ title: '已删除', icon: 'success' })
-      app.markDataDirty('dish')
+      // 删菜后清除菜品库缓存，确保下次 onShow 拉最新
+    this._clearCache()
     } catch (e) {
       wx.hideLoading()
       console.error('删除失败', e)

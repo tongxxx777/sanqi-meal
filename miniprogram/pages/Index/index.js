@@ -44,10 +44,8 @@ Page({
     }
     // 首页数据：_homeReady 且 2 分钟内且无脏数据 → 跳过；否则刷新
     // 有脏数据（下单/改菜等写入操作）时即使未到期也强制刷新
-    const homeFresh = this._homeReady
-      && (now - (this._homeTs || 0)) < 2 * 60 * 1000
-      && !app.isDataDirty('order', this._homeTs)
-      && !app.isDataDirty('dish', this._homeTs)
+      const homeFresh = this._homeReady
+        && (now - (this._homeTs || 0)) < 60 * 1000
     if (!homeFresh) {
       this.loadHomeData()
     }
@@ -106,10 +104,8 @@ Page({
         this.loadStats()
       ])
       // 只有真正加载成功才标记就绪，后续 onShow 才会启用节流
-      this._homeReady = true
-      this._homeTs = Date.now()
-      app.clearDataDirty('order')
-      app.clearDataDirty('dish')
+        this._homeReady = true
+        this._homeTs = Date.now()
     } catch (e) {
       console.error('loadHomeData error', e)
       // 不标记 _homeReady，下次 onShow 会自动重试
@@ -118,8 +114,15 @@ Page({
     }
   },
 
-  // 下拉刷新 - 强制清缓存 + 拉最新数据（底线：绝不读旧缓存）
+  // 下拉刷新（30s 节流）- 强制清缓存 + 拉最新数据
   async onPullDownRefresh() {
+    const app = getApp()
+    const now = Date.now()
+    if (now - app.globalData.lastPullTs < 30000) {
+      wx.stopPullDownRefresh()
+      return
+    }
+    app.globalData.lastPullTs = now
     try {
       await app.forceRefreshBase()                    // 强制清空全部分类缓存 + 拉最新分类
       const coupleId = app.globalData.currentUser?.coupleId

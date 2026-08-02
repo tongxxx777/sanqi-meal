@@ -64,6 +64,9 @@ App({
       categoriesLoaded: false,
       categoriesLoadPromise: null,
       categoriesInited: false,
+
+      // 下拉刷新节流（全局，防连续手抖下拉）
+      lastPullTs: 0,
     }
 
     // 预加载用户信息：在系统启动画面期间拉取数据，首页加载时缓存命中，几乎零等待
@@ -333,7 +336,7 @@ App({
     }
   },
 
-  // 获取菜品与订单数量统计（带 5 分钟缓存）
+  // 获取菜品与订单数量统计（带 2 分钟缓存）
   async getStats() {
     const coupleId = this.globalData.currentUser?.coupleId
     const cacheKey = 'stats_' + (coupleId || 'default')
@@ -341,7 +344,7 @@ App({
       const cached = wx.getStorageSync(cacheKey)
       if (cached) {
         const parsed = JSON.parse(cached)
-        if (Date.now() - parsed.ts < 5 * 60 * 1000) {
+        if (Date.now() - parsed.ts < 2 * 60 * 1000) {
           return parsed.data
         }
       }
@@ -364,42 +367,6 @@ App({
       console.error('get stats error', e)
       return { dishCount: 0, orderCount: 0 }
     }
-  },
-
-  // ========== 数据脏标记机制 ==========
-  // 写操作成功后标记对应类型的数据已变更，各页 onShow 检测到脏标记后立即刷新
-  // type: 'order' | 'dish' | 'category'
-
-  markDataDirty(type) {
-    try {
-      const dirty = this._readDirty()
-      dirty[type] = Date.now()
-      wx.setStorageSync('data_dirty', JSON.stringify(dirty))
-    } catch (e) { /* ignore */ }
-  },
-
-  isDataDirty(type, sinceTs) {
-    try {
-      const dirty = this._readDirty()
-      return (dirty[type] || 0) > sinceTs
-    } catch (e) { return false }
-  },
-
-  clearDataDirty(type) {
-    try {
-      const dirty = this._readDirty()
-      if (dirty[type]) {
-        delete dirty[type]
-        wx.setStorageSync('data_dirty', JSON.stringify(dirty))
-      }
-    } catch (e) { /* ignore */ }
-  },
-
-  _readDirty() {
-    try {
-      const raw = wx.getStorageSync('data_dirty')
-      return raw ? JSON.parse(raw) : {}
-    } catch (e) { return {} }
   },
 
   // ========== 全局分享配置 ==========

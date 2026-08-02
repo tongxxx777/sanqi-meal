@@ -236,7 +236,6 @@ Page({
         }
 
         wx.showToast({ title: '修改成功', icon: 'success' })
-        app.markDataDirty('dish')
       } else {
         // 新增模式（带上 coupleId）
         const coupleId = app.globalData.currentUser?.coupleId || ''
@@ -252,7 +251,6 @@ Page({
         })
         wx.hideLoading()
         wx.showToast({ title: '添加成功', icon: 'success' })
-        app.markDataDirty('dish')
       }
 
       setTimeout(() => {

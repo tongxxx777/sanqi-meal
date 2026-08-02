@@ -137,8 +137,6 @@ Page({
       this.setData({ showModal: false })
       await this.loadCategories()
       wx.showToast({ title: '保存成功', icon: 'success' })
-      app.markDataDirty('category')
-      app.markDataDirty('dish')
     } catch (e) {
       wx.hideLoading()
       console.error('save category error', e)
@@ -182,8 +180,6 @@ Page({
             wx.hideLoading()
             await this.loadCategories()
             wx.showToast({ title: '已删除', icon: 'success' })
-            app.markDataDirty('category')
-            app.markDataDirty('dish')
           }
         })
       } else {
@@ -231,8 +227,6 @@ Page({
       this.setData({ showTransferModal: false })
       await this.loadCategories()
       wx.showToast({ title: '已删除', icon: 'success' })
-      app.markDataDirty('category')
-      app.markDataDirty('dish')
     } catch (e) {
       wx.hideLoading()
       console.error('transfer and delete error', e)
@@ -276,7 +270,6 @@ Page({
       // 同步到全局
       app.globalData.categories = this.data.categories
       wx.showToast({ title: '排序已保存', icon: 'success' })
-      app.markDataDirty('category')
     } catch (e) {
       wx.hideLoading()
       wx.showToast({ title: '保存失败', icon: 'none' })
