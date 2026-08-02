@@ -128,7 +128,7 @@ Page({
   onShareAppMessage() {
     const { inviteCode, nickname } = this.data
     return {
-      title: `${nickname || '我'}邀请你一起使用叁柒食`,
+      title: `${nickname || '我'}邀请你一起使用${getApp().getKitchenName()}`,
       path: `/pages/bind-confirm/index?inviteCode=${inviteCode}`,
       imageUrl: '/images/default.jpg'
     }

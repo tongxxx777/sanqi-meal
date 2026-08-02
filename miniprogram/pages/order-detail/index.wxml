@@ -84,10 +84,10 @@
   <block wx:if="{{order.status === 'waiting' && isCreator}}">
     <view class="waiting-panel">
       <view class="waiting-ring">
-        <text class="waiting-emoji">⏳</text>
+        <text class="waiting-emoji">🍳</text>
       </view>
       <text class="waiting-title">等待 {{partnerName}} 接单</text>
-      <text class="waiting-sub">转发给 TA，一顿美味的大餐 由此开始咯~</text>
+      <text class="waiting-sub">TA 还没接单呢，快去把人"骗"进厨房~</text>
     </view>
     <view class="scroll-hint">
       <view class="scroll-hint-line"></view>

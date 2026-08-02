@@ -177,7 +177,7 @@
   <view class="success-content">
     <image class="success-image" src="/images/1.gif" mode="aspectFit"></image>
     <text class="success-title">🍱 饭饭已下单</text>
-    <text class="success-subtitle">快去告诉 {{partnerName}} 准备吧~</text>
+    <text class="success-subtitle">快去通知 {{partnerName}} 准备吧~</text>
     <view class="success-actions">
       <button class="btn-primary" open-type="share">通知 TA</button>
       <view class="btn-ghost" bindtap="closeSuccess">订单详情</view>

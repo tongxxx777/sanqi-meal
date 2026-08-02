@@ -382,13 +382,13 @@ App({
     const shareTitles = {
       'pages/index/index': this.getKitchenName() + ' · 专属小厨房',
       'pages/dishes/index': '来看看我们的小厨房菜单吧',
-      'pages/order/index': '今天吃什么？来叁柒食点菜吧',
+      'pages/order/index': '今天吃什么？来' + this.getKitchenName() + '点菜吧',
       'pages/order-history/index': '看看我们的美食记录',
-      'pages/settings/index': this.getKitchenName() + ' · 叁柒食'
+      'pages/settings/index': this.getKitchenName() + ' · 专属小厨房'
     }
 
     return {
-      title: shareTitles[route] || '叁柒食 · 和TA的专属小厨房',
+      title: shareTitles[route] || this.getKitchenName() + ' · 和TA的专属小厨房',
       path: '/pages/index/index',
       imageUrl: '/images/default.jpg'
     }
@@ -399,13 +399,13 @@ App({
     const route = pages[pages.length - 1]?.route || ''
 
     const timelineTitles = {
-      'pages/index/index': this.getKitchenName() + ' · 叁柒食',
-      'pages/dishes/index': '叁柒食 · 我们的美食小厨房',
-      'pages/order-history/index': '叁柒食 · 美食记忆'
+      'pages/index/index': this.getKitchenName() + ' · 专属小厨房',
+      'pages/dishes/index': this.getKitchenName() + ' · 我们的美食小厨房',
+      'pages/order-history/index': this.getKitchenName() + ' · 美食记忆'
     }
 
     return {
-      title: timelineTitles[route] || '叁柒食 · 和TA的专属小厨房',
+      title: timelineTitles[route] || this.getKitchenName() + ' · 和TA的专属小厨房',
       imageUrl: '/images/default.jpg'
     }
   },

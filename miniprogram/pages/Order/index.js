@@ -964,7 +964,7 @@ Page({
     // 如果刚下单成功，分享卡片指向订单详情页
     if (orderId) {
       return {
-        title: `我刚刚下单啦，${partnerName}记得准备哦~ 🍳`,
+        title: `${partnerName}，饭点好了，就等你来确认啦💌`,
         path: `/pages/order-detail/index?id=${orderId}`,
         imageUrl: '/images/default.jpg'
       }

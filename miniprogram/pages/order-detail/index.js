@@ -250,10 +250,10 @@ Page({
   // 分享订单（伴侣视角）
   onShareAppMessage() {
     const { order, partnerName } = this.data
-    if (!order) return { title: '叁柒食', path: '/pages/index/index' }
+    if (!order) return { title: app.getKitchenName(), path: '/pages/index/index' }
     const dishNames = (order.dishes || []).map(d => d.name).join('、')
     return {
-      title: `${partnerName}，你的伴侣下单啦，快去准备吧 🍳`,
+      title: `${partnerName}，饭点好了，就等你来确认啦💌`,
       path: `/pages/order-detail/index?id=${order._id}`,
       imageUrl: '/images/default.jpg'
     }

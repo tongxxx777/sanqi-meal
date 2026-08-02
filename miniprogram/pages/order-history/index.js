@@ -395,7 +395,7 @@ Page({
   // 分享到朋友圈
   onShareTimeline() {
     return {
-      title: '叁柒食 · 美食记忆',
+      title: getApp().getKitchenName() + ' · 美食记忆',
       query: '',
       imageUrl: '/images/default.jpg'
     }

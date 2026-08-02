@@ -295,7 +295,7 @@ Page({
     const partnerName = this.data.partnerName || 'TA'
     const isBound = this.data.isBound
     return {
-      title: isBound ? `和${partnerName}的专属小厨房 · ${app.getKitchenName()}` : '叁柒食 · 和TA的专属小厨房',
+      title: isBound ? `和${partnerName}的专属小厨房 · ${app.getKitchenName()}` : app.getKitchenName() + ' · 和TA的专属小厨房',
       path: '/pages/index/index',
       imageUrl: '/images/default.jpg'
     }
@@ -305,7 +305,7 @@ Page({
   onShareTimeline() {
     const app = getApp()
     return {
-      title: app.getKitchenName() + ' · 叁柒食',
+      title: app.getKitchenName() + ' · 专属小厨房',
       query: '',
       imageUrl: '/images/default.jpg'
     }
