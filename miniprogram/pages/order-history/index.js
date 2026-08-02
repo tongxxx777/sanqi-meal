@@ -350,11 +350,21 @@ Page({
     })
   },
 
-  // 下拉刷新（scroll-view 内置 refresher，强制拿最新）
+  // 下拉刷新 - 强制清缓存 + 拉最新数据（底线：绝不读旧缓存）
   async onRefresh() {
     this.setData({ refresherTriggered: true })
-    await this.loadOrders(true)
-    this.setData({ refresherTriggered: false })
+    try {
+      // 清除历史记录 storage 缓存
+      const coupleId = app.globalData.currentUser?.coupleId
+      if (coupleId) {
+        try { wx.removeStorageSync('order_history_cache_' + coupleId) } catch (e) {}
+      }
+      await this.loadOrders(true)
+    } catch (e) {
+      console.error('history onRefresh error', e)
+    } finally {
+      this.setData({ refresherTriggered: false })
+    }
   },
 
   // 上拉加载

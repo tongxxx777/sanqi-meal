@@ -118,17 +118,23 @@ Page({
     }
   },
 
-  // 下拉刷新 - 强制忽略缓存，拉取最新数据
+  // 下拉刷新 - 强制清缓存 + 拉最新数据（底线：绝不读旧缓存）
   async onPullDownRefresh() {
-    const coupleId = app.globalData.currentUser?.coupleId
-    if (coupleId) {
-      try { wx.removeStorageSync('stats_' + coupleId) } catch (e) {}
+    try {
+      await app.forceRefreshBase()                    // 强制清空全部分类缓存 + 拉最新分类
+      const coupleId = app.globalData.currentUser?.coupleId
+      if (coupleId) {
+        try { wx.removeStorageSync('stats_' + coupleId) } catch (e) {}
+      }
+      // 重置就绪标记，确保 loadHomeData 会重新走完整流程
+      this._homeReady = false
+      this._homeTs = 0
+      await this.loadHomeData()
+    } catch (e) {
+      console.error('首页下拉刷新失败', e)
+    } finally {
+      wx.stopPullDownRefresh()
     }
-    // 重置就绪标记，确保 loadHomeData 会重新走完整流程
-    this._homeReady = false
-    this._homeTs = 0
-    await this.loadHomeData()
-    wx.stopPullDownRefresh()
   },
 
   // 设置问候语

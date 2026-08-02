@@ -205,6 +205,24 @@ App({
     return []
   },
 
+  // ========== 强制刷新基础数据 ==========
+  // 下拉刷新统一入口：清空所有内存 + storage 缓存，然后拉最新分类
+  forceRefreshBase() {
+    // 1. 清除 storage 分类缓存
+    try {
+      const coupleId = this.globalData.currentUser?.coupleId
+      if (coupleId) wx.removeStorageSync('categories_' + coupleId)
+      wx.removeStorageSync('categories_default')
+    } catch (e) { /* ignore */ }
+    // 2. 重置内存中的分类状态（破坏所有缓存守卫）
+    this.globalData.categories = []
+    this.globalData.categoriesLoadPromise = null
+    this.globalData.categoriesLoaded = false
+    this.globalData.categoriesInited = false
+    // 3. 强制从云函数拉最新分类（跳过内存 + storage 两层缓存）
+    return this.loadCategories(true)
+  },
+
   // 绑定伴侣
   async bindPartner(inviteCode) {
     try {

@@ -122,6 +122,8 @@ Page({
   async loadDishes() {
     this.setData({ loading: true })
     try {
+      // 确保分类是最新的（新分类下的菜品才能被正确归组）
+      await app.loadCategories(true)
       const res = await wx.cloud.callFunction({
         name: 'getCoupleData',
         data: {
@@ -163,15 +165,33 @@ Page({
     }
   },
 
-  // 下拉刷新 - 强制忽略缓存，拉取最新菜品
+  // 下拉刷新 - 强制清缓存 + 拉最新数据（底线：绝不读旧缓存）
   async onRefresh() {
     this.setData({ refresherTriggered: true })
-    await this.loadDishes()
+    try {
+      // 清除菜品 storage 缓存
+      try {
+        const key = 'dishes_cache_' + (app.globalData.currentUser?.coupleId || '')
+        if (key !== 'dishes_cache_') wx.removeStorageSync(key)
+      } catch (e) {}
+      // 强制清空分类缓存 + 拉最新分类（关键：新分类下的菜品不会被旧分类列表过滤）
+      await app.forceRefreshBase()
+      await this.loadDishes()
+    } catch (e) {
+      console.error('dishes onRefresh error', e)
+    } finally {
+      this.setData({ refresherTriggered: false })
+    }
   },
 
   // 静默刷新菜品（仅更新后台数据，不触发显示渲染，返回原始数据供调用方使用）
   async refreshDishesSilently() {
     try {
+      // 检测分类脏标记：分类变更后必须强制刷新，否则新分类下的菜品会被过滤
+      if (app.isDataDirty('category', Date.now() - 2 * 60 * 1000)) {
+        await app.loadCategories(true)
+        app.clearDataDirty('category')
+      }
       const res = await wx.cloud.callFunction({
         name: 'getCoupleData',
         data: {
