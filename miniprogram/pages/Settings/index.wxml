@@ -98,7 +98,7 @@
         <view class="nick-area">
           <text class="nick-label">昵称</text>
           <view class="nick-input-wrap">
-            <input class="nick-input" type="nickname" placeholder="请输入昵称" value="{{tempNickname}}" bindinput="onNicknameInput" bindblur="onNicknameBlur" />
+            <input class="nick-input" type="nickname" placeholder="请输入昵称" value="{{tempNickname}}" bindinput="onNicknameInput" bindblur="onNicknameBlur" maxlength="32" />
           </view>
           <view class="nick-hint">
             <text class="nick-hint__icon">💡</text>

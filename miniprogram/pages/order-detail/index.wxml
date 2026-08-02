@@ -95,7 +95,7 @@
     </view>
     <button class="complete-btn share-btn" open-type="share">
       <text class="share-icon">💌</text>
-      <text>转发给 {{partnerName}}</text>
+      <text class="share-text">转发给 {{partnerName}}</text>
     </button>
   </block>
 

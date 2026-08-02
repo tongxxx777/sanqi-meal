@@ -9,7 +9,8 @@ Page({
     dishesByCategory: {},
     categoryCount: {},
     currentCategory: '__all__',
-    dishScrollTop: 0,
+    // 回顶标记：仅在需要回到顶部时置 true，下一帧复位，平时为空让 scroll-view 自由滚动
+    scrollToTop: false,
     loading: true,
     hasLoaded: false,
     partnerName: '',
@@ -114,9 +115,15 @@ Page({
       categoryCount,
       currentCategory: '__all__',
       loading: false,
-      searchKey: '',
-      dishScrollTop: 0
+      searchKey: ''
     })
+    this._scrollToListTop()
+  },
+
+  // 让菜品列表回到顶部（scroll-into-view 方式，避免受控 scroll-top 造成的卡底/回弹）
+  _scrollToListTop() {
+    this.setData({ scrollToTop: true })
+    setTimeout(() => this.setData({ scrollToTop: false }), 100)
   },
 
   // 获取伴侣名字
@@ -162,10 +169,10 @@ Page({
         currentCategory: '__all__',
         loading: false,
         searchKey: '',
-        dishScrollTop: 0,
         refresherTriggered: false
       })
       this._saveCache(dishes, categories)
+      this._scrollToListTop()
     } catch (e) {
       console.error('加载菜品失败', e)
       this.setData({ loading: false, refresherTriggered: false })
@@ -279,7 +286,8 @@ Page({
   // 选择分类 - 切换显示当前分类菜品
   selectCategory(e) {
     const id = e.currentTarget.dataset.id
-    this.setData({ currentCategory: id, dishScrollTop: 0 })
+    this.setData({ currentCategory: id })
+    this._scrollToListTop()
   },
 
   // 搜索输入
@@ -314,9 +322,9 @@ Page({
       dishesByCategory: dbcWithAll,
       categoryCount,
       categories: catsWithAll,
-      currentCategory: '__all__',
-      dishScrollTop: 0
+      currentCategory: '__all__'
     })
+    this._scrollToListTop()
   },
 
   // 跳转到添加页

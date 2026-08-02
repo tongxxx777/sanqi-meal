@@ -504,4 +504,15 @@
 .share-btn .share-icon {
   font-size: 30rpx;
   margin-right: 10rpx;
+  flex-shrink: 0;
+}
+
+/* 转发按钮文字强制单行不折行 */
+.share-btn {
+  white-space: nowrap;
+}
+
+.share-btn .share-text {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
