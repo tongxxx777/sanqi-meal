@@ -88,8 +88,12 @@
         <view class="photo-hint" wx:if="{{!item.finishedPhoto && item.status !== 'completed' && !item.isCreator}}">
           <text>📷 做好了记得拍一张~</text>
         </view>
-        <!-- 点菜人显示等待提示 -->
-        <view class="photo-hint viewer-hint" wx:if="{{!item.finishedPhoto && item.status !== 'completed' && item.isCreator}}">
+        <!-- 点菜人：待接单状态 -->
+        <view class="photo-hint viewer-hint" wx:if="{{item.status === 'waiting' && item.isCreator}}">
+          <text>⏳ 等待大厨接单~</text>
+        </view>
+        <!-- 点菜人：已接单但未上传成品 -->
+        <view class="photo-hint viewer-hint" wx:if="{{!item.finishedPhoto && item.status !== 'completed' && item.status !== 'waiting' && item.isCreator}}">
           <text>⏳ 等待大厨拍照上传~</text>
         </view>
         <view class="photo-hint completed-hint" wx:if="{{item.status === 'completed'}}">

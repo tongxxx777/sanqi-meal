@@ -19,10 +19,14 @@
       <text class="dish-total">共{{order.dishes.length}}道</text>
     </view>
     <view class="dish-list">
-      <view class="dish-item" wx:for="{{order.dishes}}" wx:key="_id">
+      <view class="dish-item" wx:for="{{order.dishes}}" wx:key="_id" wx:if="{{dishesExpanded || index < 1}}">
         <image class="dish-image" src="{{item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
         <text class="dish-name">{{item.name}}</text>
       </view>
+    </view>
+    <view class="dish-toggle" wx:if="{{order.dishes.length > 1}}" bindtap="toggleDishes">
+      <text>{{dishesExpanded ? '收起' : '展开全部'}}</text>
+      <view class="dish-toggle-arrow {{dishesExpanded ? 'up' : ''}}"></view>
     </view>
   </view>
 
@@ -32,9 +36,9 @@
       <text class="section-icon">💬</text>
       <text>备注</text>
     </view>
-    <view class="remark-card">
-      <text class="remark-text">{{order.remark}}</text>
-    </view>
+      <view class="remark-card">
+        <text class="remark-text">{{order.remark}}</text>
+      </view>
   </view>
 
   <!-- 成品照片（仅进行中 / 已完成可见） -->
@@ -78,18 +82,26 @@
 
   <!-- 待接单 + 点菜人：等待 TA 接单 + 分享 -->
   <block wx:if="{{order.status === 'waiting' && isCreator}}">
-    <view class="waiting-complete">
-      <text class="waiting-icon">⏳</text>
-      <text class="waiting-text">等待 {{partnerName}} 接单...</text>
+    <view class="waiting-panel">
+      <view class="waiting-ring">
+        <text class="waiting-emoji">⏳</text>
+      </view>
+      <text class="waiting-title">等待 {{partnerName}} 接单</text>
+      <text class="waiting-sub">转发给 TA，一顿美味的大餐 由此开始咯~</text>
+    </view>
+    <view class="scroll-hint">
+      <view class="scroll-hint-line"></view>
+      <view class="scroll-hint-arrow"></view>
     </view>
     <button class="complete-btn share-btn" open-type="share">
-      <text>📤 转发给 {{partnerName}}</text>
+      <text class="share-icon">💌</text>
+      <text>转发给 {{partnerName}}</text>
     </button>
   </block>
 
   <!-- 待接单 + 做菜人：接单按钮 -->
   <view class="accept-btn" wx:if="{{order.status === 'waiting' && isCook}}" bindtap="acceptOrder">
-    <text>收到！这就去做饭 🥄</text>
+    <text>收到！这就去做饭😊</text>
   </view>
 
   <!-- 进行中 + 做菜人：确认完成按钮 -->

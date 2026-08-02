@@ -117,7 +117,7 @@
           </view>
         </view>
         <button class="share-btn" open-type="share">
-          <text class="share-icon">📤</text>
+          <text class="share-icon">💌</text>
           <text>邀请TA加入</text>
         </button>
         <text class="tip-text">点击上方按钮分享给TA，TA点击即可自动绑定</text>

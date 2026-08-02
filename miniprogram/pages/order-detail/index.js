@@ -6,7 +6,8 @@ Page({
     loading: true,
     isCreator: false, // 当前用户是否是点菜人（创建者）
     isCook: false,    // 当前用户是否是做菜人（非创建者）
-    partnerName: ''   // 对方昵称
+    partnerName: '',  // 对方昵称
+    dishesExpanded: false // 菜品清单是否展开
   },
 
   async onLoad(options) {
@@ -239,6 +240,11 @@ Page({
         }
       }
     })
+  },
+
+  // 展开 / 收起菜品清单
+  toggleDishes() {
+    this.setData({ dishesExpanded: !this.data.dishesExpanded })
   },
 
   // 分享订单（伴侣视角）
