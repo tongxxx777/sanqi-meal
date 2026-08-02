@@ -34,7 +34,6 @@ Page({
     loading: true,
     hasLoaded: false,
     showSuccess: false,
-    notifyFailed: false,
     showRemarkModal: false,
     showCartPanel: false,
     showDishDetail: false,
@@ -882,22 +881,6 @@ Page({
         }
       }).catch(() => {})
 
-      // 发送通知（fire，不依赖其脆弱返回值判定，避免"对方已收到却误判失败"）
-      await this.sendNotification(selectedDishes, remark, orderId, expect.expectText)
-
-      // 以云函数写回的 notifyStatus 为准：服务端已成功发送会写 'sent'
-      let notifyFailed = false
-      try {
-        const r = await wx.cloud.callFunction({
-          name: 'getCoupleData',
-          data: { collection: app.globalData.collectionOrderList, docId: orderId }
-        })
-        notifyFailed = r.result?.data?.notifyStatus === 'failed'
-      } catch (e) {
-        // 读不到回执则保守按成功处理，不冤枉对方已收到的消息
-        notifyFailed = false
-      }
-
       wx.hideLoading()
       // 记住本次选择：更新对应档位时间 + 记录上次选的档位
       const slot = expect.expectSlot
@@ -909,7 +892,6 @@ Page({
       this.setData({
         showSuccess: true,
         submitting: false,
-        notifyFailed,
         orderId
       })
       app.markDataDirty('order')
@@ -919,33 +901,6 @@ Page({
       console.error('点菜失败', e)
       wx.showToast({ title: '点菜失败，请重试', icon: 'none' })
       this.setData({ submitting: false })
-    }
-  },
-
-  // 发送通知
-  async sendNotification(dishes, remark, orderId, expectText) {
-    const dishNames = dishes.map(d => d.name).join('、')
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'sendNotify',
-        data: {
-          type: 'newOrder',
-          templateId: app.globalData.notifyTmplIds[0],
-          dishNames,
-          count: dishes.length,
-          remark,
-          orderId,
-          expectText: expectText || ''
-        }
-      })
-      // 通知发送失败（如对方授权额度耗尽）不影响点菜主流程，但需暴露出来便于排查
-      if (!res.result?.success) {
-        console.error('[sendNotification] 通知未送达：', res.result?.message || res.result?.error)
-      }
-      return res.result
-    } catch (e) {
-      console.error('[sendNotification] 通知发送异常', e)
-      return null
     }
   },
 

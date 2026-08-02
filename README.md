@@ -58,7 +58,6 @@
 │   ├── updateCoupleData/            # 更新/删除共享数据
 │   ├── manageCategory/              # 分类管理
 │   ├── updateKitchenName/           # 更新厨房名称
-│   ├── sendNotify/                  # 发送订阅消息通知
 │   ├── getOpenId/                   # 获取用户 OpenID
 │   ├── getFileURL/                  # 图片临时链接转换
 │   └── generateAIImage/             # 图片搜索
@@ -100,7 +99,6 @@
 | `updateCoupleData` | 更新共享数据 |
 | `manageCategory` | 分类管理 |
 | `updateKitchenName` | 厨房命名 |
-| `sendNotify` | 消息通知 |
 | `getOpenId` | 获取 OpenID |
 | `getFileURL` | 图片临时链接 |
 | `generateAIImage` | 图片搜索 |

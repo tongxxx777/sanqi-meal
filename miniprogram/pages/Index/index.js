@@ -15,7 +15,6 @@ Page({
     togetherDays: 0,
     isBound: false,
     profileComplete: false,
-    subscribeRequested: false,
   },
 
   // 是否已完成首次加载
@@ -40,8 +39,6 @@ Page({
       this._userTs = now
     }
     app.setKitchenTitle()
-    // 每次回到首页静默补一次订阅额度（已勾"总是保持"的用户不弹窗）
-    app.rearmSubscribe()
     if (isFirstLoad) {
       this.hasLoaded = true
     }
@@ -71,9 +68,6 @@ Page({
       bindDays = Math.floor((now - bindTime) / (1000 * 60 * 60 * 24)) + 1
     }
 
-    // 从数据库读取订阅状态
-    const subscribeRequested = currentUser?.subscribeStatus === 'subscribed'
-
     this.setData({
       pageLoading: isFirstLoad ? false : this.data.pageLoading,
       userName: currentUser?.nickname || '',
@@ -82,8 +76,7 @@ Page({
       partnerAvatar: partner?.avatarUrl || '',
       bindDays,
       isBound,
-      profileComplete,
-      subscribeRequested
+      profileComplete
     })
 
     if (!isBound) {
@@ -227,27 +220,8 @@ Page({
   },
 
 
-  // 首页提醒卡片 - 订阅一次性订阅消息
-  goToSubscribe() {
-    wx.showLoading({ title: '开启中...', mask: true })
-    app.bufferSubscribe().then((added) => {
-      wx.hideLoading()
-      if (added > 0) {
-        wx.showToast({ title: '已开启', icon: 'success' })
-        this.setData({ subscribeRequested: true })
-      } else {
-        wx.showToast({ title: '未获得授权，请重试', icon: 'none' })
-      }
-    }).catch((err) => {
-      wx.hideLoading()
-      console.error('subscribe error', err)
-      wx.showToast({ title: '请先申请消息模板', icon: 'none' })
-    })
-  },
-
   // 跳转到点菜页
   goToOrder() {
-    app.rearmSubscribe()
     wx.switchTab({ url: '/pages/order/index' })
   },
 
@@ -255,7 +229,6 @@ Page({
   goToTodayOrder(e) {
     const id = e.currentTarget.dataset.id
     if (!id) return
-    app.rearmSubscribe()
     wx.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
   },
 
