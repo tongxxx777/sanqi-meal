@@ -132,6 +132,9 @@ Page({
       // 重置就绪标记，确保 loadHomeData 会重新走完整流程
       this._homeReady = false
       this._homeTs = 0
+      this._userLoaded = false              // 强制跳过 5 分钟用户缓存
+      this._userTs = 0
+      await this.loadUserInfo(false)        // 重新拉用户信息（昵称/头像）
       await this.loadHomeData()
     } catch (e) {
       console.error('首页下拉刷新失败', e)
