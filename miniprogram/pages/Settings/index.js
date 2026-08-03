@@ -25,9 +25,11 @@ Page({
   },
 
   async onShow() {
-    await this.loadUserInfo()
+    // 用户信息 + 版本校验（对方改昵称/头像/厨房名时 userVer 变化会精准重拉）
+    await app.loadUserInfo()
+    await app.syncOnShow('settings')
+    this.renderUser()
     this.loadAppInfo()
-    await this.loadStats()
     app.setKitchenTitle()
     if (this._autoEditProfile) {
       this._autoEditProfile = false
@@ -35,15 +37,18 @@ Page({
     }
   },
 
-  // 加载用户信息
-  async loadUserInfo() {
-    const { currentUser, partner } = await app.loadUserInfo()
+  // 从 globalData 渲染用户信息与统计（唯一数据源）
+  renderUser() {
+    const { currentUser, partner, counts } = app.globalData
+    const isBound = app.isBound()
     this.setData({
       userName: currentUser?.nickname || '未设置',
       userAvatar: currentUser?.avatarUrl || '',
       partnerName: partner?.nickname || '',
       partnerAvatar: partner?.avatarUrl || '',
-      isBound: app.isBound()
+      isBound,
+      dishCount: isBound ? counts.dishCount : 0,
+      orderCount: isBound ? counts.orderCount : 0
     })
   },
 
@@ -53,16 +58,6 @@ Page({
       appName: app.getKitchenName(),
       version: app.globalData.version
     })
-  },
-
-  // 加载统计数据
-  async loadStats() {
-    try {
-      const { dishCount, orderCount } = await app.getStats()
-      this.setData({ dishCount, orderCount })
-    } catch (e) {
-      console.error('load stats error', e)
-    }
   },
 
   // 跳转到绑定页面
@@ -136,25 +131,35 @@ Page({
 
     try {
       let avatarUrl = userAvatar
-      // 如果选择了新头像，上传到云存储
+      // 如果选择了新头像，压缩后上传到云存储
       if (tempAvatarUrl) {
+        let uploadPath = tempAvatarUrl
+        try {
+          const compressed = await wx.compressImage({ src: tempAvatarUrl, quality: 80 })
+          if (compressed && compressed.tempFilePath) uploadPath = compressed.tempFilePath
+        } catch (e) { /* 压缩失败则用原图 */ }
         const cloudPath = `avatars/${Date.now()}-${Math.random().toString(36).substr(2)}.jpg`
         const uploadRes = await wx.cloud.uploadFile({
           cloudPath,
-          filePath: tempAvatarUrl
+          filePath: uploadPath
         })
         avatarUrl = uploadRes.fileID
       }
 
-      // 调用云函数更新用户信息
-      await wx.cloud.callFunction({
+      // 调用云函数更新用户信息（响应直接返回最新 user/partner 与新 userVer）
+      const res = await wx.cloud.callFunction({
         name: 'createUser',
         data: { nickname, avatarUrl }
       })
 
-      // 刷新用户信息
-      await app.loadUserInfo(true)
-      await this.loadUserInfo()
+      if (!res.result?.success) {
+        throw new Error(res.result?.error || '保存失败')
+      }
+
+      // 用响应里的最新数据同步全局（首页等其他页面立即读取到新昵称，无需二次拉取）
+      app.applyUserUpdated(res.result.user, res.result.partner, res.result.userVer)
+      this.renderUser()
+      app.setKitchenTitle()
 
       wx.hideLoading()
       this._closeSheet()

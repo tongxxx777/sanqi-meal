@@ -2,6 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
+const couplemeta = require('./couplemeta.js')
 
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
@@ -19,16 +20,8 @@ exports.main = async (event, context) => {
   } = event
 
   try {
-    // 获取当前用户信息
-    const userRes = await db.collection('User').doc(currentOpenid).get()
-    const currentUser = userRes.data
-
-    if (!currentUser) {
-      return { success: false, message: '用户不存在' }
-    }
-
-    // 获取当前 coupleId
-    const coupleId = currentUser.coupleId
+    // 获取当前 coupleId（容器缓存，命中时省 1 次 User 表查询）
+    const coupleId = await couplemeta.getCoupleIdCached(db, currentOpenid)
 
     // 如果没有 coupleId（未绑定），返回空数据
     if (!coupleId) {

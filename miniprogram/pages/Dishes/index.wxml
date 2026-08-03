@@ -61,7 +61,7 @@
               wx:for="{{dishesByCategory[currentCategory]}}" wx:key="_id"
               data-id="{{item._id}}" bindtap="toDetailPage" bindlongpress="showDeleteConfirm">
           <view class="card-image-wrap">
-            <image class="card-image" src="{{item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
+            <image class="card-image" src="{{item._localImg || item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
             <view class="card-order-badge" wx:if="{{item.orderCount > 0}}">
               <text>🔥 {{item.orderCount}}</text>
             </view>

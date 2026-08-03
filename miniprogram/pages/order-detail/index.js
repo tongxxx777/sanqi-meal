@@ -1,4 +1,5 @@
 const app = getApp()
+const imageCache = require('../../utils/imageCache.js')
 
 Page({
   data: {
@@ -19,6 +20,14 @@ Page({
   },
 
   async loadOrder(id) {
+    // 优先从 store 读取（下单/接单后已同步，0 调用）；未命中再云端单查
+    const fromStore = (app.globalData.homeStore.orders || []).find(o => o._id === id)
+      || (app.globalData.historyStore.orders || []).find(o => o._id === id)
+    if (fromStore) {
+      this.renderOrder(fromStore)
+      return
+    }
+
     try {
       const res = await wx.cloud.callFunction({
         name: 'getCoupleData',
@@ -32,27 +41,37 @@ Page({
         throw new Error(res.result?.message || '加载失败')
       }
 
-      const order = res.result.data
-      order.dateText = this.formatDate(order.createTime)
-      order.timeText = this.formatTime(order.createTime)
-      order.expectText = order.expectText || ''
-      order.creatorName = app.getDisplayName(order._openid)
-      // 处理旧数据：如果没有 status 字段，默认为 'waiting'
-      if (!order.status) {
-        order.status = 'waiting'
-      }
-      // 判断当前用户身份
-      const currentUserId = app.globalData.currentUser?._id
-      const isCreator = order._openid === currentUserId
-      const isCook = !isCreator
-      const partnerName = app.getPartnerName() || 'TA'
-
-      this.setData({ order, loading: false, isCreator, isCook, partnerName })
+      this.renderOrder(res.result.data)
     } catch (e) {
       console.error('加载订单失败', e)
       wx.showToast({ title: '加载失败', icon: 'none' })
       this.setData({ loading: false })
     }
+  },
+
+  // 渲染订单详情
+  renderOrder(rawOrder) {
+    const order = Object.assign({}, rawOrder)
+    // 菜品图本地持久缓存优先，未命中走 cloud:// 并后台落盘
+    order.dishes = (order.dishes || []).map(d => ({
+      ...d,
+      _localImg: imageCache.resolve(d.imageUrl) || d.imageUrl || ''
+    }))
+    order.dateText = this.formatDate(order.createTime)
+    order.timeText = this.formatTime(order.createTime)
+    order.expectText = order.expectText || ''
+    order.creatorName = app.getDisplayName(order._openid)
+    // 处理旧数据：如果没有 status 字段，默认为 'waiting'
+    if (!order.status) {
+      order.status = 'waiting'
+    }
+    // 判断当前用户身份
+    const currentUserId = app.globalData.currentUser?._id
+    const isCreator = order._openid === currentUserId
+    const isCook = !isCreator
+    const partnerName = app.getPartnerName() || 'TA'
+
+    this.setData({ order, loading: false, isCreator, isCook, partnerName })
   },
 
   formatDate(date) {
@@ -80,7 +99,7 @@ Page({
     wx.showLoading({ title: '接单中...', mask: true })
 
     try {
-      await wx.cloud.callFunction({
+      const res = await wx.cloud.callFunction({
         name: 'updateCoupleData',
         data: {
           collection: app.globalData.collectionOrderList,
@@ -90,6 +109,12 @@ Page({
         }
       })
 
+      if (!res.result?.success) {
+        throw new Error(res.result?.message || '接单失败')
+      }
+
+      // 用响应里的新版本号同步本地 store（首页/历史页立即可见）
+      app.applyOrderUpdated(order._id, { status: 'pending' }, res.result.ver)
       this.setData({ 'order.status': 'pending' })
 
       wx.hideLoading()
@@ -112,7 +137,7 @@ Page({
         wx.showLoading({ title: '更新中...', mask: true })
 
         try {
-          await wx.cloud.callFunction({
+          const res = await wx.cloud.callFunction({
             name: 'updateCoupleData',
             data: {
               collection: app.globalData.collectionOrderList,
@@ -122,6 +147,12 @@ Page({
             }
           })
 
+          if (!res.result?.success) {
+            throw new Error(res.result?.message || '更新失败')
+          }
+
+          // 用响应里的新版本号同步本地 store（首页/历史页立即可见）
+          app.applyOrderUpdated(this.data.order._id, { status: 'completed' }, res.result.ver)
           this.setData({ 'order.status': 'completed' })
 
           wx.hideLoading()
@@ -152,9 +183,16 @@ Page({
       const tempPath = res.tempFiles[0].tempFilePath
       const cloudPath = `finished_photos/${this.data.order._id}_${Date.now()}.jpg`
 
+      // 上传前压缩，降低存储体积与下载流量
+      let uploadPath = tempPath
+      try {
+        const compressed = await wx.compressImage({ src: tempPath, quality: 80 })
+        if (compressed && compressed.tempFilePath) uploadPath = compressed.tempFilePath
+      } catch (e) { /* 压缩失败则用原图 */ }
+
       const uploadRes = await wx.cloud.uploadFile({
         cloudPath,
-        filePath: tempPath
+        filePath: uploadPath
       })
 
       await this.saveFinishedPhoto(uploadRes.fileID)
@@ -171,7 +209,7 @@ Page({
 
   // 保存照片到订单记录
   async saveFinishedPhoto(fileID) {
-    await wx.cloud.callFunction({
+    const res = await wx.cloud.callFunction({
       name: 'updateCoupleData',
       data: {
         collection: app.globalData.collectionOrderList,
@@ -181,6 +219,10 @@ Page({
       }
     })
 
+    // 用响应里的新版本号同步本地 store
+    if (res.result?.success) {
+      app.applyOrderUpdated(this.data.order._id, { finishedPhoto: fileID }, res.result.ver)
+    }
     // cloud:// 可直接渲染，无需临时链接
     this.setData({ 'order.finishedPhoto': fileID })
   },
@@ -219,7 +261,7 @@ Page({
           }
 
           // 更新订单记录
-          await wx.cloud.callFunction({
+          const updateRes = await wx.cloud.callFunction({
             name: 'updateCoupleData',
             data: {
               collection: app.globalData.collectionOrderList,
@@ -229,6 +271,10 @@ Page({
             }
           })
 
+          // 用响应里的新版本号同步本地 store
+          if (updateRes.result?.success) {
+            app.applyOrderUpdated(this.data.order._id, { finishedPhoto: '' }, updateRes.result.ver)
+          }
           this.setData({ 'order.finishedPhoto': '' })
 
           wx.hideLoading()

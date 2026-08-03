@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const couplemeta = require('./couplemeta.js')
 
 // 生成 coupleId：两个 openid 排序后拼接
 function generateCoupleId(openid1, openid2) {
@@ -80,6 +81,11 @@ exports.main = async (event, context) => {
       }
     })
 
+    // 初始化 CoupleMeta（版本从1开始，计数取真实值）；清理双方的 coupleId 容器缓存
+    const meta = await couplemeta.ensureMeta(db, coupleId)
+    couplemeta.clearCoupleCache(currentOpenid)
+    couplemeta.clearCoupleCache(partner._id)
+
     console.log('bind partner success', currentOpenid, partner._id, 'coupleId:', coupleId)
 
     return {
@@ -89,7 +95,8 @@ exports.main = async (event, context) => {
         openid: partner._id,
         nickname: partner.nickname
       },
-      coupleId
+      coupleId,
+      meta
     }
   } catch (err) {
     console.error('bind partner error', err)

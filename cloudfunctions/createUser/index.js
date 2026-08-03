@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const couplemeta = require('./couplemeta.js')
 
 // 生成6位随机邀请码
 function generateInviteCode() {
@@ -33,10 +34,16 @@ exports.main = async (event, context) => {
       if (nickname) updateData.nickname = nickname
       if (avatarUrl) updateData.avatarUrl = avatarUrl
 
+      let userVer = null
       if (Object.keys(updateData).length > 0) {
         await db.collection('User').doc(openid).update({ data: updateData })
         if (nickname) userRes.data.nickname = nickname
         if (avatarUrl) userRes.data.avatarUrl = avatarUrl
+        // 已绑定时 userVer +1，让对方的版本校验能感知昵称/头像变化
+        if (userRes.data.coupleId) {
+          const meta = await couplemeta.incVersion(db, userRes.data.coupleId, 'userVer')
+          userVer = meta ? meta.userVer : null
+        }
       }
 
       // 查询伴侣信息
@@ -56,7 +63,8 @@ exports.main = async (event, context) => {
         success: true,
         isNew: false,
         user: userRes.data,
-        partner
+        partner,
+        userVer
       }
     }
 

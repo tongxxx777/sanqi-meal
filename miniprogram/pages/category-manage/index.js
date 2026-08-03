@@ -27,22 +27,9 @@ Page({
   async loadCategories() {
     this.setData({ loading: true })
     try {
-      // 先确保分类已初始化（幂等操作，已有数据则跳过）
-      await wx.cloud.callFunction({
-        name: 'manageCategory',
-        data: { action: 'init' }
-      })
-      // 再加载分类列表
-      const res = await wx.cloud.callFunction({
-        name: 'manageCategory',
-        data: { action: 'list' }
-      })
-      if (res.result?.success) {
-        this.setData({ categories: res.result.data })
-        // 同步到全局
-        app.globalData.categories = res.result.data
-        app.globalData.categoriesLoaded = true
-      }
+      // 版本校验（对方增删改/排序过分类会自动重拉），分类从全局 store 读取
+      await app.syncOnShow('category-manage')
+      this.setData({ categories: app.globalData.categories })
     } catch (e) {
       console.error('load categories error', e)
       wx.showToast({ title: '加载失败', icon: 'none' })
@@ -115,27 +102,39 @@ Page({
     try {
       if (editingIndex >= 0) {
         // 编辑
-        await wx.cloud.callFunction({
+        const res = await wx.cloud.callFunction({
           name: 'manageCategory',
           data: {
             action: 'update',
             data: { _id: categories[editingIndex]._id, name: tempName.trim(), icon: tempIcon }
           }
         })
+        if (!res.result?.success) {
+          throw new Error(res.result?.message || '保存失败')
+        }
+        // 用响应里的新版本号同步本地 store（其他页面立即可见，无需重拉）
+        app.applyCategoryUpdated(
+          { _id: categories[editingIndex]._id, name: tempName.trim(), icon: tempIcon },
+          res.result.categoryVer
+        )
       } else {
         // 新增
-        await wx.cloud.callFunction({
+        const res = await wx.cloud.callFunction({
           name: 'manageCategory',
           data: {
             action: 'add',
             data: { name: tempName.trim(), icon: tempIcon }
           }
         })
+        if (!res.result?.success) {
+          throw new Error(res.result?.message || '保存失败')
+        }
+        // 用响应里的完整新文档同步本地 store
+        app.applyCategoryAdded(res.result.doc, res.result.categoryVer)
       }
 
       wx.hideLoading()
-      this.setData({ showModal: false })
-      await this.loadCategories()
+      this.setData({ showModal: false, categories: app.globalData.categories })
       wx.showToast({ title: '保存成功', icon: 'success' })
     } catch (e) {
       wx.hideLoading()
@@ -173,12 +172,18 @@ Page({
           success: async (modalRes) => {
             if (!modalRes.confirm) return
             wx.showLoading({ title: '删除中...', mask: true })
-            await wx.cloud.callFunction({
+            const delRes = await wx.cloud.callFunction({
               name: 'manageCategory',
               data: { action: 'remove', data: { _id: cat._id } }
             })
             wx.hideLoading()
-            await this.loadCategories()
+            if (!delRes.result?.success) {
+              wx.showToast({ title: delRes.result?.message || '删除失败', icon: 'none' })
+              return
+            }
+            // 用响应里的新版本号同步本地 store
+            app.applyCategoryRemoved(cat._id, delRes.result.categoryVer)
+            this.setData({ categories: app.globalData.categories })
             wx.showToast({ title: '已删除', icon: 'success' })
           }
         })
@@ -216,7 +221,7 @@ Page({
     wx.showLoading({ title: '转移中...', mask: true })
 
     try {
-      await wx.cloud.callFunction({
+      const res = await wx.cloud.callFunction({
         name: 'manageCategory',
         data: {
           action: 'remove',
@@ -224,8 +229,20 @@ Page({
         }
       })
       wx.hideLoading()
-      this.setData({ showTransferModal: false })
-      await this.loadCategories()
+      if (!res.result?.success) {
+        wx.showToast({ title: res.result?.message || '操作失败', icon: 'none' })
+        return
+      }
+
+      // 分类写回本地 store
+      app.applyCategoryRemoved(deletingCategory._id, res.result.categoryVer)
+      // 菜品被批量转移了分类：重拉菜品并同步 dishVer（菜品库/点菜页立即可见）
+      if (typeof res.result.dishVer === 'number') {
+        await app.reloadDishes()
+        app.applyVersions({ dishVer: res.result.dishVer })
+      }
+
+      this.setData({ showTransferModal: false, categories: app.globalData.categories })
       wx.showToast({ title: '已删除', icon: 'success' })
     } catch (e) {
       wx.hideLoading()
@@ -261,14 +278,19 @@ Page({
     const orders = this.data.categories.map((cat, i) => ({ _id: cat._id, sort: i }))
     wx.showLoading({ title: '保存中...', mask: true })
     try {
-      await wx.cloud.callFunction({
+      const res = await wx.cloud.callFunction({
         name: 'manageCategory',
         data: { action: 'reorder', data: { orders } }
       })
       wx.hideLoading()
+      if (!res.result?.success) {
+        wx.showToast({ title: res.result?.message || '保存失败', icon: 'none' })
+        return
+      }
+      // 用响应里的新版本号同步本地 store（含最新 sort 值）
+      const newList = this.data.categories.map((cat, i) => Object.assign({}, cat, { sort: i }))
+      app.applyCategoryMutation(newList, res.result.categoryVer)
       this.setData({ sortChanged: false })
-      // 同步到全局
-      app.globalData.categories = this.data.categories
       wx.showToast({ title: '排序已保存', icon: 'success' })
     } catch (e) {
       wx.hideLoading()

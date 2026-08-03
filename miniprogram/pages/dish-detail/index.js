@@ -1,4 +1,5 @@
 const app = getApp()
+const imageCache = require('../../utils/imageCache.js')
 
 Page({
   data: {
@@ -29,9 +30,15 @@ Page({
     await this.loadDish()
   },
 
-  // 加载菜品详情
+  // 加载菜品详情（优先读共享 store，写操作后已同步；未命中再云端单查）
   async loadDish() {
     if (!this.data._id) return
+
+    const cached = (app.globalData.dishStore.dishes || []).find(d => d._id === this.data._id)
+    if (cached) {
+      this.renderDish(cached)
+      return
+    }
 
     try {
       const res = await wx.cloud.callFunction({
@@ -46,18 +53,24 @@ Page({
         throw new Error(res.result?.message || '加载失败')
       }
 
-      const dish = res.result.data
-      this.setData({
-        dish,
-        dateText: this.formatDate(dish.createTime),
-        creatorName: this.getCreatorName(dish._openid)
-      })
-
-      wx.setNavigationBarTitle({ title: dish.name })
+      this.renderDish(res.result.data)
     } catch (e) {
       console.error('加载菜品失败', e)
       wx.showToast({ title: '加载失败', icon: 'none' })
     }
+  },
+
+  // 渲染菜品详情
+  renderDish(dish) {
+    // 本地持久缓存优先，未命中走 cloud:// 并后台落盘
+    dish._localImg = imageCache.resolve(dish.imageUrl) || dish.imageUrl || ''
+    this.setData({
+      dish,
+      dateText: this.formatDate(dish.createTime),
+      creatorName: this.getCreatorName(dish._openid)
+    })
+
+    wx.setNavigationBarTitle({ title: dish.name })
   },
 
   // 获取创建者名字
@@ -105,6 +118,9 @@ Page({
             if (!result.result?.success) {
               throw new Error(result.result?.message || '删除失败')
             }
+
+            // 用响应里的新版本号同步本地 store（菜品库/点菜页立即可见，无需重拉）
+            app.applyDishRemoved(this.data._id, result.result.ver)
 
             wx.showToast({ title: '已删除', icon: 'success' })
             setTimeout(() => {

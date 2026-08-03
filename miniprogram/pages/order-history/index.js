@@ -1,4 +1,5 @@
 const app = getApp()
+const imageCache = require('../../utils/imageCache.js')
 
 Page({
   data: {
@@ -20,24 +21,24 @@ Page({
   async onShow() {
     app.setKitchenTitle()
     await this.loadUserInfo()
-    // 首次加载：先尝试恢复缓存，有缓存就跳过云函数
-    if (!this.data.hasLoaded) {
-      const cache = this._readCache()
-      if (cache) {
-        const { orders, hasMore, page } = cache.data
-        this.setData({ orders, hasMore, page, loading: false, hasLoaded: true })
-        return
-      }
-      await this.loadOrders(true)
+    const isFirst = !this.data.hasLoaded
+    // 版本校验：每次 onShow 直连读 CoupleMeta，对方有修改则精准重拉对应数据
+    const r = await app.syncOnShow('history')
+    if (isFirst) {
       this.setData({ hasLoaded: true })
+      this.renderFromStore()
     } else {
-      // 检查缓存（60 秒），到期后静默刷新
-      const cache = this._readCache()
-      if (cache && (Date.now() - cache.ts) < 60 * 1000) {
-        return
+      // 用渲染序号判断本端/对方数据是否变化（版本号机制只感知对方写入、感知不到本端写入）
+      const needRender = app.checkRenderSeq(this, ['order', 'user'])
+      if (needRender) {
+        // 订单/用户信息有变化才重渲染；无变化时不动页面，零闪屏
+        this.renderFromStore()
+      } else {
+        this.setData({ loading: false })
       }
-      await this.refreshOrdersSilently()
     }
+    // 记录当前渲染快照，供下次 onShow 比对
+    app.markRenderSeq(this, ['order', 'user'])
   },
 
   // 加载用户信息
@@ -49,46 +50,40 @@ Page({
     })
   },
 
-  // 读取历史缓存（2 分钟有效期）
-  _readCache() {
-    try {
-      const coupleId = app.globalData.currentUser?.coupleId
-      if (!coupleId) return null
-      const key = 'order_history_cache_' + coupleId
-      const raw = wx.getStorageSync(key)
-      if (!raw) return null
-      const cache = JSON.parse(raw)
-      if (Date.now() - cache.ts > 60 * 1000) return null
-      return cache
-    } catch (e) { return null }
+  // 从 historyStore 渲染第一页（唯一数据源）
+  renderFromStore() {
+    const store = app.globalData.historyStore
+    const orders = store.orders.map(o => this._mapOrder(o))
+    this.setData({
+      orders,
+      hasMore: store.hasMore,
+      page: store.page,
+      loading: false,
+      refresherTriggered: false
+    })
   },
 
-  // 写入历史缓存
-  _saveCache(orders, hasMore, page) {
-    try {
-      const coupleId = app.globalData.currentUser?.coupleId
-      if (!coupleId) return
-      wx.setStorageSync('order_history_cache_' + coupleId, JSON.stringify({
-        data: { orders, hasMore, page },
-        ts: Date.now()
-      }))
-    } catch (e) { /* ignore */ }
-  },
-
-  // 清除历史缓存（写操作后调用，确保下次 onShow 拉最新）
-  _clearCache() {
-    try {
-      const coupleId = app.globalData.currentUser?.coupleId
-      if (coupleId) wx.removeStorageSync('order_history_cache_' + coupleId)
-    } catch (e) { /* ignore */ }
-  },
-
-  // 加载历史记录
-  async loadOrders(reset = false) {
-    if (reset) {
-      this.setData({ page: 0, orders: [], hasMore: true })
+  // 原始订单 -> 页面展示结构
+  _mapOrder(item) {
+    return {
+      ...item,
+      // 处理旧数据：如果没有 status 字段，默认为 'pending'
+      status: item.status || 'pending',
+      // 菜品图本地持久缓存优先，未命中走 cloud:// 并后台落盘
+      dishes: (item.dishes || []).map(d => ({
+        ...d,
+        _localImg: imageCache.resolve(d.imageUrl) || d.imageUrl || ''
+      })),
+      dateText: this.formatDate(item.createTime),
+      timeText: this.formatTime(item.createTime),
+      expectText: item.expectText || '',
+      creatorName: this.getCreatorName(item._openid),
+      slideButtons: this.getSlideButtons(item.marked)
     }
+  },
 
+  // 加载更多（第 2 页起由页面自行分页加载）
+  async loadOrders() {
     this.setData({ loading: true })
 
     try {
@@ -110,67 +105,17 @@ Page({
       }
 
       const data = res.result.data
-      const newOrders = data.map(item => ({
-        ...item,
-        // 处理旧数据：如果没有 status 字段，默认为 'pending'
-        status: item.status || 'pending',
-        dateText: this.formatDate(item.createTime),
-        timeText: this.formatTime(item.createTime),
-        expectText: item.expectText || '',
-        creatorName: this.getCreatorName(item._openid),
-        slideButtons: this.getSlideButtons(item.marked)
-      }))
+      const newOrders = data.map(item => this._mapOrder(item))
 
       this.setData({
-        orders: reset ? newOrders : [...existingOrders, ...newOrders],
+        orders: [...existingOrders, ...newOrders],
         hasMore: data.length === pageSize,
         page: page + 1,
         loading: false
       })
-      if (reset) {
-        this._saveCache(newOrders, data.length === pageSize, page + 1)
-      }
     } catch (e) {
       console.error('加载历史失败', e)
       this.setData({ loading: false })
-    }
-  },
-
-  // 静默刷新历史记录（切换 tab 时后台更新，不显示 loading 避免闪屏）
-  async refreshOrdersSilently() {
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'getCoupleData',
-        data: {
-          collection: app.globalData.collectionOrderList,
-          orderBy: 'createTime',
-          order: 'desc',
-          skip: 0,
-          limit: this.data.pageSize
-        }
-      })
-      if (!res.result?.success) return
-
-      const data = res.result.data
-      const newOrders = data.map(item => ({
-        ...item,
-        // 处理旧数据：如果没有 status 字段，默认为 'pending'
-        status: item.status || 'pending',
-        dateText: this.formatDate(item.createTime),
-        timeText: this.formatTime(item.createTime),
-        expectText: item.expectText || '',
-        creatorName: this.getCreatorName(item._openid),
-        slideButtons: this.getSlideButtons(item.marked)
-      }))
-      this.setData({
-        orders: newOrders,
-        hasMore: data.length === this.data.pageSize,
-        page: 1,
-        loading: false
-      })
-      this._saveCache(newOrders, data.length === this.data.pageSize, 1)
-    } catch (e) {
-      console.error('静默刷新历史失败', e)
     }
   },
 
@@ -259,6 +204,9 @@ Page({
         return
       }
 
+      // 用响应里的新版本号同步本地 store（对方切 tab 时版本校验会感知）
+      app.applyOrderUpdated(id, { marked: newMarked }, res.result.ver)
+
       orders[index].marked = newMarked
       orders[index].slideButtons = this.getSlideButtons(newMarked)
       this.setData({ orders })
@@ -270,7 +218,7 @@ Page({
     }
   },
 
-  // 删除订单
+  // 删除订单（一次云函数完成：删单 + 批量回收 orderCount + 版本维护）
   deleteOrder(id) {
     wx.showModal({
       title: '确认删除',
@@ -283,9 +231,8 @@ Page({
             const result = await wx.cloud.callFunction({
               name: 'updateCoupleData',
               data: {
-                collection: app.globalData.collectionOrderList,
-                docId: id,
-                action: 'remove'
+                action: 'removeOrder',
+                docId: id
               }
             })
 
@@ -296,29 +243,17 @@ Page({
               return
             }
 
-            wx.showToast({ title: '已删除', icon: 'success' })
-
-            // 回收菜品点菜次数：已删除的订单不应再计入“已点X次”
+            // 用响应里的新版本号同步本地 store（首页今日订单同步移除）
+            app.applyOrderRemoved(id, result.result.ver)
+            // 本地菜品 orderCount 乐观 -1（云端已批量回收，这里同步本地展示）
             const target = this.data.orders.find(item => item._id === id)
             if (target?.dishes?.length) {
-              for (const dish of target.dishes) {
-                if (!dish._id) continue
-                wx.cloud.callFunction({
-                  name: 'updateCoupleData',
-                  data: {
-                    collection: app.globalData.collectionDishList,
-                    docId: dish._id,
-                    action: 'inc',
-                    data: { orderCount: -1 }
-                  }
-                }).catch(() => {})
-              }
+              app.bumpDishOrderCount(target.dishes.map(d => d._id).filter(Boolean), -1)
             }
-            // 回收点单次数后清除菜品库缓存，确保下次 onShow 拉最新
-        this._clearCache()
 
             const orders = this.data.orders.filter(item => item._id !== id)
             this.setData({ orders })
+            wx.showToast({ title: '已删除', icon: 'success' })
           } catch (e) {
             wx.hideLoading()
             console.error('删除失败', e)
@@ -349,28 +284,27 @@ Page({
   },
 
   // 下拉刷新（系统级，页面无 scroll-view 时可触发；当前使用 scroll-view 内置 refresher）
-  onPullDownRefresh() {
-    this.loadOrders(true).then(() => {
+  async onPullDownRefresh() {
+    try {
+      await app.syncOnShow('history', { force: true })
+      this.renderFromStore()
+    } finally {
       wx.stopPullDownRefresh()
-    })
+    }
   },
 
-  // 下拉刷新（30s 节流）- 强制清缓存 + 拉最新数据
+  // 下拉刷新（3s 防抖）- 强制版本校验 + 重拉变化数据
   async onRefresh() {
     const now = Date.now()
-    if (now - app.globalData.lastPullTs < 30000) {
+    if (now - app.globalData.lastPullTs < 3000) {
       this.setData({ refresherTriggered: false })
       return
     }
     app.globalData.lastPullTs = now
     this.setData({ refresherTriggered: true })
     try {
-      // 清除历史记录 storage 缓存
-      const coupleId = app.globalData.currentUser?.coupleId
-      if (coupleId) {
-        try { wx.removeStorageSync('order_history_cache_' + coupleId) } catch (e) {}
-      }
-      await this.loadOrders(true)
+      await app.syncOnShow('history', { force: true })
+      this.renderFromStore()
     } catch (e) {
       console.error('history onRefresh error', e)
     } finally {

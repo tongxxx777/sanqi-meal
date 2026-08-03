@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const couplemeta = require('./couplemeta.js')
 
 // 云函数入口函数
 exports.main = async (event, context) => {
@@ -27,6 +28,7 @@ exports.main = async (event, context) => {
     }
 
     const partnerId = currentUser.partnerId
+    const coupleId = currentUser.coupleId
 
     // 解除当前用户的绑定（清空 coupleId）
     await db.collection('User').doc(currentOpenid).update({
@@ -45,6 +47,13 @@ exports.main = async (event, context) => {
         coupleId: ''
       }
     }).catch(() => {})
+
+    // 删除 CoupleMeta 文档，清理双方的 coupleId 容器缓存
+    if (coupleId) {
+      await db.collection('CoupleMeta').doc(coupleId).remove().catch(() => {})
+    }
+    couplemeta.clearCoupleCache(currentOpenid)
+    couplemeta.clearCoupleCache(partnerId)
 
     console.log('unbind partner success', currentOpenid, partnerId)
 

@@ -156,16 +156,21 @@ Page({
     }
   },
 
-  // 上传图片到云存储
+  // 上传图片到云存储（上传前压缩，降低存储体积与下载流量）
   async uploadImage() {
     if (!this.data.tempFilePath) return ''
 
     const cloudPath = `dishes/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
 
     try {
+      let uploadPath = this.data.tempFilePath
+      try {
+        const compressed = await wx.compressImage({ src: this.data.tempFilePath, quality: 80 })
+        if (compressed && compressed.tempFilePath) uploadPath = compressed.tempFilePath
+      } catch (e) { /* 压缩失败则用原图 */ }
       const res = await wx.cloud.uploadFile({
         cloudPath,
-        filePath: this.data.tempFilePath
+        filePath: uploadPath
       })
       return res.fileID
     } catch (e) {
@@ -206,8 +211,6 @@ Page({
         imageUrl = '/images/default.jpg'
       }
 
-      const db = await app.database()
-
       const category = this.data.categories[this.data.categoryIndex]._id
 
       if (isEdit) {
@@ -235,21 +238,44 @@ Page({
           return
         }
 
+        // 用响应里的新版本号同步本地 store（菜品库/点菜页立即可见，无需重拉）
+        const oldDish = (app.globalData.dishStore.dishes || []).find(d => d._id === _id) || {}
+        app.applyDishUpdated(Object.assign({}, oldDish, {
+          _id,
+          name: name.trim(),
+          description: this.data.description.trim(),
+          imageUrl,
+          category,
+          updateTime: new Date(),
+        }), res.result.ver)
+
         wx.showToast({ title: '修改成功', icon: 'success' })
       } else {
-        // 新增模式（带上 coupleId）
-        const coupleId = app.globalData.currentUser?.coupleId || ''
-        await db.collection(app.globalData.collectionDishList).add({
+        // 新增模式：云函数写入并返回完整新文档与新版本号
+        const res = await wx.cloud.callFunction({
+          name: 'updateCoupleData',
           data: {
-            name: name.trim(),
-            description: this.data.description.trim(),
-            imageUrl,
-            category,
-            coupleId,
-            createTime: db.serverDate(),
+            collection: app.globalData.collectionDishList,
+            action: 'add',
+            data: {
+              name: name.trim(),
+              description: this.data.description.trim(),
+              imageUrl,
+              category,
+            }
           }
         })
+
         wx.hideLoading()
+
+        if (!res.result?.success) {
+          wx.showToast({ title: res.result?.message || '添加失败', icon: 'none' })
+          this.setData({ saving: false })
+          return
+        }
+
+        // 用响应里的完整新文档同步本地 store（菜品库/点菜页立即可见，无需重拉）
+        app.applyDishAdded(res.result.doc, res.result.ver)
         wx.showToast({ title: '添加成功', icon: 'success' })
       }
 

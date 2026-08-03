@@ -84,7 +84,7 @@ Page({
 
     if (result.success) {
       wx.hideLoading()
-      await app.loadUserInfo(true)
+      // app.bindPartner 内部已走 bootstrap 全量初始化（用户/分类/订单/版本一次到位）
       await this.loadUserInfo()
       wx.showToast({ title: '绑定成功', icon: 'success' })
     } else {

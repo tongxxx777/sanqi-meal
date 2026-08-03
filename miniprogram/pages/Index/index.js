@@ -25,38 +25,27 @@ Page({
   },
 
   async onShow() {
-    const now = Date.now()
     const isFirstLoad = !this.hasLoaded
-    // 首次进入显示 loading，之后直接显示页面
+    // 首次进入显示 loading，之后直接显示页面（数据静默更新，不闪 loading）
     if (isFirstLoad) {
       this.setData({ pageLoading: true })
     }
-    // 用户信息：首次加载 + 之后 5 分钟内不重复拉
-    const needUser = !this._userLoaded || now - (this._userTs || 0) > 5 * 60 * 1000
-    if (needUser) {
-      await this.loadUserInfo(isFirstLoad)
-      this._userLoaded = true
-      this._userTs = now
-    }
     app.setKitchenTitle()
+    // 用户信息（冷启动 bootstrap，之后内存命中）
+    await app.loadUserInfo()
+    // 版本校验：每次 onShow 直连读 CoupleMeta，对方有修改则精准重拉对应数据
+    await app.syncOnShow('home')
+    this.renderAll()
     if (isFirstLoad) {
       this.hasLoaded = true
-    }
-    // 首页数据：_homeReady 且 2 分钟内且无脏数据 → 跳过；否则刷新
-    // 有脏数据（下单/改菜等写入操作）时即使未到期也强制刷新
-      const homeFresh = this._homeReady
-        && (now - (this._homeTs || 0)) < 60 * 1000
-    if (!homeFresh) {
-      this.loadHomeData()
+      this.setData({ pageLoading: false })
     }
   },
 
-  // 加载用户信息
-  // isFirstLoad: 首次加载时，将 pageLoading 合并到同一次 setData 中，减少渲染次数
-  async loadUserInfo(isFirstLoad = false) {
-    const { currentUser, partner } = await app.loadUserInfo()
+  // 从 globalData + homeStore + counts 渲染整页（唯一数据源）
+  renderAll() {
+    const { currentUser, partner } = app.globalData
     const isBound = app.isBound()
-    const profileComplete = app.isProfileComplete()
 
     // 计算绑定天数
     let bindDays = 0
@@ -66,76 +55,58 @@ Page({
       bindDays = Math.floor((now - bindTime) / (1000 * 60 * 60 * 24)) + 1
     }
 
+    const { dishCount, orderCount } = app.globalData.counts
+
     this.setData({
-      pageLoading: isFirstLoad ? false : this.data.pageLoading,
       userName: currentUser?.nickname || '',
       userAvatar: currentUser?.avatarUrl || '',
       partnerName: partner?.nickname || '',
       partnerAvatar: partner?.avatarUrl || '',
       bindDays,
       isBound,
-      profileComplete
+      profileComplete: app.isProfileComplete(),
+      todayOrders: isBound ? this.computeTodayOrders() : [],
+      dishCount: isBound ? dishCount : 0,
+      orderCount: isBound ? orderCount : 0,
+      togetherDays: isBound && orderCount > 0 ? Math.max(1, orderCount) : 0
     })
+  },
 
-    if (!isBound) {
-      this.setData({
-        todayOrders: [],
-        dishCount: 0,
-        orderCount: 0,
-        togetherDays: 0
+  // 由 homeStore 原始订单计算"今天食用"的列表（按期望用餐日聚合）
+  computeTodayOrders() {
+    const now = new Date()
+    const currentUserId = app.globalData.currentUser?._id
+    return (app.globalData.homeStore.orders || [])
+      // 计算有效用餐时间：优先期望时间，老数据兜底用创建时间
+      .map(o => ({ ...o, _eff: o.expectTime ? new Date(o.expectTime) : new Date(o.createTime) }))
+      // 只保留"今天食用"的
+      .filter(o => this.isSameDay(o._eff, now))
+      // 按用餐时间从早到晚排
+      .sort((a, b) => a._eff - b._eff)
+      .map(o => {
+        if (!o.status) o.status = 'pending'
+        return {
+          ...o,
+          creatorName: app.getDisplayName(o._openid),
+          isCreator: o._openid === currentUserId,
+          // 有期望时间就展示期望文案，否则展示下单时刻
+          timeText: o.expectText || this.formatTime(o.createTime)
+        }
       })
-    }
-
-    // 修复C: 用户信息加载完成后，若已绑定但首页数据未就绪，立即补拉
-    // 处理冷启动时 partner 延迟导致 loadHomeData 被跳过的场景
-    if (isBound && !this._homeReady) {
-      this.loadHomeData()
-    }
   },
 
-  async loadHomeData() {
-    if (!app.isBound()) return
-    // 防止并发重复调用
-    if (this._homeLoading) return
-    this._homeLoading = true
-    try {
-      await Promise.all([
-        this.loadTodayOrder(),
-        this.loadStats()
-      ])
-      // 只有真正加载成功才标记就绪，后续 onShow 才会启用节流
-        this._homeReady = true
-        this._homeTs = Date.now()
-    } catch (e) {
-      console.error('loadHomeData error', e)
-      // 不标记 _homeReady，下次 onShow 会自动重试
-    } finally {
-      this._homeLoading = false
-    }
-  },
-
-  // 下拉刷新（30s 节流）- 强制清缓存 + 拉最新数据
+  // 下拉刷新（3s 防抖）- 强制版本校验 + 重拉变化数据
   async onPullDownRefresh() {
-    const app = getApp()
     const now = Date.now()
-    if (now - app.globalData.lastPullTs < 30000) {
+    if (now - app.globalData.lastPullTs < 3000) {
       wx.stopPullDownRefresh()
       return
     }
     app.globalData.lastPullTs = now
     try {
-      await app.forceRefreshBase()                    // 强制清空全部分类缓存 + 拉最新分类
-      const coupleId = app.globalData.currentUser?.coupleId
-      if (coupleId) {
-        try { wx.removeStorageSync('stats_' + coupleId) } catch (e) {}
-      }
-      // 重置就绪标记，确保 loadHomeData 会重新走完整流程
-      this._homeReady = false
-      this._homeTs = 0
-      this._userLoaded = false              // 强制跳过 5 分钟用户缓存
-      this._userTs = 0
-      await this.loadUserInfo(false)        // 重新拉用户信息（昵称/头像）
-      await this.loadHomeData()
+      await app.loadUserInfo(true)
+      await app.syncOnShow('home', { force: true })
+      this.renderAll()
     } catch (e) {
       console.error('首页下拉刷新失败', e)
     } finally {
@@ -157,69 +128,11 @@ Page({
     this.setData({ greeting })
   },
 
-  // 加载今日点菜（按“期望用餐日”聚合，支持一天多条）
-  async loadTodayOrder() {
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'getCoupleData',
-        data: {
-          collection: app.globalData.collectionOrderList,
-          // 拉最近 30 天创建的订单，覆盖“提前几天下单、今天食用”的情况
-          sinceDays: 30,
-          orderBy: 'createTime',
-          order: 'desc',
-          limit: 100
-        }
-      })
-
-      if (res.result?.success && res.result.data?.length > 0) {
-        const now = new Date()
-        const currentUserId = app.globalData.currentUser?._id
-        const list = res.result.data
-          // 计算有效用餐时间：优先期望时间，老数据兜底用创建时间
-          .map(o => ({ ...o, _eff: o.expectTime ? new Date(o.expectTime) : new Date(o.createTime) }))
-          // 只保留“今天食用”的
-          .filter(o => this.isSameDay(o._eff, now))
-          // 按用餐时间从早到晚排
-          .sort((a, b) => a._eff - b._eff)
-          .map(o => {
-            if (!o.status) o.status = 'pending'
-            return {
-              ...o,
-              creatorName: app.getDisplayName(o._openid),
-              isCreator: o._openid === currentUserId,
-              // 有期望时间就展示期望文案，否则展示下单时刻
-              timeText: o.expectText || this.formatTime(o.createTime)
-            }
-          })
-        this.setData({ todayOrders: list })
-      } else {
-        this.setData({ todayOrders: [] })
-      }
-    } catch (e) {
-      console.error('load today order error', e)
-    }
-  },
-
   // 判断两个日期是否同一天
   isSameDay(d1, d2) {
     return d1.getFullYear() === d2.getFullYear()
       && d1.getMonth() === d2.getMonth()
       && d1.getDate() === d2.getDate()
-  },
-
-  // 加载统计数据
-  async loadStats() {
-    try {
-      const { dishCount, orderCount } = await app.getStats()
-      this.setData({
-        dishCount,
-        orderCount,
-        togetherDays: orderCount > 0 ? Math.max(1, orderCount) : 0
-      })
-    } catch (e) {
-      console.error('load stats error', e)
-    }
   },
 
   // 格式化时间
@@ -244,26 +157,12 @@ Page({
     wx.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
   },
 
-  // 跳转到最近点菜记录
-  async goToRecentOrder() {
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'getCoupleData',
-        data: {
-          collection: app.globalData.collectionOrderList,
-          orderBy: 'createTime',
-          order: 'desc',
-          limit: 1
-        }
-      })
-      if (res.result?.success && res.result.data?.length > 0) {
-        const order = res.result.data[0]
-        wx.navigateTo({ url: `/pages/order-detail/index?id=${order._id}` })
-      } else {
-        wx.switchTab({ url: '/pages/order-history/index' })
-      }
-    } catch (e) {
-      console.error('goToRecentOrder error', e)
+  // 跳转到最近点菜记录（直接读 homeStore，不再发云函数）
+  goToRecentOrder() {
+    const latest = app.globalData.homeStore.orders?.[0]
+    if (latest) {
+      wx.navigateTo({ url: `/pages/order-detail/index?id=${latest._id}` })
+    } else {
       wx.switchTab({ url: '/pages/order-history/index' })
     }
   },
@@ -308,7 +207,7 @@ Page({
   onShareTimeline() {
     const app = getApp()
     return {
-      title: app.getKitchenName() + ' · 专属小厨房',
+      title: app.getKitchenName() + ' · 和TA的专属小厨房',
       query: '',
       imageUrl: '/images/default.jpg'
     }

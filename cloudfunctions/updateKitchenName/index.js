@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const couplemeta = require('./couplemeta.js')
 
 // 云函数入口函数
 exports.main = async (event, context) => {
@@ -39,9 +40,16 @@ exports.main = async (event, context) => {
       }).catch(() => {})
     }
 
+    // 已绑定时 userVer +1，让对方的版本校验能感知厨房名变化
+    let userVer = null
+    if (currentUser.coupleId) {
+      const meta = await couplemeta.incVersion(db, currentUser.coupleId, 'userVer')
+      userVer = meta ? meta.userVer : null
+    }
+
     console.log('update kitchen name success', currentOpenid, kitchenName)
 
-    return { success: true }
+    return { success: true, userVer }
   } catch (err) {
     console.error('update kitchen name error', err)
     return {

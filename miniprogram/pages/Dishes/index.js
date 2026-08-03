@@ -1,4 +1,5 @@
 const app = getApp()
+const imageCache = require('../../utils/imageCache.js')
 
 Page({
   data: {
@@ -22,102 +23,56 @@ Page({
   async onShow() {
     app.setKitchenTitle()
     this.getPartnerName()
-    await app.loadCategories()
-    if (!this.data.hasLoaded) {
-      // 首次加载：检查 storage 缓存（2 分钟内有效，避免冷启动重拉）
-      const cache = this._readCache()
-      if (cache) {
-        this._renderFromCache(cache)
-        this.setData({ hasLoaded: true })
-        return
-      }
-      await this.loadDishes()
+    const isFirst = !this.data.hasLoaded
+    // 版本校验：每次 onShow 直连读 CoupleMeta，对方有修改则精准重拉对应数据
+    const r = await app.syncOnShow('dishes')
+    if (isFirst) {
       this.setData({ hasLoaded: true })
+      this.renderFromStore({ resetState: true })
     } else {
-      // 非首次 onShow：检查缓存，2 分钟内且无脏数据直接用缓存跳过云函数调用
-      const now = Date.now()
-      const cache = this._readCache()
-      if (cache && (now - cache.ts) < 60 * 1000) {
+      // 用渲染序号判断本端/对方数据是否变化（版本号机制只感知对方写入、感知不到本端写入，
+      // 故删菜/加菜后需靠 renderSeq 触发重渲染，避免返回页面仍显示旧数据）
+      const needRender = app.checkRenderSeq(this, ['dish', 'category', 'user'])
+      if (needRender) {
+        // 数据有变化才重渲染（保留搜索/分类状态）；无变化时不动页面，零闪屏
+        this.renderFromStore({ resetState: false })
+      } else {
         this.setData({ loading: false })
-        return
-      }
-      // 保存当前搜索/分类状态
-      const savedKey = this.data.searchKey
-      const savedCat = this.data.currentCategory
-      // 静默刷新仅更新后台数据，不触发显示层渲染
-      const result = await this.refreshDishesSilently()
-      // 用最新数据 + 保存的状态，一次 setData 完成渲染，杜绝闪屏
-      if (result) {
-        const { allDishes, categories } = result
-        const filtered = savedKey
-          ? allDishes.filter(d => d.name.includes(savedKey) || (d.description && d.description.includes(savedKey)))
-          : allDishes
-        const { dishesByCategory } = this._syncCategoryData(filtered, categories)
-        const { categories: catsWithAll, dishesByCategory: dbcWithAll, categoryCount } =
-          this._prependAllCategory(filtered, categories, dishesByCategory)
-        this.setData({
-          allDishes,
-          categories: catsWithAll,
-          dishes: filtered,
-          dishesByCategory: dbcWithAll,
-          categoryCount,
-          currentCategory: savedCat || '__all__',
-          loading: false
-        })
       }
     }
+    // 记录当前渲染快照，供下次 onShow 比对
+    app.markRenderSeq(this, ['dish', 'category', 'user'])
   },
 
-  // 读取菜品缓存（2 分钟有效期）
-  _readCache() {
-    try {
-      const key = 'dishes_cache_' + app.globalData.coupleId
-      const raw = wx.getStorageSync(key)
-      if (!raw) return null
-      const cache = JSON.parse(raw)
-      const now = Date.now()
-      if ((now - cache.ts) > 60 * 1000) return null
-      return cache
-    } catch (e) { return null }
-  },
+  // 从共享 dishStore 渲染（唯一数据源）
+  renderFromStore(options = {}) {
+    const { resetState = false } = options
+    const savedKey = resetState ? '' : this.data.searchKey
+    const savedCat = resetState ? '__all__' : this.data.currentCategory
 
-  // 写入菜品缓存
-  _saveCache(allDishes, categories) {
-    try {
-      const key = 'dishes_cache_' + app.globalData.coupleId
-      wx.setStorageSync(key, JSON.stringify({
-        data: { allDishes, categories },
-        ts: Date.now()
-      }))
-    } catch (e) { /* ignore quota error */ }
-  },
-
-  // 清除菜品库缓存（写操作后调用，确保下次 onShow 拉最新）
-  _clearCache() {
-    try {
-      const coupleId = app.globalData.currentUser?.coupleId
-      if (coupleId) wx.removeStorageSync('dishes_cache_' + coupleId)
-    } catch (e) { /* ignore */ }
-  },
-
-  // 从缓存渲染页面（不发起云函数请求）
-  _renderFromCache(cache) {
-    const { allDishes, categories } = cache.data
-    const filtered = allDishes
+    const dishes = this._mapDishes(app.globalData.dishStore.dishes)
+    const categories = this._resolveCategories(dishes)
+    const filtered = savedKey
+      ? dishes.filter(d => d.name.includes(savedKey) || (d.description && d.description.includes(savedKey)))
+      : dishes
     const { dishesByCategory } = this._syncCategoryData(filtered, categories)
     const { categories: catsWithAll, dishesByCategory: dbcWithAll, categoryCount } =
       this._prependAllCategory(filtered, categories, dishesByCategory)
+
     this.setData({
-      allDishes,
-      categories: catsWithAll,
       dishes: filtered,
+      allDishes: dishes,
+      categories: catsWithAll,
       dishesByCategory: dbcWithAll,
       categoryCount,
-      currentCategory: '__all__',
+      currentCategory: savedCat || '__all__',
+      searchKey: savedKey,
       loading: false,
-      searchKey: ''
+      refresherTriggered: false
     })
-    this._scrollToListTop()
+    if (resetState) {
+      this._scrollToListTop()
+    }
   },
 
   // 让菜品列表回到顶部（scroll-into-view 方式，避免受控 scroll-top 造成的卡底/回弹）
@@ -133,71 +88,18 @@ Page({
     this.setData({ partnerName })
   },
 
-  // 加载菜品列表
-  async loadDishes() {
-    this.setData({ loading: true })
-    try {
-      // 确保分类是最新的（新分类下的菜品才能被正确归组）
-      await app.loadCategories(true)
-      const res = await wx.cloud.callFunction({
-        name: 'getCoupleData',
-        data: {
-          collection: app.globalData.collectionDishList,
-          orderBy: 'createTime',
-          order: 'desc',
-          limit: 300
-        }
-      })
-      if (!res.result?.success) {
-        throw new Error(res.result?.message || '加载失败')
-      }
-
-      let dishes = this._mapDishes(res.result.data)
-
-      let categories = this._resolveCategories(dishes)
-
-      const { dishesByCategory } = this._syncCategoryData(dishes, categories)
-      const { categories: catsWithAll, dishesByCategory: dbcWithAll, categoryCount } =
-        this._prependAllCategory(dishes, categories, dishesByCategory)
-
-      this.setData({
-        dishes,
-        allDishes: dishes,
-        categories: catsWithAll,
-        dishesByCategory: dbcWithAll,
-        categoryCount,
-        currentCategory: '__all__',
-        loading: false,
-        searchKey: '',
-        refresherTriggered: false
-      })
-      this._saveCache(dishes, categories)
-      this._scrollToListTop()
-    } catch (e) {
-      console.error('加载菜品失败', e)
-      this.setData({ loading: false, refresherTriggered: false })
-      wx.showToast({ title: '加载失败', icon: 'none' })
-    }
-  },
-
-  // 下拉刷新（30s 节流）- 强制清缓存 + 拉最新数据
+  // 下拉刷新（3s 防抖）- 强制版本校验 + 重拉变化数据
   async onRefresh() {
     const now = Date.now()
-    if (now - app.globalData.lastPullTs < 30000) {
+    if (now - app.globalData.lastPullTs < 3000) {
       this.setData({ refresherTriggered: false })
       return
     }
     app.globalData.lastPullTs = now
     this.setData({ refresherTriggered: true })
     try {
-      // 清除菜品 storage 缓存
-      try {
-        const key = 'dishes_cache_' + (app.globalData.currentUser?.coupleId || '')
-        if (key !== 'dishes_cache_') wx.removeStorageSync(key)
-      } catch (e) {}
-      // 强制清空分类缓存 + 拉最新分类（关键：新分类下的菜品不会被旧分类列表过滤）
-      await app.forceRefreshBase()
-      await this.loadDishes()
+      await app.syncOnShow('dishes', { force: true })
+      this.renderFromStore({ resetState: true })
     } catch (e) {
       console.error('dishes onRefresh error', e)
     } finally {
@@ -205,41 +107,14 @@ Page({
     }
   },
 
-  // 静默刷新菜品（仅更新后台数据，不触发显示渲染，返回原始数据供调用方使用）
-  async refreshDishesSilently() {
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'getCoupleData',
-        data: {
-          collection: app.globalData.collectionDishList,
-          orderBy: 'createTime',
-          order: 'desc',
-          limit: 300
-        }
-      })
-      if (!res.result?.success) return null
-
-      let dishes = this._mapDishes(res.result.data)
-
-      let categories = this._resolveCategories(dishes)
-
-      // 仅更新 allDishes 和 categories，不写入 dishes/dishesByCategory
-      // 避免与搜索/分类状态冲突造成闪屏
-      this.setData({ allDishes: dishes, categories, loading: false })
-      this._saveCache(dishes, categories)
-      return { allDishes: dishes, categories }
-    } catch (e) {
-      console.error('静默刷新菜品失败', e)
-      return null
-    }
-  },
-
   // 将原始菜品数据映射为页面展示结构
   _mapDishes(data) {
-    return data.map(item => ({
+    return (data || []).map(item => ({
       ...item,
       createTimeText: this.formatDate(item.createTime),
-      category: item.category || 'meat'
+      category: item.category || 'meat',
+      // 本地持久缓存优先，未命中走 cloud:// 并后台落盘
+      _localImg: imageCache.resolve(item.imageUrl) || item.imageUrl || ''
     }))
   },
 
@@ -379,17 +254,10 @@ Page({
         throw new Error(res.result?.message || '删除失败')
       }
 
-      const dishes = this.data.dishes.filter(item => item._id !== id)
-      const { dishesByCategory } = this._syncCategoryData(dishes)
-      const categoryCount = {}
-      this.data.categories.forEach(cat => {
-        categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
-      })
-
-      this.setData({ dishes, allDishes: dishes, dishesByCategory, categoryCount })
+      // 用响应里的新版本号同步本地 store（删缓存→写最新→立即展示，无需重拉）
+      app.applyDishRemoved(id, res.result.ver)
+      this.renderFromStore({ resetState: false })
       wx.showToast({ title: '已删除', icon: 'success' })
-      // 删菜后清除菜品库缓存，确保下次 onShow 拉最新
-    this._clearCache()
     } catch (e) {
       wx.hideLoading()
       console.error('删除失败', e)
