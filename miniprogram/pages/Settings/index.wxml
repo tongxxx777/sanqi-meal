@@ -54,7 +54,7 @@
       <view class="settings-item">
         <text class="item-icon">📱</text>
         <text class="item-label">版本号</text>
-        <text class="item-value">v3.0.0</text>
+        <text class="item-value">{{version}}</text>
       </view>
     </view>
   </view>

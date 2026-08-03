@@ -10,6 +10,7 @@ Page({
     isBound: false,
     dishCount: 0,
     orderCount: 0,
+    version: '',
     showEditModal: false,
     _showSheet: false,   // 控制 DOM 挂载（动画用）
     tempNickname: '',
@@ -49,7 +50,8 @@ Page({
   // 加载应用信息
   loadAppInfo() {
     this.setData({
-      appName: app.getKitchenName()
+      appName: app.getKitchenName(),
+      version: app.globalData.version
     })
   },
 

@@ -57,7 +57,7 @@ App({
 
       // 应用信息
       appName: '叁柒食',
-      version: '1.0.0',
+      version: '3.0.0',
 
       // 菜品分类(从数据库动态加载)
       categories: [],
