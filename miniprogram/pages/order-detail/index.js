@@ -69,7 +69,7 @@ Page({
     const currentUserId = app.globalData.currentUser?._id
     const isCreator = order._openid === currentUserId
     const isCook = !isCreator
-    const partnerName = app.getPartnerName() || 'TA'
+    const partnerName = app.getPartnerName()
 
     this.setData({ order, loading: false, isCreator, isCook, partnerName })
   },
@@ -295,11 +295,10 @@ Page({
 
   // 分享订单（伴侣视角）
   onShareAppMessage() {
-    const { order, partnerName } = this.data
+    const { order } = this.data
     if (!order) return { title: app.getKitchenName(), path: '/pages/index/index' }
-    const dishNames = (order.dishes || []).map(d => d.name).join('、')
     return {
-      title: `${partnerName}，饭点好了，就等你来确认啦💌`,
+      title: `饭点好了，就等你来确认啦💌`,
       path: `/pages/order-detail/index?id=${order._id}`,
       imageUrl: '/images/default.jpg'
     }

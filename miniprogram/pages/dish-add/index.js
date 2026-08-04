@@ -141,7 +141,7 @@ Page({
       const images = res.result.data.images
       this.setData({
         aiImages: images,
-        aiImageUrls: images.map(img => img.tempFileURL),
+        aiImageUrls: images.map(img => img.url),
         generating: false
       })
     } catch (error) {
@@ -315,7 +315,7 @@ Page({
     this.setData({ selectedAIIndex: index })
   },
 
-  // 确认选择图片（云函数已上传，直接使用 fileID）
+  // 确认选择图片（选中后才上传到云存储，避免堆垃圾）
   async confirmAIImage() {
     if (this.data.selectedAIIndex === -1) {
       wx.showToast({ title: '请先选择一张图片', icon: 'none' })
@@ -323,18 +323,43 @@ Page({
     }
 
     const selected = this.data.aiImages[this.data.selectedAIIndex]
-    if (!selected) return
+    if (!selected || !selected.url) return
 
-    // AI图片已由云函数上传到云存储，使用 fileID 即可
-    // tempFilePath 保持为空，避免 saveDish 重复上传
-    this.setData({
-      tempFilePath: '',
-      imageUrl: selected.tempFileURL,
-      showAIModal: false
-    })
-    this._rawImageUrl = selected.fileID
+    // 已选中的再点击=全屏预览；避免双击误触
+    if (this._confirming) return
+    this._confirming = true
 
-    wx.showToast({ title: '图片已选择', icon: 'success' })
+    wx.showLoading({ title: '上传中...', mask: true })
+
+    try {
+      // 调用云函数下载百度图片并上传到云存储（dishes/ 目录）
+      const res = await wx.cloud.callFunction({
+        name: 'generateAIImage',
+        data: { action: 'upload', imageUrl: selected.url }
+      })
+
+      const result = res.result || {}
+      if (!result.success || !result.data || !result.data.fileID) {
+        throw new Error(result.message || '上传失败')
+      }
+
+      // 保存原始 fileID，saveDish 时直接用，不再二次上传
+      this._rawImageUrl = result.data.fileID
+      this.setData({
+        tempFilePath: '',
+        imageUrl: result.data.tempFileURL || result.data.fileID,
+        showAIModal: false
+      })
+
+      wx.hideLoading()
+      wx.showToast({ title: '图片已选择', icon: 'success' })
+    } catch (e) {
+      console.error('确认AI图片失败', e)
+      wx.hideLoading()
+      wx.showToast({ title: e.message || '上传失败', icon: 'none' })
+    } finally {
+      this._confirming = false
+    }
   },
 
   // 关闭图片选择模态框
