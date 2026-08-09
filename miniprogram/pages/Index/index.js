@@ -12,7 +12,6 @@ Page({
     todayOrders: [],
     dishCount: 0,
     orderCount: 0,
-    togetherDays: 0,
     isBound: false,
     profileComplete: false,
   },
@@ -67,8 +66,7 @@ Page({
       profileComplete: app.isProfileComplete(),
       todayOrders: isBound ? this.computeTodayOrders() : [],
       dishCount: isBound ? dishCount : 0,
-      orderCount: isBound ? orderCount : 0,
-      togetherDays: isBound && orderCount > 0 ? Math.max(1, orderCount) : 0
+      orderCount: isBound ? orderCount : 0
     })
   },
 
@@ -89,10 +87,18 @@ Page({
           ...o,
           creatorName: app.getDisplayName(o._openid),
           isCreator: o._openid === currentUserId,
-          // 有期望时间就展示期望文案，否则展示下单时刻
-          timeText: o.expectText || this.formatTime(o.createTime)
+          // 本区块只含"今日食用"的单，直接显示档位/时刻，
+          // 不用下单时冻结的 expectText（隔天会显示成"明天"）
+          timeText: this.todayOrderTimeText(o)
         }
       })
+  },
+
+  // 今日点菜的期望时间文案：今日就是今日，只显示档位或具体时刻
+  todayOrderTimeText(o) {
+    if (!o.expectTime) return o.expectText || this.formatTime(o.createTime)
+    const SLOT_LABEL = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐' }
+    return SLOT_LABEL[o.expectSlot] || o.expectTimeText || this.formatTime(o.expectTime)
   },
 
   // 下拉刷新（3s 防抖）- 强制版本校验 + 重拉变化数据
@@ -155,16 +161,6 @@ Page({
     const id = e.currentTarget.dataset.id
     if (!id) return
     wx.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
-  },
-
-  // 跳转到最近点菜记录（直接读 homeStore，不再发云函数）
-  goToRecentOrder() {
-    const latest = app.globalData.homeStore.orders?.[0]
-    if (latest) {
-      wx.navigateTo({ url: `/pages/order-detail/index?id=${latest._id}` })
-    } else {
-      wx.switchTab({ url: '/pages/order-history/index' })
-    }
   },
 
   // 跳转到绑定页

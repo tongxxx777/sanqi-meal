@@ -125,10 +125,6 @@
         <view class="quick-icon quick-icon-purple">🍽️</view>
         <text class="quick-label">类目管理</text>
       </view>
-      <view class="quick-item" bindtap="goToRecentOrder">
-        <view class="quick-icon quick-icon-orange">🕐</view>
-        <text class="quick-label">最近点菜</text>
-      </view>
     </view>
   </view>
 
@@ -144,11 +140,6 @@
       <view class="stat-item">
         <text class="stat-number">{{orderCount}}</text>
         <text class="stat-label">点菜次数</text>
-      </view>
-      <view class="stat-divider"></view>
-      <view class="stat-item">
-        <text class="stat-number">{{togetherDays}}</text>
-        <text class="stat-label">一起吃饭</text>
       </view>
     </view>
   </view>

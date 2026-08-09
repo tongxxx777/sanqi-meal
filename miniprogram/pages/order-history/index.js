@@ -141,8 +141,6 @@ Page({
 
     if (d.toDateString() === today.toDateString()) {
       return '今天'
-    } else if (d.toDateString() === yesterday.toDateString()) {
-      return '昨天'
     } else {
       const month = (d.getMonth() + 1).toString().padStart(2, '0')
       const day = d.getDate().toString().padStart(2, '0')

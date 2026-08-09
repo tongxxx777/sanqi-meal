@@ -228,7 +228,7 @@
 
 .quick-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20rpx;
   background: white;
   border-radius: 24rpx;
@@ -256,7 +256,6 @@
 .quick-icon-green { background: var(--border-color); }
 .quick-icon-pink,
 .quick-icon-purple { background: #FFE8EE; }
-.quick-icon-orange { background: #FFF3E0; }
 
 .quick-label {
   font-size: 24rpx;
