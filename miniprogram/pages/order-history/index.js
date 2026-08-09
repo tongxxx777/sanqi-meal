@@ -230,6 +230,7 @@ Page({
               name: 'updateCoupleData',
               data: {
                 action: 'removeOrder',
+                collection: app.globalData.collectionOrderList,
                 docId: id
               }
             })

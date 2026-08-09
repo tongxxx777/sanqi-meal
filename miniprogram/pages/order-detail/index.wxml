@@ -73,7 +73,7 @@
 
     <!-- 未上传照片：点菜人等待 -->
     <view class="photo-waiting" wx:if="{{!order.finishedPhoto && isCreator}}">
-      <text class="waiting-icon">🍛</text>
+      <text class="waiting-icon">📸</text>
       <text class="waiting-text">等待大厨上传成品照片</text>
     </view>
   </view>
