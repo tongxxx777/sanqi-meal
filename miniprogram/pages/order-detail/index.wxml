@@ -19,13 +19,13 @@
       <text class="dish-total">共{{order.dishes.length}}道</text>
     </view>
     <view class="dish-list">
-      <view class="dish-item" wx:for="{{order.dishes}}" wx:key="_id" wx:if="{{dishesExpanded || index < 1}}">
+      <view class="dish-item" wx:for="{{order.dishes}}" wx:key="_id" wx:if="{{dishesExpanded || index < 3}}">
         <image class="dish-image" src="{{item._localImg || item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
         <text class="dish-name">{{item.name}}</text>
       </view>
     </view>
-    <view class="dish-toggle" wx:if="{{order.dishes.length > 1}}" bindtap="toggleDishes">
-      <text>{{dishesExpanded ? '收起' : '展开全部'}}</text>
+    <view class="dish-toggle" wx:if="{{order.dishes.length > 3}}" bindtap="toggleDishes">
+      <text>{{dishesExpanded ? '收起' : '点击显示更多'}}</text>
       <view class="dish-toggle-arrow {{dishesExpanded ? 'up' : ''}}"></view>
     </view>
   </view>

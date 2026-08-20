@@ -71,7 +71,8 @@ Page({
     const isCook = !isCreator
     const partnerName = app.getPartnerName()
 
-    this.setData({ order, loading: false, isCreator, isCook, partnerName })
+    // 每次加载订单默认收起菜品清单（>3 时只显示前 3 个，需手动展开）
+    this.setData({ order, loading: false, isCreator, isCook, partnerName, dishesExpanded: false })
   },
 
   formatDate(date) {
