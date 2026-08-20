@@ -3,10 +3,9 @@
    与点菜页同色系但结构独立区分
    ======================================== */
 
+/* 页面级滚动：容器不再锁 100vh，由页面自身滚动，下拉刷新交给原生手势 */
 .container {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  min-height: 100vh;
   background: #F5F5F5;
 }
 
@@ -83,11 +82,14 @@
 }
 
 /* ========== 横向分类胶囊 ========== */
+/* 吸顶：页面滚动时分类栏固定在顶部，观感与之前固定布局一致 */
 .category-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   background: var(--card-bg);
   white-space: nowrap;
   padding: 20rpx 0 12rpx;
-  flex-shrink: 0;
 }
 
 .tabs-inner {
@@ -141,8 +143,9 @@
 }
 
 /* ========== 菜品列表 ========== */
+/* 普通文档流列表：底部多留空间，避免悬浮按钮遮住最后一行 */
 .dish-list {
-  flex: 1;
+  padding-bottom: 140rpx;
 }
 
 /* 双列网格 */
@@ -243,7 +246,7 @@
 
 /* ========== 搜索无结果 ========== */
 .search-empty {
-  flex: 1;
+  min-height: 60vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -271,7 +274,7 @@
 
 /* ========== 空状态（保持不变） ========== */
 .empty-state {
-  flex: 1;
+  min-height: 60vh;
   display: flex;
   flex-direction: column;
   align-items: center;

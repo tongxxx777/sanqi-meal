@@ -48,14 +48,8 @@
       </view>
     </scroll-view>
 
-    <!-- 菜品列表 -->
-    <scroll-view class="dish-list" scroll-y enhanced
-                 scroll-into-view="{{scrollToTop ? 'list-top-anchor' : ''}}"
-                 scroll-with-animation="{{false}}"
-                 refresher-enabled="{{true}}"
-                 refresher-triggered="{{refresherTriggered}}"
-                 bindrefresherrefresh="onRefresh">
-      <view id="list-top-anchor"></view>
+    <!-- 菜品列表 - 普通文档流容器，滚动交给页面本身，下拉刷新用原生 onPullDownRefresh -->
+    <view class="dish-list">
       <view class="dish-grid" wx:if="{{dishesByCategory[currentCategory].length > 0}}">
         <view class="dish-card"
               wx:for="{{dishesByCategory[currentCategory]}}" wx:key="_id"
@@ -77,7 +71,7 @@
       </view>
 
       <view class="list-bottom">— 已经到底啦 —</view>
-    </scroll-view>
+    </view>
 
     <!-- 悬浮添加按钮 -->
     <view class="fab" bindtap="toAddPage">

@@ -1,4 +1,7 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "叁柒食"
+  "navigationBarTitleText": "叁柒食",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#F5F5F5",
+  "backgroundTextStyle": "dark"
 }

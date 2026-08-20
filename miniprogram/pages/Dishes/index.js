@@ -10,14 +10,10 @@ Page({
     dishesByCategory: {},
     categoryCount: {},
     currentCategory: '__all__',
-    // 回顶标记：仅在需要回到顶部时置 true，下一帧复位，平时为空让 scroll-view 自由滚动
-    scrollToTop: false,
     loading: true,
     hasLoaded: false,
     partnerName: '',
     searchKey: '',
-    // 下拉刷新状态
-    refresherTriggered: false,
   },
 
   async onShow() {
@@ -67,18 +63,16 @@ Page({
       categoryCount,
       currentCategory: savedCat || '__all__',
       searchKey: savedKey,
-      loading: false,
-      refresherTriggered: false
+      loading: false
     })
     if (resetState) {
       this._scrollToListTop()
     }
   },
 
-  // 让菜品列表回到顶部（scroll-into-view 方式，避免受控 scroll-top 造成的卡底/回弹）
+  // 回顶：页面级滚动直接滚回 0（瞬时无动画，与之前行为一致）
   _scrollToListTop() {
-    this.setData({ scrollToTop: true })
-    setTimeout(() => this.setData({ scrollToTop: false }), 100)
+    wx.pageScrollTo({ scrollTop: 0, duration: 0 })
   },
 
   // 获取伴侣名字
@@ -88,22 +82,23 @@ Page({
     this.setData({ partnerName })
   },
 
-  // 下拉刷新（3s 防抖）- 强制版本校验 + 重拉变化数据
-  async onRefresh() {
+  // 原生页面下拉刷新（3s 防抖）- 强制版本校验 + 重拉变化数据
+  // 关键：原生手势只在页面 scrollTop=0 继续下拉时触发，
+  // 列表中间位置上滑回顶绝不会误触发 —— 这是本次修复 bug 的核心
+  async onPullDownRefresh() {
     const now = Date.now()
     if (now - app.globalData.lastPullTs < 3000) {
-      this.setData({ refresherTriggered: false })
+      wx.stopPullDownRefresh()
       return
     }
     app.globalData.lastPullTs = now
-    this.setData({ refresherTriggered: true })
     try {
       await app.syncOnShow('dishes', { force: true })
       this.renderFromStore({ resetState: true })
     } catch (e) {
-      console.error('dishes onRefresh error', e)
+      console.error('dishes onPullDownRefresh error', e)
     } finally {
-      this.setData({ refresherTriggered: false })
+      wx.stopPullDownRefresh()
     }
   },
 
