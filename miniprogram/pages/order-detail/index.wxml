@@ -1,32 +1,44 @@
 <view class="container" wx:if="{{order}}">
   <!-- 头部信息 -->
   <view class="header-card">
-    <view class="header-row">
-      <!-- 主视觉：突出「哪一餐」 -->
-      <view class="header-expect-main">
-        <text class="expect-emoji">🍽</text>
-        <text class="expect-text">{{order.expectText || '未设置用餐时间'}}</text>
-      </view>
-      <view class="status-tag {{order.status === 'completed' ? 'status-completed' : order.status === 'waiting' ? 'status-waiting' : 'status-pending'}}">
-        {{order.status === 'completed' ? '已完成' : order.status === 'waiting' ? '待接单' : '进行中'}}
-      </view>
+    <!-- 顶部装饰：柔和光晕 + 散落小爱心 -->
+    <view class="header-glow header-glow--tl"></view>
+    <view class="header-glow header-glow--br"></view>
+    <text class="deco-heart deco-heart--1">💕</text>
+    <text class="deco-heart deco-heart--2">✨</text>
+
+    <!-- 状态标签（右上角） -->
+    <view class="status-tag {{order.status === 'completed' ? 'status-completed' : order.status === 'waiting' ? 'status-waiting' : 'status-pending'}}">
+      {{order.status === 'completed' ? '已完成' : order.status === 'waiting' ? '待接单' : '进行中'}}
     </view>
-    <!-- 点餐人 -->
-    <view class="header-meta" wx:if="{{order.creatorName}}">
-      <text class="meta-label">点餐人</text>
-      <text class="meta-value">{{order.creatorName}}</text>
+
+    <!-- 主视觉：哪一餐（居中放大，温馨突出） -->
+    <view class="header-hero">
+      <view class="hero-icon-wrap">
+        <text class="hero-icon">🍽</text>
+      </view>
+      <text class="hero-title">{{order.expectText || '未设置用餐时间'}}</text>
+      <text class="hero-sub">叁餐有你 柒待余生</text>
     </view>
-    <!-- 点餐时间（不显示年份，08/20 格式） -->
-    <view class="header-meta" wx:if="{{order.dateText}}">
-      <text class="meta-label">点餐时间</text>
-      <text class="meta-value">{{order.dateShortText}}</text>
+
+    <!-- 点餐信息：温馨便签卡片 -->
+    <view class="info-note" wx:if="{{order.creatorName || order.dateText}}">
+      <view class="info-item" wx:if="{{order.creatorName}}">
+        <text class="info-emoji">💑</text>
+        <text class="info-text">点餐人 · {{order.creatorName}}</text>
+      </view>
+      <view class="info-divider" wx:if="{{order.creatorName && order.dateText}}"></view>
+      <view class="info-item" wx:if="{{order.dateText}}">
+        <text class="info-emoji">🕗</text>
+        <text class="info-text">点餐时间 · {{order.dateShortText}}</text>
+      </view>
     </view>
   </view>
 
   <!-- 菜品列表 -->
   <view class="section">
     <view class="section-title">
-      <text class="section-icon">🍽️</text>
+      <text class="section-icon">📋</text>
       <text>菜品清单</text>
       <text class="dish-total">共{{order.dishes.length}}道</text>
     </view>
