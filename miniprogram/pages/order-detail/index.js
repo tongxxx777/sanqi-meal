@@ -320,14 +320,32 @@ Page({
     this.setData({ dishesExpanded: !this.data.dishesExpanded })
   },
 
-  // 分享订单（伴侣视角）
+  // 分享订单（伴侣视角）：结合期望用餐时间生成标题
   onShareAppMessage() {
     const { order } = this.data
     if (!order) return { title: app.getKitchenName(), path: '/pages/index/index' }
     return {
-      title: `饭点好了，就等你来确认啦💌`,
+      title: this.shareTitle(),
       path: `/pages/order-detail/index?id=${order._id}`,
       imageUrl: '/images/default.jpg'
     }
+  },
+
+  // 按期望用餐时间生成分享标题（复用 expectDisplayText，兼容新旧数据、当天/次日判定一致）：
+  // 档位："午餐点好了" / "明天的晚餐点好了"
+  // 时刻："下午2:00的饭点好了" / "明天下午3:00的饭点好了"
+  shareTitle() {
+    const text = (this.data.order && this.expectDisplayText(this.data.order)) || ''
+    if (!text) return '饭点好了，就等你来确认啦💌'
+    const isTomorrow = text.startsWith('明天')
+    const core = text.replace(/^明天\s*/, '')
+    // 档位词保持原词：早餐/午餐/晚餐（不转口语）
+    const isSlot = ['早餐', '午餐', '晚餐'].includes(core)
+    if (isSlot) {
+      // 次日加"的"（"明天的晚餐/点好了"断句清晰，避免"明天/晚餐点/好了"歧义）
+      return (isTomorrow ? '明天的' : '') + core + '点好了，就等你来确认啦💌'
+    }
+    // 自定义时刻："明天"直接修饰时刻，不加"的"
+    return (isTomorrow ? '明天' : '') + core + '的饭点好了，就等你来确认啦💌'
   },
 })
