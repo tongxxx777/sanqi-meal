@@ -142,7 +142,7 @@ Page({
   },
   // 在分类列表首位插入“全部”并更新对应数据
   _prependAllCategory(dishes, categories, existingDishesByCategory) {
-    const allCat = { _id: '__all__', name: '全部', icon: '📋' }
+    const allCat = { _id: '__all__', name: '全部', icon: '🍽️' }
     const cats = [allCat, ...categories]
     const dishesByCategory = existingDishesByCategory || {}
     dishesByCategory['__all__'] = dishes

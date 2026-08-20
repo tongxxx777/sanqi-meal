@@ -346,16 +346,16 @@ Page({
   // 时刻："下午2:00的饭点好了" / "明天下午3:00的饭点好了"
   shareTitle() {
     const text = (this.data.order && this.expectDisplayText(this.data.order)) || ''
-    if (!text) return '饭点好了，就等你来确认啦💌'
+    if (!text) return '饭点好了，就等你来确认啦！'
     const isTomorrow = text.startsWith('明天')
     const core = text.replace(/^明天\s*/, '')
     // 档位词保持原词：早餐/午餐/晚餐（不转口语）
     const isSlot = ['早餐', '午餐', '晚餐'].includes(core)
     if (isSlot) {
       // 次日加"的"（"明天的晚餐/点好了"断句清晰，避免"明天/晚餐点/好了"歧义）
-      return (isTomorrow ? '明天的' : '') + core + '点好了，就等你来确认啦💌'
+      return (isTomorrow ? '明天的' : '') + core + '点好了，就等你来确认啦！'
     }
     // 自定义时刻："明天"直接修饰时刻，不加"的"
-    return (isTomorrow ? '明天' : '') + core + '的饭点好了，就等你来确认啦💌'
+    return (isTomorrow ? '明天' : '') + core + '的饭点好了，就等你来确认啦！'
   },
 })

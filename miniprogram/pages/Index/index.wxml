@@ -122,8 +122,8 @@
         <text class="quick-label">绑定关系</text>
       </view>
       <view class="quick-item" bindtap="goToCategoryManage">
-        <view class="quick-icon quick-icon-purple">🍽️</view>
-        <text class="quick-label">类目管理</text>
+        <view class="quick-icon quick-icon-purple">📋</view>
+        <text class="quick-label">菜品分类</text>
       </view>
     </view>
   </view>

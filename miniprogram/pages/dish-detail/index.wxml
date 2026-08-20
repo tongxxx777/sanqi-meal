@@ -9,19 +9,19 @@
     <view class="dish-name">{{dish.name}}</view>
 
     <view class="info-row">
-      <text class="info-icon">👤</text>
-      <text class="info-label">添加者</text>
+      <text class="info-icon">💑</text>
+      <text class="info-label">创建者</text>
       <text class="info-value">{{creatorName}}</text>
     </view>
 
     <view class="info-row">
-      <text class="info-icon">📅</text>
-      <text class="info-label">添加时间</text>
+      <text class="info-icon">🕗</text>
+      <text class="info-label">创建时间</text>
       <text class="info-value">{{dateText}}</text>
     </view>
 
     <view class="info-row" wx:if="{{dish.desc}}">
-      <text class="info-icon">📝</text>
+      <text class="info-icon">💬</text>
       <text class="info-label">备注</text>
       <text class="info-value">{{dish.desc}}</text>
     </view>

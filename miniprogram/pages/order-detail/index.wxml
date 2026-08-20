@@ -18,7 +18,11 @@
         <text class="hero-icon">🍽</text>
       </view>
       <text class="hero-title">{{order.expectText || '未设置用餐时间'}}</text>
-      <text class="hero-sub">叁餐有你 柒待余生</text>
+      <view class="hero-sub">
+        <view class="hero-sub-line hero-sub-line--l"></view>
+        <text class="hero-sub-text">叁餐有你 柒待余生</text>
+        <view class="hero-sub-line hero-sub-line--r"></view>
+      </view>
     </view>
 
     <!-- 点餐信息：温馨便签卡片 -->
@@ -43,12 +47,12 @@
       <text class="dish-total">共{{order.dishes.length}}道</text>
     </view>
     <view class="dish-list">
-      <view class="dish-item" wx:for="{{order.dishes}}" wx:key="_id" wx:if="{{dishesExpanded || index < 3}}">
+      <view class="dish-item" wx:for="{{order.dishes}}" wx:key="_id" wx:if="{{dishesExpanded || index < 2}}">
         <image class="dish-image" src="{{item._localImg || item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
         <text class="dish-name">{{item.name}}</text>
       </view>
     </view>
-    <view class="dish-toggle" wx:if="{{order.dishes.length > 3}}" bindtap="toggleDishes">
+    <view class="dish-toggle" wx:if="{{order.dishes.length > 2}}" bindtap="toggleDishes">
       <text>{{dishesExpanded ? '收起' : '点击显示更多'}}</text>
       <view class="dish-toggle-arrow {{dishesExpanded ? 'up' : ''}}"></view>
     </view>

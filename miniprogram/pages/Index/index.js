@@ -173,7 +173,7 @@ Page({
     wx.navigateTo({ url: '/pages/settings/index' })
   },
 
-  // 跳转到类目管理
+  // 跳转到分类管理
   goToCategoryManage() {
     if (!app.isBound()) {
       wx.showToast({ title: '请先绑定伴侣', icon: 'none' })

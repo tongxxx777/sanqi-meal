@@ -24,7 +24,7 @@
     <view class="upload-card">
       <view class="upload-card-header">
         <view class="input-label" style="margin-bottom:0; padding:30rpx 30rpx 0;">
-          <text class="label-icon">🖼️</text>
+          <text class="label-icon">🍲</text>
           <text class="label-text">菜品图片</text>
           <view class="label-tag label-tag--optional">选填</view>
         </view>
@@ -34,7 +34,7 @@
       <!-- 图片预览区域 -->
       <image wx:if="{{imageUrl}}" class="preview-image" src="{{imageUrl}}" mode="aspectFill" bindtap="onPreviewImage"></image>
       <view wx:else class="upload-placeholder" bindtap="chooseImage">
-        <text class="upload-icon">🍽️</text>
+        <text class="upload-icon">📷</text>
         <text class="upload-text">添加菜品图片</text>
         <text class="upload-hint">上传照片或搜索图片</text>
       </view>
@@ -42,7 +42,7 @@
       <!-- 双按钮布局 -->
       <view class="upload-buttons">
         <view class="btn-upload" bindtap="chooseImage" hover-class="btn-hover">
-          <text class="btn-icon">📷</text>
+          <text class="btn-icon">📤</text>
           <text class="btn-text">上传图片</text>
         </view>
         <view class="btn-ai" bindtap="generateAIImage" hover-class="btn-hover">
@@ -95,7 +95,7 @@
     <!-- 菜品分类（必填） -->
     <view class="input-card">
       <view class="input-label">
-        <text class="label-icon">📂</text>
+        <text class="label-icon">📋</text>
         <text class="label-text">菜品分类</text>
         <view class="label-tag label-tag--required">必填</view>
       </view>
