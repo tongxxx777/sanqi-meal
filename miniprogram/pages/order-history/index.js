@@ -76,10 +76,36 @@ Page({
       })),
       dateText: this.formatDate(item.createTime),
       timeText: this.formatTime(item.createTime),
-      expectText: item.expectText || '',
+      expectText: this.expectDisplayText(item),
       creatorName: this.getCreatorName(item._openid),
       slideButtons: this.getSlideButtons(item.marked)
     }
+  },
+
+  // 期望用餐时间展示文案（与首页今日点菜逻辑同步）：
+  // 当天餐（期望日=下单日）只显示档位/时刻（如"午餐"）；次日餐（期望日=下单日+1）显示"明天 xx"。
+  // 判定基准是"下单日"而非查看时的今天——历史单显示稳定不随时间变化，也不动数据库
+  expectDisplayText(order) {
+    const SLOT_LABEL = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐' }
+    // 核心时段：优先结构化字段（与首页同款优先级）
+    let core = SLOT_LABEL[order.expectSlot] || order.expectTimeText || ''
+    if (!core && order.expectTime) core = this.formatTime(order.expectTime)
+    // 极老数据兜底：仅冻结文案可用。"今天 xx"截前缀，"明天 xx"原样保留（次日餐）
+    if (!core && order.expectText) {
+      if (/^明天\s*/.test(order.expectText)) return order.expectText
+      return order.expectText.replace(/^今天\s*/, '')
+    }
+    if (!core) return ''
+    // 次日订单：期望用餐日 = 下单日 + 1 天 → 带"明天"前缀
+    if (order.expectTime && order.createTime) {
+      const eff = new Date(order.expectTime)
+      const c = new Date(order.createTime)
+      c.setDate(c.getDate() + 1)
+      const isNextDay = eff.getFullYear() === c.getFullYear()
+        && eff.getMonth() === c.getMonth() && eff.getDate() === c.getDate()
+      if (isNextDay) return `明天 ${core}`
+    }
+    return core
   },
 
   // 加载更多（第 2 页起由页面自行分页加载）
