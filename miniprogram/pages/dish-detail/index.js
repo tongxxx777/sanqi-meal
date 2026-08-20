@@ -119,7 +119,7 @@ Page({
               throw new Error(result.result?.message || '删除失败')
             }
 
-            // 用响应里的新版本号同步本地 store（菜品库/点菜页立即可见，无需重拉）
+            // 用响应里的新版本号同步本地 store（菜品库/点餐页立即可见，无需重拉）
             app.applyDishRemoved(this.data._id, result.result.ver)
 
             wx.showToast({ title: '已删除', icon: 'success' })

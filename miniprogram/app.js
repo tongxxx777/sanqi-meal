@@ -873,7 +873,7 @@ App({
     const shareTitles = {
       'pages/index/index': this.getKitchenName() + ' · 专属小厨房',
       'pages/dishes/index': '来看看我们的小厨房菜单吧',
-      'pages/order/index': '今天吃什么？来' + this.getKitchenName() + '点菜吧',
+      'pages/order/index': '今天吃什么？来' + this.getKitchenName() + '点餐吧',
       'pages/order-history/index': '看看我们的美食记录',
       'pages/settings/index': this.getKitchenName() + ' · 专属小厨房'
     }

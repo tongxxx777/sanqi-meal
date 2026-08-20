@@ -66,7 +66,7 @@
 
   <!-- 今日状态卡片 -->
   <view class="status-section" wx:if="{{isBound}}">
-    <view class="section-title">🍽️ 今日点菜</view>
+    <view class="section-title">🍽️ 今日点餐</view>
     <block wx:if="{{todayOrders.length > 0}}">
       <view class="status-card" wx:for="{{todayOrders}}" wx:key="_id"
             data-id="{{item._id}}" bindtap="goToTodayOrder">
@@ -84,7 +84,7 @@
             {{dish.name}}
           </view>
         </view>
-        <!-- 只有做菜人（非点菜人）才显示拍照提示，待接单阶段不提示 -->
+        <!-- 只有做菜人（非点餐人）才显示拍照提示，待接单阶段不提示 -->
         <view class="photo-hint" wx:if="{{!item.finishedPhoto && item.status !== 'completed' && item.status !== 'waiting' && !item.isCreator}}">
           <text>📷 做好了记得拍一张~</text>
         </view>
@@ -92,7 +92,7 @@
         <view class="photo-hint viewer-hint" wx:if="{{item.status === 'waiting'}}">
           <text>⏳ 等待大厨接单~</text>
         </view>
-        <!-- 点菜人：已接单但未上传成品 -->
+        <!-- 点餐人：已接单但未上传成品 -->
         <view class="photo-hint viewer-hint" wx:if="{{!item.finishedPhoto && item.status !== 'completed' && item.status !== 'waiting' && item.isCreator}}">
           <text>⏳ 等待大厨拍照上传~</text>
         </view>
@@ -103,8 +103,8 @@
     </block>
     <view class="empty-card" wx:else>
       <image class="empty-image" src="/images/2.gif" mode="aspectFit"></image>
-      <text class="empty-text">今天还没有点菜哦~</text>
-      <view class="btn-primary" bindtap="goToOrder">去点菜</view>
+      <text class="empty-text">今天还没有点餐哦~</text>
+      <view class="btn-primary" bindtap="goToOrder">去点餐</view>
     </view>
   </view>
 
@@ -139,7 +139,7 @@
       <view class="stat-divider"></view>
       <view class="stat-item">
         <text class="stat-number">{{orderCount}}</text>
-        <text class="stat-label">点菜次数</text>
+        <text class="stat-label">点餐次数</text>
       </view>
     </view>
   </view>

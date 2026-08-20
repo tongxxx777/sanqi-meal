@@ -5,7 +5,7 @@ Page({
   data: {
     order: null,
     loading: true,
-    isCreator: false, // 当前用户是否是点菜人（创建者）
+    isCreator: false, // 当前用户是否是点餐人（创建者）
     isCook: false,    // 当前用户是否是做菜人（非创建者）
     partnerName: '',  // 对方昵称
     dishesExpanded: false // 菜品清单是否展开
@@ -58,6 +58,7 @@ Page({
       _localImg: imageCache.resolve(d.imageUrl) || d.imageUrl || ''
     }))
     order.dateText = this.formatDate(order.createTime)
+    order.dateShortText = this.formatDateShort(order.createTime)
     order.timeText = this.formatTime(order.createTime)
     order.expectText = this.expectDisplayText(order)
     order.creatorName = app.getDisplayName(order._openid)
@@ -75,7 +76,7 @@ Page({
     this.setData({ order, loading: false, isCreator, isCook, partnerName, dishesExpanded: false })
   },
 
-  // 期望用餐时间展示文案（与首页今日点菜逻辑同步）：
+  // 期望用餐时间展示文案（与首页今日点餐逻辑同步）：
   // 当天餐（期望日=下单日）只显示档位/时刻（如"午餐"）；次日餐（期望日=下单日+1）显示"明天 xx"。
   // 判定基准是"下单日"而非查看时的今天——历史单显示稳定不随时间变化，也不动数据库
   expectDisplayText(order) {
@@ -108,6 +109,15 @@ Page({
     const month = (d.getMonth() + 1).toString().padStart(2, '0')
     const day = d.getDate().toString().padStart(2, '0')
     return `${year}年${month}月${day}日`
+  },
+
+  // 简短日期：月/日，不显示年份（如 08/20）
+  formatDateShort(date) {
+    if (!date) return ''
+    const d = new Date(date)
+    const month = (d.getMonth() + 1).toString().padStart(2, '0')
+    const day = d.getDate().toString().padStart(2, '0')
+    return `${month}/${day}`
   },
 
   formatTime(date) {

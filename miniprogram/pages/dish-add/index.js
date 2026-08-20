@@ -238,7 +238,7 @@ Page({
           return
         }
 
-        // 用响应里的新版本号同步本地 store（菜品库/点菜页立即可见，无需重拉）
+        // 用响应里的新版本号同步本地 store（菜品库/点餐页立即可见，无需重拉）
         const oldDish = (app.globalData.dishStore.dishes || []).find(d => d._id === _id) || {}
         app.applyDishUpdated(Object.assign({}, oldDish, {
           _id,
@@ -274,7 +274,7 @@ Page({
           return
         }
 
-        // 用响应里的完整新文档同步本地 store（菜品库/点菜页立即可见，无需重拉）
+        // 用响应里的完整新文档同步本地 store（菜品库/点餐页立即可见，无需重拉）
         app.applyDishAdded(res.result.doc, res.result.ver)
         wx.showToast({ title: '添加成功', icon: 'success' })
       }

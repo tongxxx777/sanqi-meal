@@ -2,13 +2,25 @@
   <!-- 头部信息 -->
   <view class="header-card">
     <view class="header-row">
-      <text class="header-date">{{order.dateText}}</text>
+      <!-- 主视觉：突出「哪一餐」 -->
+      <view class="header-expect-main">
+        <text class="expect-emoji">🍽</text>
+        <text class="expect-text">{{order.expectText || '未设置用餐时间'}}</text>
+      </view>
       <view class="status-tag {{order.status === 'completed' ? 'status-completed' : order.status === 'waiting' ? 'status-waiting' : 'status-pending'}}">
         {{order.status === 'completed' ? '已完成' : order.status === 'waiting' ? '待接单' : '进行中'}}
       </view>
     </view>
-    <view class="header-creator">{{order.creatorName}}点的菜</view>
-    <view class="header-expect" wx:if="{{order.expectText}}">🕗 期望用餐时间：{{order.expectText}}</view>
+    <!-- 点餐人 -->
+    <view class="header-meta" wx:if="{{order.creatorName}}">
+      <text class="meta-label">点餐人</text>
+      <text class="meta-value">{{order.creatorName}}</text>
+    </view>
+    <!-- 点餐时间（不显示年份，08/20 格式） -->
+    <view class="header-meta" wx:if="{{order.dateText}}">
+      <text class="meta-label">点餐时间</text>
+      <text class="meta-value">{{order.dateShortText}}</text>
+    </view>
   </view>
 
   <!-- 菜品列表 -->
@@ -71,7 +83,7 @@
       <text class="upload-hint">点击上传照片</text>
     </view>
 
-    <!-- 未上传照片：点菜人等待 -->
+    <!-- 未上传照片：点餐人等待 -->
     <view class="photo-waiting" wx:if="{{!order.finishedPhoto && isCreator}}">
       <text class="waiting-icon">📸</text>
       <text class="waiting-text">等待大厨上传成品照片</text>
@@ -80,7 +92,7 @@
 
   <!-- 底部操作区域 ========================================== -->
 
-  <!-- 待接单 + 点菜人：等待 TA 接单 + 分享 -->
+  <!-- 待接单 + 点餐人：等待 TA 接单 + 分享 -->
   <block wx:if="{{order.status === 'waiting' && isCreator}}">
     <view class="waiting-panel">
       <view class="waiting-ring">
@@ -109,7 +121,7 @@
     <text>确认完成</text>
   </view>
 
-  <!-- 进行中 + 点菜人：等待完成 -->
+  <!-- 进行中 + 点餐人：等待完成 -->
   <view class="waiting-complete" wx:if="{{order.status === 'pending' && isCreator}}">
     <text class="waiting-icon">⏳</text>
     <text class="waiting-text">等待大厨完成...</text>

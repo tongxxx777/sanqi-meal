@@ -82,7 +82,7 @@ Page({
     }
   },
 
-  // 期望用餐时间展示文案（与首页今日点菜逻辑同步）：
+  // 期望用餐时间展示文案（与首页今日点餐逻辑同步）：
   // 当天餐（期望日=下单日）只显示档位/时刻（如"午餐"）；次日餐（期望日=下单日+1）显示"明天 xx"。
   // 判定基准是"下单日"而非查看时的今天——历史单显示稳定不随时间变化，也不动数据库
   expectDisplayText(order) {
@@ -246,7 +246,7 @@ Page({
   deleteOrder(id) {
     wx.showModal({
       title: '确认删除',
-      content: '确定要删除这条点菜记录吗？',
+      content: '确定要删除这条点餐记录吗？',
       confirmColor: '#E57373',
       success: async (res) => {
         if (res.confirm) {

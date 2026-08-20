@@ -1,15 +1,15 @@
 <view class="container">
   <!-- 页面头部 -->
   <view class="page-header">
-    <text class="page-title">点菜历史</text>
+    <text class="page-title">点餐历史</text>
     <text class="page-subtitle">和{{partnerName}}的每一餐 ~</text>
   </view>
 
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{orders.length === 0 && !loading}}">
     <image class="empty-image" src="/images/default.jpg" mode="aspectFit"></image>
-    <text class="empty-title">还没有点菜记录</text>
-    <text class="empty-desc">快去点菜吧~</text>
+    <text class="empty-title">还没有点餐记录</text>
+    <text class="empty-desc">快去点餐吧~</text>
   </view>
 
   <!-- 可滚动内容区 -->

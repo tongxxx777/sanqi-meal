@@ -680,7 +680,7 @@ Page({
     })
   },
 
-  // 提交点菜 - 先弹出备注输入框
+  // 提交点餐 - 先弹出备注输入框
   submitOrder() {
     const { selectedDishes, submitting } = this.data
 
@@ -717,7 +717,7 @@ Page({
     this.doSubmitOrder(this.data.remark)
   },
 
-  // 实际提交点菜（一次云函数完成：写订单 + 批量 orderCount+1 + 版本维护）
+  // 实际提交点餐（一次云函数完成：写订单 + 批量 orderCount+1 + 版本维护）
   async doSubmitOrder(remark) {
     if (!app.isBound()) {
       wx.showToast({ title: '请先绑定伴侣', icon: 'none' })
@@ -760,7 +760,7 @@ Page({
       })
 
       if (!res.result?.success) {
-        throw new Error(res.result?.message || '点菜失败')
+        throw new Error(res.result?.message || '点餐失败')
       }
 
       const orderId = res.result._id
@@ -786,8 +786,8 @@ Page({
 
     } catch (e) {
       wx.hideLoading()
-      console.error('点菜失败', e)
-      wx.showToast({ title: '点菜失败，请重试', icon: 'none' })
+      console.error('点餐失败', e)
+      wx.showToast({ title: '点餐失败，请重试', icon: 'none' })
       this.setData({ submitting: false })
     }
   },
@@ -829,7 +829,7 @@ Page({
       }
     }
     return {
-      title: `今天吃什么？和${partnerName}一起来点菜吧`,
+      title: `今天吃什么？和${partnerName}一起来点餐吧`,
       path: '/pages/order/index',
       imageUrl: '/images/default.jpg'
     }

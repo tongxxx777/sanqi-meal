@@ -83,7 +83,7 @@
       <text class="cart-hint" wx:else>已选{{selectedCount}}道菜</text>
     </view>
     <view class="btn-order {{selectedCount > 0 ? 'active' : ''}}" bindtap="submitOrder">
-      确认点菜
+      确认点餐
     </view>
   </view>
 </view>
@@ -117,11 +117,11 @@
   </scroll-view>
 </view>
 
-<!-- 确认点菜弹窗（期望用餐时间 + 备注） -->
+<!-- 确认点餐弹窗（期望用餐时间 + 备注） -->
 <view class="remark-modal" wx:if="{{showRemarkModal}}" bindtap="closeRemarkModal">
   <view class="remark-content" catchtap="preventClose">
     <view class="remark-close" bindtap="closeRemarkModal">✕</view>
-    <text class="remark-title">确认点菜</text>
+    <text class="remark-title">确认点餐</text>
 
     <!-- 期望用餐时间 -->
     <view class="expect-section">
@@ -167,7 +167,7 @@
       <view class="remark-counter">{{remark.length}}/50</view>
     </view>
     <view class="remark-buttons">
-      <view class="btn-confirm" bindtap="confirmRemark">确认点菜</view>
+      <view class="btn-confirm" bindtap="confirmRemark">确认点餐</view>
     </view>
   </view>
 </view>

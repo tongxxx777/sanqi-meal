@@ -84,11 +84,11 @@
       </view>
       <view class="tips-item">
         <text class="tips-dot">●</text>
-        <text class="tips-text">点菜后可分享通知对方</text>
+        <text class="tips-text">点餐后可分享通知对方</text>
       </view>
       <view class="tips-item">
         <text class="tips-dot">●</text>
-        <text class="tips-text">可以查看彼此的点菜历史</text>
+        <text class="tips-text">可以查看彼此的点餐历史</text>
       </view>
     </view>
 

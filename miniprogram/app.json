@@ -33,7 +33,7 @@
       "pagePath": "pages/order/index",
       "iconPath": "images/tab-bar/MarketIconGrey.png",
       "selectedIconPath": "images/tab-bar/MarketIconColor.png",
-      "text": "点菜"
+      "text": "点餐"
     }, {
       "pagePath": "pages/dishes/index",
       "iconPath": "images/tab-bar/MissionIconGrey.png",

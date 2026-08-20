@@ -94,7 +94,7 @@ Page({
       })
   },
 
-  // 今日点菜的期望时间文案：今日就是今日，只显示档位或具体时刻
+  // 今日点餐的期望时间文案：今日就是今日，只显示档位或具体时刻
   todayOrderTimeText(o) {
     if (!o.expectTime) return o.expectText || this.formatTime(o.createTime)
     const SLOT_LABEL = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐' }
@@ -151,7 +151,7 @@ Page({
   },
 
 
-  // 跳转到点菜页
+  // 跳转到点餐页
   goToOrder() {
     wx.switchTab({ url: '/pages/order/index' })
   },

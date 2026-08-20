@@ -39,7 +39,7 @@
           <view class="stat-divider"></view>
           <view class="stat-item">
             <text class="stat-number">{{orderCount}}</text>
-            <text class="stat-label">一起点菜</text>
+            <text class="stat-label">一起点餐</text>
           </view>
           <view class="stat-divider"></view>
           <view class="stat-item">
@@ -76,8 +76,8 @@
           </view>
           <view class="tips-list">
             <text class="tips-item">· 菜品库内容双方共享</text>
-            <text class="tips-item">· 点菜后可分享通知对方</text>
-            <text class="tips-item">· 可以查看彼此的点菜历史</text>
+            <text class="tips-item">· 点餐后可分享通知对方</text>
+            <text class="tips-item">· 可以查看彼此的点餐历史</text>
           </view>
         </view>
       </view>
@@ -85,7 +85,7 @@
       <!-- 解绑区域 -->
       <view class="section unbind-section">
         <view class="unbind-btn-light" bindtap="unbindPartner">解除绑定</view>
-        <text class="unbind-tip">解绑后将无法互相看到点菜记录</text>
+        <text class="unbind-tip">解绑后将无法互相看到点餐记录</text>
       </view>
     </block>
 

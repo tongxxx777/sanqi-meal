@@ -236,7 +236,7 @@ Page({
 
       // 分类写回本地 store
       app.applyCategoryRemoved(deletingCategory._id, res.result.categoryVer)
-      // 菜品被批量转移了分类：重拉菜品并同步 dishVer（菜品库/点菜页立即可见）
+      // 菜品被批量转移了分类：重拉菜品并同步 dishVer（菜品库/点餐页立即可见）
       if (typeof res.result.dishVer === 'number') {
         await app.reloadDishes()
         app.applyVersions({ dishVer: res.result.dishVer })

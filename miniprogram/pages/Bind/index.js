@@ -97,7 +97,7 @@ Page({
   unbindPartner() {
     wx.showModal({
       title: '确认解绑',
-      content: '解绑后你们将无法互相看到对方的点菜，确定要解绑吗？',
+      content: '解绑后你们将无法互相看到对方的点餐，确定要解绑吗？',
       confirmColor: '#E57373',
       success: async (res) => {
         if (res.confirm) {

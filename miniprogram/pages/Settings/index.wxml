@@ -42,7 +42,7 @@
       </view>
       <view class="settings-item">
         <text class="item-icon">📋</text>
-        <text class="item-label">点菜次数</text>
+        <text class="item-label">点餐次数</text>
         <text class="item-value">{{orderCount}} 次</text>
       </view>
     </view>
