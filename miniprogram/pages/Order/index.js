@@ -170,14 +170,22 @@ Page({
     return opts
   },
 
-  // 24h "HH:mm" -> 12h 中文：上午10:00 / 中午12:00 / 下午5:00
+  // 24h "HH:mm" -> 12h 中文时段标签
+  // 凌晨 00:00-05:59 / 早上 06:00-08:59 / 上午 09:00-11:59
+  // 中午 12:00-12:59 / 下午 13:00-17:59 / 晚上 18:00-23:59
   format12h(hhmm) {
     if (!hhmm) return ''
     let [h, m] = hhmm.split(':').map(Number)
-    const ap = h === 12 ? '中午' : (h < 12 ? '上午' : '下午')
+    let ap
+    if (h === 12) ap = '中午'
+    else if (h < 6) ap = '凌晨'
+    else if (h < 9) ap = '早上'
+    else if (h < 12) ap = '上午'
+    else if (h < 18) ap = '下午'
+    else ap = '晚上'
     let h12 = h % 12
     if (h12 === 0) h12 = 12
-    return `${ap}${h12}:${String(m).padStart(2, '0')}`
+    return `${ap} ${h12}:${String(m).padStart(2, '0')}`
   },
 
   // 选"今天"时，当前时间 ≥ 档位时间则置灰；选"明天"时全部可选
