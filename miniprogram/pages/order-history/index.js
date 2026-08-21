@@ -16,6 +16,9 @@ Page({
     tipText: '',
     // 下拉刷新状态
     refresherTriggered: false,
+    // 引导：首条左滑演示
+    guideTimer: null,
+    showGuideBubble: false,
   },
 
   async onShow() {
@@ -39,6 +42,47 @@ Page({
     }
     // 记录当前渲染快照，供下次 onShow 比对
     app.markRenderSeq(this, ['order', 'user'])
+
+    // 首次进入播放左滑引导（仅一次，本地缓存记录）
+    this.maybePlayGuide()
+  },
+
+  // 首次进入时演示第一张卡片左滑露出标记/删除按钮
+  maybePlayGuide() {
+    if (this.data.guideTimer) return // 已在演示中
+    if (wx.getStorageSync('historyGuideShown')) return
+    if (!this.data.orders || this.data.orders.length === 0) return
+    if (this.data.orders[0].guideShow) return
+
+    const id = this.data.orders[0]._id
+    // 先滑出 + 气泡浮现
+    this.setGuideState(id, true, true)
+    // 停留约 5 秒后收回 + 气泡淡出，并标记已看过
+    this.data.guideTimer = setTimeout(() => {
+      this.setGuideState(id, false, false)
+      wx.setStorageSync('historyGuideShown', true)
+      this.data.guideTimer = null
+    }, 5000)
+  },
+
+  // 按订单 id 设置首条引导滑出/气泡显隐（防止演示期间列表刷新导致错位）
+  setGuideState(orderId, guideShow, bubble) {
+    const orders = this.data.orders
+    const index = orders.findIndex(o => o._id === orderId)
+    if (index === -1) {
+      this.setData({ showGuideBubble: false })
+      return
+    }
+    orders[index].guideShow = guideShow
+    this.setData({ orders, showGuideBubble: bubble })
+  },
+
+  // 清理引导定时器，避免页面切走后误触发 setData
+  clearGuideTimer() {
+    if (this.data.guideTimer) {
+      clearTimeout(this.data.guideTimer)
+      this.data.guideTimer = null
+    }
   },
 
   // 加载用户信息
@@ -54,6 +98,8 @@ Page({
   renderFromStore() {
     const store = app.globalData.historyStore
     const orders = store.orders.map(o => this._mapOrder(o))
+    // 给首条订单附加 guideShow 字段，供首次进入时演示左滑
+    if (orders.length) orders[0].guideShow = false
     this.setData({
       orders,
       hasMore: store.hasMore,
@@ -358,5 +404,14 @@ Page({
       query: '',
       imageUrl: '/images/default.jpg'
     }
+  },
+
+  // 页面隐藏/卸载时清理引导定时器
+  onHide() {
+    this.clearGuideTimer()
+  },
+
+  onUnload() {
+    this.clearGuideTimer()
   },
 })

@@ -74,6 +74,52 @@
 
 .history-item-wrapper {
   margin-bottom: 32rpx;
+  position: relative;
+}
+
+/* 首条左滑引导气泡 */
+.guide-bubble {
+  position: absolute;
+  top: -18rpx;
+  right: 40rpx;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  animation: guideBubbleIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.guide-bubble-text {
+  background: linear-gradient(135deg, #FFB74D 0%, #FF8A9B 100%);
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 500;
+  padding: 14rpx 26rpx;
+  border-radius: 28rpx;
+  white-space: nowrap;
+  box-shadow: 0 8rpx 24rpx rgba(229, 115, 115, 0.35);
+}
+
+/* 指向下方按钮的小三角箭头 */
+.guide-bubble-arrow {
+  width: 0;
+  height: 0;
+  margin-top: 4rpx;
+  border-left: 12rpx solid transparent;
+  border-right: 12rpx solid transparent;
+  border-top: 14rpx solid #FF8A9B;
+}
+
+@keyframes guideBubbleIn {
+  from {
+    opacity: 0;
+    transform: translateY(14rpx) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .delete-btn,

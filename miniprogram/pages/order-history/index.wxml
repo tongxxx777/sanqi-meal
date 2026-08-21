@@ -20,7 +20,7 @@
     <!-- 历史列表 -->
     <view class="history-list">
       <view class="history-item-wrapper" wx:for="{{orders}}" wx:key="_id">
-        <mp-slideview buttons="{{item.slideButtons}}" data-id="{{item._id}}" data-marked="{{item.marked}}" bindbuttontap="onSlideButtonTap">
+        <mp-slideview show="{{item.guideShow}}" buttons="{{item.slideButtons}}" data-id="{{item._id}}" data-marked="{{item.marked}}" bindbuttontap="onSlideButtonTap">
           <view class="history-item animate-fadeIn {{item.marked ? 'marked' : ''}}" data-id="{{item._id}}" bindtap="goToDetail">
             <view class="history-header">
               <view class="history-date">
@@ -51,6 +51,11 @@
             </view>
           </view>
         </mp-slideview>
+        <!-- 首条左滑引导气泡 -->
+        <view class="guide-bubble" wx:if="{{index === 0 && showGuideBubble}}">
+          <text class="guide-bubble-text">← 左滑可标记 / 删除</text>
+          <view class="guide-bubble-arrow"></view>
+        </view>
       </view>
     </view>
 
