@@ -214,52 +214,6 @@ Page({
     wx.navigateTo({ url: `/pages/dish-detail/index?id=${id}&imageUrl=${imageUrl}` })
   },
 
-  // 长按删除确认
-  showDeleteConfirm(e) {
-    const id = e.currentTarget.dataset.id
-    const dish = this.data.dishes.find(item => item._id === id)
-    wx.showModal({
-      title: '删除菜品',
-      content: `确定要删除「${dish.name}」吗？`,
-      confirmColor: '#E53935',
-      success: async (res) => {
-        if (res.confirm) {
-          await this.deleteDish(id)
-        }
-      }
-    })
-  },
-
-  // 删除菜品
-  async deleteDish(id) {
-    wx.showLoading({ title: '删除中...', mask: true })
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'updateCoupleData',
-        data: {
-          collection: app.globalData.collectionDishList,
-          docId: id,
-          action: 'remove'
-        }
-      })
-
-      wx.hideLoading()
-
-      if (!res.result?.success) {
-        throw new Error(res.result?.message || '删除失败')
-      }
-
-      // 用响应里的新版本号同步本地 store（删缓存→写最新→立即展示，无需重拉）
-      app.applyDishRemoved(id, res.result.ver)
-      this.renderFromStore({ resetState: false })
-      wx.showToast({ title: '已删除', icon: 'success' })
-    } catch (e) {
-      wx.hideLoading()
-      console.error('删除失败', e)
-      wx.showToast({ title: '删除失败', icon: 'none' })
-    }
-  },
-
   // 格式化日期
   formatDate(date) {
     if (!date) return ''

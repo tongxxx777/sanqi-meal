@@ -53,7 +53,7 @@
       <view class="dish-grid" wx:if="{{dishesByCategory[currentCategory].length > 0}}">
         <view class="dish-card"
               wx:for="{{dishesByCategory[currentCategory]}}" wx:key="_id"
-              data-id="{{item._id}}" bindtap="toDetailPage" bindlongpress="showDeleteConfirm">
+              data-id="{{item._id}}" bindtap="toDetailPage">
           <view class="card-image-wrap">
             <image class="card-image" src="{{item._localImg || item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
             <view class="card-order-badge" wx:if="{{item.orderCount > 0}}">
