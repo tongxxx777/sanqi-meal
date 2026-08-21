@@ -55,7 +55,7 @@
         <view class="dish-item {{dish.selected ? 'selected' : ''}}"
               wx:for="{{dishesByCategory[item._id]}}" wx:for-item="dish" wx:key="_id"
               data-id="{{dish._id}}" bindtap="toggleSelect">
-          <image class="dish-image" src="{{dish._localImg || dish.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load data-id="{{dish._id}}" catchtap="openDishDetail"></image>
+          <image class="dish-image" src="{{dish._localImg || dish.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load data-id="{{dish._id}}" catchtap="previewImage"></image>
           <view class="dish-info">
             <text class="dish-name">{{dish.name}}</text>
             <view class="dish-meta">
@@ -186,33 +186,10 @@
   </view>
 </view>
 
-<!-- 菜品详情面板 -->
-<view class="detail-panel-mask" wx:if="{{showDishDetail}}" bindtap="closeDishDetail"></view>
-<view class="detail-panel {{showDishDetail && !detailClosing ? 'show' : ''}} {{detailTranslateY > 0 ? 'dragging' : ''}}"
-      style="{{detailTranslateY > 0 ? 'transform: translateY(' + detailTranslateY + 'px)' : ''}}"
-      bindtouchstart="onDetailTouchStart"
-      bindtouchmove="onDetailTouchMove"
-      bindtouchend="onDetailTouchEnd">
-  <view class="detail-panel-content" wx:if="{{currentDish}}">
-    <view class="detail-image-wrapper">
-      <view class="detail-pull-hint" catchtap="closeDishDetail">
-        <view class="pull-chevron"></view>
-      </view>
-      <image class="detail-dish-image" src="{{currentDish._localImg || currentDish.imageUrl || '/images/default.jpg'}}" mode="widthFix"></image>
-    </view>
-    <view class="detail-dish-info">
-      <text class="detail-dish-name">{{currentDish.name}}</text>
-      <view class="detail-dish-meta">
-        <text class="detail-dish-count" wx:if="{{currentDish.orderCount > 0}}">已点{{currentDish.orderCount}}次</text>
-        <text class="detail-dish-desc" wx:if="{{currentDish.description}}">{{currentDish.description}}</text>
-      </view>
-    </view>
-    <view class="detail-action">
-      <view class="btn-detail-toggle {{currentDish.selected ? 'remove' : 'add'}}" bindtap="toggleDishInDetail">
-        <text>{{currentDish.selected ? '移出菜单' : '加入菜单'}}</text>
-      </view>
-    </view>
-  </view>
+<!-- 图片预览（点击缩略图，整屏展示原图，长图完整可见） -->
+<view class="image-preview-mask" wx:if="{{showImagePreview}}" bindtap="closePreview">
+  <image class="image-preview-img" src="{{previewImageUrl}}" mode="aspectFit"></image>
+  <view class="image-preview-close" catchtap="closePreview">✕</view>
 </view>
 
 <bind-guard />

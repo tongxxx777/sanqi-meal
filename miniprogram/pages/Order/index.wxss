@@ -211,10 +211,58 @@
 }
 
 .dish-image {
-  width: 170rpx;
-  height: 170rpx;
-  border-radius: 12rpx;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 16rpx;
   background: #F5F5F5;
+  display: block;
+}
+
+/* 图片预览（点击缩略图，整屏展示原图，长图完整可见） */
+.image-preview-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 40%, #2A2A2E 0%, #0E0E10 70%, #000 100%);
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: preview-fade 0.22s ease-out;
+}
+
+@keyframes preview-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.image-preview-img {
+  width: 100%;
+  height: 100%;
+  animation: preview-pop 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes preview-pop {
+  from { transform: scale(0.96); opacity: 0.6; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.image-preview-close {
+  position: absolute;
+  top: calc(40rpx + env(safe-area-inset-top));
+  right: 32rpx;
+  min-width: 72rpx;
+  height: 64rpx;
+  padding: 0 24rpx;
+  line-height: 64rpx;
+  text-align: center;
+  font-size: 34rpx;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(10rpx);
+  border-radius: 32rpx;
 }
 
 .dish-info {
@@ -792,115 +840,4 @@
   font-size: 28rpx;
   color: white;
   font-weight: 500;
-}
-
-/* 菜品详情面板 */
-.detail-panel-mask {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 300;
-}
-
-.detail-panel {
-  position: fixed;
-  left: 0; right: 0; bottom: 0; top: 0;
-  background: white;
-  z-index: 301;
-  transform: translateY(100%);
-  transition: transform 0.3s ease-out;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.detail-panel.show { transform: translateY(0); }
-.detail-panel.dragging { transition: none; }
-
-.detail-panel-content {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.detail-image-wrapper { position: relative; }
-
-.detail-pull-hint {
-  position: absolute;
-  top: 24rpx;
-  left: 24rpx;
-  width: 64rpx;
-  height: 64rpx;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-.pull-chevron {
-  width: 20rpx;
-  height: 20rpx;
-  border-right: 4rpx solid white;
-  border-bottom: 4rpx solid white;
-  transform: translate(-2rpx, -4rpx) rotate(45deg);
-}
-
-.detail-dish-image {
-  width: 100%;
-  display: block;
-}
-
-.detail-dish-info { padding: 30rpx; }
-
-.detail-dish-name {
-  display: block;
-  font-size: 40rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 16rpx;
-}
-
-.detail-dish-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 12rpx;
-}
-
-.detail-dish-count {
-  font-size: 26rpx;
-  color: var(--text-hint);
-}
-
-.detail-dish-desc {
-  font-size: 28rpx;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.detail-action {
-  padding: 30rpx;
-  padding-bottom: calc(30rpx + env(safe-area-inset-bottom));
-  border-top: 1rpx solid #F0F0F0;
-}
-
-.btn-detail-toggle {
-  text-align: center;
-  padding: 28rpx;
-  border-radius: 50rpx;
-  font-size: 32rpx;
-  font-weight: 500;
-}
-
-.btn-detail-toggle.add {
-  background: var(--gradient-primary);
-  color: white;
-}
-
-.btn-detail-toggle.remove {
-  background: white;
-  border: 2rpx solid #E57373;
-  color: #E57373;
 }

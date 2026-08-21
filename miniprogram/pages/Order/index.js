@@ -37,10 +37,8 @@ Page({
     showSuccess: false,
     showRemarkModal: false,
     showCartPanel: false,
-    showDishDetail: false,
-    detailClosing: false,
-    currentDish: null,
-    detailTranslateY: 0,
+    previewImageUrl: '',
+    showImagePreview: false,
     remark: '',
     submitting: false,
     orderId: '',
@@ -588,70 +586,21 @@ Page({
     this.setData({ showCartPanel: !this.data.showCartPanel })
   },
 
-  // 打开菜品详情面板
-  openDishDetail(e) {
+  // 打开图片预览（点击缩略图，整屏展示原图）
+  previewImage(e) {
     const id = e.currentTarget.dataset.id
     const dish = this.data.dishes.find(d => d._id === id)
     if (dish) {
-      this.setData({ showDishDetail: true, currentDish: dish })
+      this.setData({
+        showImagePreview: true,
+        previewImageUrl: dish._localImg || dish.imageUrl || '/images/default.jpg'
+      })
     }
   },
 
-  // 关闭菜品详情面板
-  closeDishDetail() {
-    this.setData({ detailClosing: true, detailTranslateY: 0 })
-    setTimeout(() => {
-      this.setData({ showDishDetail: false, detailClosing: false, currentDish: null })
-    }, 300)
-  },
-
-  // 下拉关闭 - 触摸开始
-  onDetailTouchStart(e) {
-    this.touchStartY = e.touches[0].clientY
-    this.isDragging = false
-  },
-
-  // 下拉关闭 - 触摸移动
-  onDetailTouchMove(e) {
-    const currentY = e.touches[0].clientY
-    const deltaY = currentY - this.touchStartY
-    if (deltaY > 0) {
-      this.isDragging = true
-      this.setData({ detailTranslateY: deltaY })
-    }
-  },
-
-  // 下拉关闭 - 触摸结束
-  onDetailTouchEnd() {
-    const { detailTranslateY } = this.data
-    if (detailTranslateY > 150) {
-      this.closeDishDetail()
-    } else {
-      this.setData({ detailTranslateY: 0 })
-    }
-  },
-
-  // 详情面板中切换选中状态
-  toggleDishInDetail() {
-    const { currentDish } = this.data
-    if (!currentDish) return
-
-    const dishes = this.data.dishes.map(item =>
-      item._id === currentDish._id ? { ...item, selected: !item.selected } : item
-    )
-
-    const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes)
-    const selectedDishes = dishes.filter(item => item.selected)
-    const updatedDish = dishes.find(d => d._id === currentDish._id)
-
-    this.setData({
-      dishes,
-      dishesByCategory,
-      selectedByCategory,
-      selectedDishes,
-      selectedCount: selectedDishes.length,
-      currentDish: updatedDish
-    })
+  // 关闭图片预览
+  closePreview() {
+    this.setData({ showImagePreview: false, previewImageUrl: '' })
   },
 
   // 从购物车移除
