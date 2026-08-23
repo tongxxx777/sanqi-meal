@@ -9,6 +9,7 @@ Page({
     dateText: '',
     creatorName: '',
     openid: '',
+    categoryInfo: null,
   },
 
   onLoad(options) {
@@ -27,6 +28,7 @@ Page({
     if (currentUser?._id) {
       this.setData({ openid: currentUser._id })
     }
+    await app.loadCategories()
     await this.loadDish()
   },
 
@@ -64,8 +66,10 @@ Page({
   renderDish(dish) {
     // 本地持久缓存优先，未命中走 cloud:// 并后台落盘
     dish._localImg = imageCache.resolve(dish.imageUrl) || dish.imageUrl || ''
+    const categoryInfo = (app.globalData.categories || []).find(c => c._id === dish.category) || null
     this.setData({
       dish,
+      categoryInfo,
       dateMiniText: this.formatDateMini(dish.createTime),
       creatorName: this.getCreatorName(dish._openid)
     })

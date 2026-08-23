@@ -135,6 +135,34 @@
   flex-shrink: 0;
 }
 
+/* ---- 分类徽章：分隔线 + 浅粉胶囊 ---- */
+.category-row {
+  display: flex;
+  margin-top: 28rpx;
+  padding-top: 28rpx;
+  border-top: 2rpx solid var(--divider-color);
+}
+
+.category-badge {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  background: #FFF0F3;
+}
+
+.category-badge-icon {
+  font-size: 28rpx;
+}
+
+.category-badge-name {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: var(--primary-deep);
+  letter-spacing: 1rpx;
+}
+
 /* ---- 备注：杂志引用块 ---- */
 .desc-box {
   position: relative;
@@ -142,6 +170,25 @@
   background: #FFF5F2;
   border-radius: 20rpx;
   padding: 26rpx 28rpx;
+}
+
+/* 无描述空态：浅色引导文案 */
+.desc-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  background: #FAFAFA;
+}
+
+.desc-empty-icon {
+  font-size: 28rpx;
+}
+
+.desc-empty-text {
+  font-size: 26rpx;
+  color: var(--text-hint);
+  letter-spacing: 1rpx;
 }
 
 .desc-quote {
@@ -162,21 +209,21 @@
   word-break: break-all;
 }
 
-/* ---- 操作按钮 ---- */
+/* ---- 操作按钮：纵向两行，主编辑 + 次删除 ---- */
 .action-buttons {
   display: flex;
+  flex-direction: column;
   gap: 24rpx;
   margin-top: 48rpx;
 }
 
 .btn-edit,
 .btn-delete {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10rpx;
-  padding: 26rpx 0;
+  padding: 30rpx 0;
   border-radius: 50rpx;
   font-size: 30rpx;
   font-weight: 500;
@@ -189,10 +236,12 @@
   box-shadow: var(--shadow-button);
 }
 
+/* 删除：弱化次按钮，白底浅红 + 淡边框 */
 .btn-delete {
   background: #fff;
   color: #E57373;
-  box-shadow: var(--shadow-card);
+  border: 2rpx solid #F3C5C5;
+  box-sizing: border-box;
 }
 
 .btn-icon {

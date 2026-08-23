@@ -35,14 +35,26 @@
       </view>
     </view>
 
-    <!-- 备注：引用块样式 -->
-    <view class="desc-box" wx:if="{{dish.desc}}">
+    <!-- 分类徽章 -->
+    <view class="category-row" wx:if="{{categoryInfo}}">
+      <view class="category-badge">
+        <text class="category-badge-icon">{{categoryInfo.icon}}</text>
+        <text class="category-badge-name">{{categoryInfo.name}}</text>
+      </view>
+    </view>
+
+    <!-- 备注：引用块样式；无描述时显示空态引导 -->
+    <view class="desc-box" wx:if="{{dish.description}}">
       <text class="desc-quote">“</text>
-      <text class="desc-text">{{dish.desc}}</text>
+      <text class="desc-text">{{dish.description}}</text>
+    </view>
+    <view class="desc-box desc-empty" wx:else>
+      <text class="desc-empty-icon">✍️</text>
+      <text class="desc-empty-text">还没有介绍，点下方「编辑菜品」补充一句吧~</text>
     </view>
   </view>
 
-  <!-- 操作按钮 -->
+  <!-- 操作按钮：纵向两行，主编辑 + 次删除 -->
   <view class="action-buttons">
     <view class="btn-edit" hover-class="btn-hover" hover-stay-time="80" bindtap="editDish">
       <text class="btn-icon">✏️</text>
@@ -50,7 +62,7 @@
     </view>
     <view class="btn-delete" hover-class="btn-hover" hover-stay-time="80" bindtap="deleteDish">
       <text class="btn-icon">🗑️</text>
-      <text>删除</text>
+      <text>删除菜品</text>
     </view>
   </view>
 </view>
