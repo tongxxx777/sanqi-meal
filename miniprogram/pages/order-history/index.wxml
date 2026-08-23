@@ -53,7 +53,7 @@
         </mp-slideview>
         <!-- 首条左滑引导气泡 -->
         <view class="guide-bubble" wx:if="{{index === 0 && showGuideBubble}}">
-          <text class="guide-bubble-text">← 左滑可标记 / 删除</text>
+          <text class="guide-bubble-text">👈左滑可标记 / 删除</text>
           <view class="guide-bubble-arrow"></view>
         </view>
       </view>

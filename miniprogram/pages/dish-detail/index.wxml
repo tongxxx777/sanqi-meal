@@ -1,39 +1,56 @@
-<view class="container">
-  <!-- 菜品图片 -->
-  <view class="dish-image-wrapper">
-    <image class="dish-image" src="{{dish._localImg || dish.imageUrl || previewImageUrl || '/images/default.jpg'}}" mode="widthFix"></image>
+<view class="container" wx:if="{{dish}}">
+  <!-- 照片大卡：悬浮圆角 + 底部渐变字幕 -->
+  <view class="photo-card">
+    <image class="photo" src="{{dish._localImg || dish.imageUrl || previewImageUrl || '/images/default.jpg'}}" mode="aspectFill" bindtap="previewImage"></image>
+    <view class="photo-mask"></view>
+    <view class="photo-caption">
+      <text class="photo-title">{{dish.name}}</text>
+    </view>
+    <!-- 查看原图：醒目的悬浮胶囊按钮 -->
+    <view class="view-original" hover-class="vo-hover" hover-stay-time="80" bindtap="previewImage">
+      <text class="vo-icon">🔍</text>
+      <text class="vo-text">查看原图</text>
+    </view>
   </view>
 
-  <!-- 菜品信息卡片 -->
-  <view class="dish-info-card">
-    <view class="dish-name">{{dish.name}}</view>
-
-    <view class="info-row">
-      <text class="info-icon">💑</text>
-      <text class="info-label">创建者</text>
-      <text class="info-value">{{creatorName}}</text>
+  <!-- 上浮信息卡：三格数据档案 -->
+  <view class="float-card">
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-emoji">💑</text>
+        <text class="stat-value">{{creatorName || '未知'}}</text>
+        <text class="stat-label">添加人</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-emoji">🕗</text>
+        <text class="stat-value">{{dateMiniText || '--'}}</text>
+        <text class="stat-label">加入菜单</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-emoji">🍽️</text>
+        <text class="stat-value">{{dish.orderCount || 0}} 次</text>
+        <text class="stat-label">被点次数</text>
+      </view>
     </view>
 
-    <view class="info-row">
-      <text class="info-icon">🕗</text>
-      <text class="info-label">创建时间</text>
-      <text class="info-value">{{dateText}}</text>
-    </view>
-
-    <view class="info-row" wx:if="{{dish.desc}}">
-      <text class="info-icon">💬</text>
-      <text class="info-label">备注</text>
-      <text class="info-value">{{dish.desc}}</text>
+    <!-- 备注：引用块样式 -->
+    <view class="desc-box" wx:if="{{dish.desc}}">
+      <text class="desc-quote">“</text>
+      <text class="desc-text">{{dish.desc}}</text>
     </view>
   </view>
 
   <!-- 操作按钮 -->
   <view class="action-buttons">
-    <view class="btn-edit" bindtap="editDish">
+    <view class="btn-edit" hover-class="btn-hover" hover-stay-time="80" bindtap="editDish">
+      <text class="btn-icon">✏️</text>
       <text>编辑菜品</text>
     </view>
-    <view class="btn-delete" bindtap="deleteDish">
-      <text>删除菜品</text>
+    <view class="btn-delete" hover-class="btn-hover" hover-stay-time="80" bindtap="deleteDish">
+      <text class="btn-icon">🗑️</text>
+      <text>删除</text>
     </view>
   </view>
 </view>

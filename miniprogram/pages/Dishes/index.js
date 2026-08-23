@@ -17,16 +17,29 @@ Page({
     // 列数档位：3→4→6 循环，默认 3
     gridCols: 3,
     // 排序模式
-    sortMode: false,           // 是否处于排序模式
-    sortList: [],              // 排序快照（排序模式下的菜品数组）
-    sortSaving: false,         // 保存中
-    canSort: false,            // 当前分类是否允许排序（非全部、非搜索、菜品数>1）
+    sortMode: false,          // 是否处于排序模式
+    sortReady: false,         // 测量完成、已切换绝对定位接管
+    sortAnim: false,          // 接管完成后开启换位补位过渡动画
+    noTrans: false,           // 进出排序的瞬时帧禁用一切过渡（防 transform 插值飞卡）
+    sortList: [],             // 排序快照（排序模式下的菜品数组）
+    slots: [],                // 槽位坐标系 [{sx,sy,w,h}]，相对 grid 原点 px，一次测量全程不变
+    sortGridH: 0,             // grid 显式高度 px（绝对定位接管时撑开容器）
+    sortSaving: false,        // 保存中
+    canSort: false,           // 当前分类是否允许排序（非全部、非搜索、菜品数>1）
     // 拖拽相关
-    dragIndex: -1,            // 正在拖拽的卡片索引，-1 表示未拖拽
-    dragPos: { x: 0, y: 0 },  // 被拖卡片 fixed 定位（屏幕坐标 px）
-    dragSize: { w: 0, h: 0 }, // 被拖卡片尺寸（px）
+    dragId: '',               // 被拖菜品 _id，'' 表示未拖拽
+    dragItem: null,           // 被拖菜品数据（浮层渲染用）
+    dragPos: { x: 0, y: 0 },  // 浮层视口坐标 px
+    dragSize: { w: 0, h: 0 }, // 浮层尺寸 px
+    dragSettling: false,      // 松手回弹落位动画中
+    gridShift: 0,             // 拖拽中虚拟滚动位移 px（grid 容器 translateY）
     refreshing: false,        // 下拉刷新中
     scrollTop: 0,             // scroll-view 滚动位置
+  },
+
+  onUnload() {
+    this._stopAutoScroll()
+    if (this._settleTimer) { clearTimeout(this._settleTimer); this._settleTimer = null }
   },
 
   onLoad() {
@@ -275,30 +288,85 @@ Page({
 
   // ========== 排序模式 ==========
 
-  // 进入排序模式：快照当前分类列表（布局完全复用浏览 flex，无需测量）
-  enterSort() {
-    if (!this.data.canSort) return
+  // 进入排序：两阶段接管，保证菜品图片位置像素级一致
+  // 阶段A：仅切数据源与样式类（grid 仍是原 flex 布局，视觉不变），渲染完成后一次性测量
+  // 阶段B：按实测坐标切换绝对定位（translate 到原位置，零位移），下一帧再开启补位过渡
+  enterSort(cb) {
+    const done = typeof cb === 'function' ? cb : null
+    if (!this.data.canSort || this.data.sortMode) { done && done(false); return }
     const cat = this.data.currentCategory
     const list = (this.data.dishesByCategory[cat] || []).slice()
-    if (list.length < 2) return
+    if (list.length < 2) { done && done(false); return }
     this.setData({
       sortMode: true,
+      sortReady: false,
+      sortAnim: false,
+      noTrans: true,   // 测量期间禁用过渡：避免 :active 缩放回弹污染测量
       sortList: list,
-      dragIndex: -1,
-      dragPos: { x: 0, y: 0 },
-      dragSize: { w: 0, h: 0 },
+      dragId: '',
+      dragItem: null,
+      gridShift: 0,
+    }, () => {
+      this._measureSlots(slots => {
+        if (!slots) { done && done(false); return }
+        this.setData({
+          slots,
+          sortGridH: this._gridH,
+          sortReady: true,
+        }, () => {
+          wx.nextTick(() => this.setData({ sortAnim: true, noTrans: false }))
+          done && done(true)
+        })
+      })
     })
   },
 
-  // 取消排序：丢弃 sortList 退出
+  // 一次性测量：构建槽位坐标系（相对 grid 原点，减法天然抵消滚动，全程不再重测）
+  _measureSlots(cb) {
+    const q = wx.createSelectorQuery().in(this)
+    q.selectAll('.dish-card').boundingClientRect()
+    q.select('.dish-grid').boundingClientRect()
+    q.exec(res => {
+      if (!res || !res[0] || !res[0].length || !res[1]) return cb(null)
+      const rects = res[0]
+      const gridRect = res[1]
+      this._gridH = gridRect.height
+      cb(rects.map(r => ({
+        sx: r.left - gridRect.left,
+        sy: r.top - gridRect.top,
+        w: r.width,
+        h: r.height,
+      })))
+    })
+  },
+
+  // 取消排序：丢弃快照退出
   exitSortNoSave() {
+    this._exitSort({ sortSaving: false })
+  },
+
+  // 退出排序回浏览态：先带 noTrans 摘除绝对定位（防 transform 过渡飞卡），下一帧恢复
+  _exitSort(extra = {}) {
+    if (this._settleTimer) { clearTimeout(this._settleTimer); this._settleTimer = null }
+    this._stopAutoScroll()
+    this._gridShift = 0
+    this._grabOffset = null
+    this._finger = null
     this.setData({
       sortMode: false,
+      sortReady: false,
+      sortAnim: false,
+      noTrans: true,
       sortList: [],
-      dragIndex: -1,
-      dragPos: { x: 0, y: 0 },
-      dragSize: { w: 0, h: 0 },
-      sortSaving: false,
+      slots: [],
+      sortGridH: 0,
+      dragId: '',
+      dragItem: null,
+      dragSettling: false,
+      gridShift: 0,
+      ...extra,
+    }, () => {
+      wx.nextTick(() => this.setData({ noTrans: false }))
     })
   },
 
@@ -323,7 +391,7 @@ Page({
         app.applyDishSorted(sortList, res.result.ver)
         // 刷新页面展示（按新 sort 排序）
         this.renderFromStore({ resetState: false })
-        this.setData({ sortMode: false, sortList: [], dragIndex: -1, sortSaving: false })
+        this._exitSort({ sortSaving: false })
         wx.showToast({ title: '排序已保存', icon: 'success' })
       } else {
         this.setData({ sortSaving: false })
@@ -343,95 +411,178 @@ Page({
     this.toDetailPage(e)
   },
 
-  // 长按卡片激活拖拽：立即进入拖动状态
+  // 长按卡片：若未在排序模式则立即进入（类 iOS 长按即编辑），随后进入拖拽态
   onSortLongPress(e) {
-    if (!this.data.sortMode) return
-    const index = e.currentTarget.dataset.index
+    if (!this.data.canSort || this.data.dragId || this.data.dragSettling) return
+    const id = e.currentTarget.dataset.id
     const touch = e.touches && e.touches[0]
     if (!touch) return
-    this._touchStart = { x: touch.clientX, y: touch.clientY }
-    this._lastMoveTs = 0
-    // 震动反馈，明确告知进入拖拽
-    wx.vibrateShort && wx.vibrateShort({ type: 'light' })
-    // 测被拖卡片初始位置（屏幕坐标），作为 fixed 跟手基准
-    const q = wx.createSelectorQuery().in(this)
-    q.selectAll('.sort-card').boundingClientRect(rects => {
-      if (!rects || !rects.length) return
-      const rect = rects[index]
-      if (!rect) return
-      this._dragRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
-      // 缓存所有卡片中心（用于换位判定）
-      this._cardCenters = rects.map(r => ({
-        cx: r.left + r.width / 2,
-        cy: r.top + r.height / 2,
-      }))
-      this.setData({
-        dragIndex: index,
-        dragPos: { x: rect.left, y: rect.top },
-        dragSize: { w: rect.width, h: rect.height },
-      })
-    }).exec()
+    if (!this.data.sortMode) {
+      // 长按即进排序：两阶段接管完成（槽位坐标系就绪）后再拾取
+      this.enterSort(ok => ok && this._beginDrag(id, touch))
+    } else {
+      this._beginDrag(id, touch)
+    }
   },
 
-  // 拖拽移动：fixed 跟手 + 找最近卡片换位
+  // 开始拖拽：拾取瞬间重读 grid 视口位置与滚动偏移（排序态允许滚动，进入时的值可能已过期）
+  _beginDrag(id, touch) {
+    if (this.data.dragId || !this.data.sortReady) return
+    const idx = this.data.sortList.findIndex(d => d._id === id)
+    if (idx < 0) return
+    const q = wx.createSelectorQuery().in(this)
+    q.select('.dish-grid').boundingClientRect()
+    q.select('.content-scroll').boundingClientRect()
+    q.select('.content-scroll').scrollOffset()
+    q.exec(res => {
+      if (!res || !res[0] || !res[1]) return
+      const gridRect = res[0]
+      const svRect = res[1]
+      const st = res[2] && typeof res[2].scrollTop === 'number' ? res[2].scrollTop : 0
+      this._gridViewX = gridRect.left
+      this._gridViewY = gridRect.top
+      this._svRect = { top: svRect.top, bottom: svRect.bottom }
+      this._baseScrollTop = st
+      // 虚拟滚动上限：grid 底边最多滚到 scroll-view 视口底
+      this._maxShift = Math.max(0, gridRect.top + this._gridH - svRect.bottom)
+      this._gridShift = 0
+      this._lastMoveTs = 0
+
+      const slot = this.data.slots[idx]
+      if (!slot) return
+      const viewX = gridRect.left + slot.sx
+      const viewY = gridRect.top + slot.sy
+      // 抓取偏移：手指在卡片内的相对位置，跟手全程零跳变
+      this._grabOffset = { x: touch.clientX - viewX, y: touch.clientY - viewY }
+      this._finger = { x: touch.clientX, y: touch.clientY }
+      this.setData({
+        dragId: id,
+        dragItem: this.data.sortList[idx],
+        dragPos: { x: viewX, y: viewY },
+        dragSize: { w: slot.w, h: slot.h },
+        dragSettling: false,
+        // 同步 scroll-top prop：保证松手回同步时目标值必然变化，滚动生效
+        scrollTop: st,
+      })
+      this._vibrate()
+      this._startAutoScroll()
+    })
+  },
+
+  // 拖拽移动：跟手 + 槽位命中换位；边缘自动滚动由定时器持续驱动
   onSortTouchMove(e) {
-    if (this.data.dragIndex < 0 || !this._dragRect) return
+    if (!this.data.dragId || this.data.dragSettling || !this._grabOffset) return
     const touch = e.touches && e.touches[0]
     if (!touch) return
-    // 节流 ~16ms，减少 setData 频率保证流畅
+    this._finger = { x: touch.clientX, y: touch.clientY }
+    // 节流 ~16ms（≈60fps），减少 setData 频率保证流畅
     const now = Date.now()
-    if (this._lastMoveTs && now - this._lastMoveTs < 16) return
+    if (now - this._lastMoveTs < 16) return
     this._lastMoveTs = now
 
-    // 被拖卡片 fixed 跟随手指
-    const dx = touch.clientX - this._touchStart.x
-    const dy = touch.clientY - this._touchStart.y
+    // 浮层跟手：视口坐标 = 手指位置 − 抓取偏移（手指始终按在卡片同一相对点，零跳变）
+    const x = touch.clientX - this._grabOffset.x
+    const y = touch.clientY - this._grabOffset.y
+    const last = this.data.dragPos
+    if (Math.abs(x - last.x) >= 0.5 || Math.abs(y - last.y) >= 0.5) {
+      this.setData({ dragPos: { x, y } })
+    }
+    this._trySwap()
+  },
+
+  // 槽位命中：手指内容坐标对固定槽位中心做最近命中，无重测、无 race、无抖动
+  _trySwap() {
+    const slots = this.data.slots
+    const dragId = this.data.dragId
+    if (!slots.length || !dragId || !this._finger) return
+    const cx = this._finger.x - this._gridViewX
+    const cy = this._finger.y - this._gridViewY + this._gridShift
+    let target = -1
+    let min = Infinity
+    for (let i = 0; i < slots.length; i++) {
+      const s = slots[i]
+      const dx = s.sx + s.w / 2 - cx
+      const dy = s.sy + s.h / 2 - cy
+      const d = dx * dx + dy * dy
+      if (d < min) { min = d; target = i }
+    }
+    const curIdx = this.data.sortList.findIndex(d => d._id === dragId)
+    if (target < 0 || curIdx < 0 || target === curIdx) return
+    // 插入式换位：被拖项移到目标槽位，其余卡片靠 transform 过渡平滑补位
+    const list = this.data.sortList.slice()
+    const [moved] = list.splice(curIdx, 1)
+    list.splice(target, 0, moved)
+    this.setData({ sortList: list })
+    this._vibrate()
+  },
+
+  // 边缘自动滚动：拖拽中 scroll-view 冻结，用 grid 容器 translateY 做虚拟滚动
+  // 16ms 定时器持续驱动：手指悬停不动也持续滚动，GPU 合成 60fps
+  _startAutoScroll() {
+    this._stopAutoScroll()
+    this._scrollTimer = setInterval(() => {
+      if (!this._finger || !this._svRect) return
+      const EDGE = 50  // px，距 scroll-view 顶/底的触发范围
+      const SPEED = 11 // px/帧 最大滚动速度
+      const y = this._finger.y
+      let delta = 0
+      if (y < this._svRect.top + EDGE) {
+        delta = -Math.ceil((this._svRect.top + EDGE - y) / EDGE * SPEED)
+      } else if (y > this._svRect.bottom - EDGE) {
+        delta = Math.ceil((y - (this._svRect.bottom - EDGE)) / EDGE * SPEED)
+      }
+      if (!delta) return
+      const next = Math.max(0, Math.min(this._maxShift, this._gridShift + delta))
+      if (next === this._gridShift) return
+      this._gridShift = next
+      this.setData({ gridShift: next })
+      this._trySwap()   // 内容移动后槽位命中需重算
+    }, 16)
+  },
+
+  _stopAutoScroll() {
+    if (this._scrollTimer) { clearInterval(this._scrollTimer); this._scrollTimer = null }
+  },
+
+  // 松手：浮层回弹飞回目标槽位，~220ms 后落位
+  onSortTouchEnd() {
+    if (!this.data.dragId || this.data.dragSettling) return
+    this._stopAutoScroll()
+    const idx = this.data.sortList.findIndex(d => d._id === this.data.dragId)
+    const slot = this.data.slots[idx]
+    if (!slot) { this._finishDrag(); return }
     this.setData({
+      dragSettling: true,
       dragPos: {
-        x: this._dragRect.left + dx,
-        y: this._dragRect.top + dy,
+        x: this._gridViewX + slot.sx,
+        y: this._gridViewY + slot.sy - this._gridShift,
       },
     })
+    this._settleTimer = setTimeout(() => this._finishDrag(), 230)
+  },
 
-    // 找手指最近的“其他卡片”中心 → 目标索引
-    const centers = this._cardCenters
-    if (!centers || !centers.length) return
-    const dragIdx = this.data.dragIndex
-    let targetIndex = dragIdx
-    let minDist = Infinity
-    centers.forEach((c, i) => {
-      if (i === dragIdx) return
-      const dist = Math.abs(c.cx - touch.clientX) + Math.abs(c.cy - touch.clientY)
-      if (dist < minDist) { minDist = dist; targetIndex = i }
-    })
-    if (targetIndex === dragIdx) return
-
-    // 交换数组顺序：被拖卡在数组里也移动，flex 坑位正确，其余卡片平滑滑动
-    const list = this.data.sortList.slice()
-    const [moved] = list.splice(dragIdx, 1)
-    list.splice(targetIndex, 0, moved)
-    this.setData({ sortList: list, dragIndex: targetIndex })
-    // 重排后下一帧重测中心（被拖卡 fixed 不变，其余卡片位置变了）
-    wx.nextTick(() => {
-      const q = wx.createSelectorQuery().in(this)
-      q.selectAll('.sort-card').boundingClientRect(rects => {
-        if (!rects) return
-        this._cardCenters = rects.map(r => ({
-          cx: r.left + r.width / 2,
-          cy: r.top + r.height / 2,
-        }))
-      }).exec()
+  // 落位：销毁浮层、恢复槽位卡片；虚拟滚动同帧回同步原生 scrollTop（零跳变）
+  _finishDrag() {
+    if (this._settleTimer) { clearTimeout(this._settleTimer); this._settleTimer = null }
+    this._stopAutoScroll()
+    const target = (this._baseScrollTop || 0) + (this._gridShift || 0)
+    this._gridShift = 0
+    this._grabOffset = null
+    this._finger = null
+    this.setData({
+      dragId: '',
+      dragItem: null,
+      dragSettling: false,
+      dragPos: { x: 0, y: 0 },
+      dragSize: { w: 0, h: 0 },
+      gridShift: 0,
+      scrollTop: target,
     })
   },
 
-  // 拖拽结束落位
-  onSortTouchEnd() {
-    if (this.data.dragIndex < 0) return
-    this.setData({ dragIndex: -1, dragPos: { x: 0, y: 0 }, dragSize: { w: 0, h: 0 } })
-    this._dragRect = null
-    this._touchStart = null
-    this._cardCenters = null
-    this._lastMoveTs = 0
+  // 轻震动反馈（拾取/换位），不支持的机型静默兜底
+  _vibrate() {
+    try { wx.vibrateShort({ type: 'light', fail: () => {} }) } catch (e) {}
   },
 
   // 格式化日期

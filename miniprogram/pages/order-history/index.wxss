@@ -78,10 +78,15 @@
 }
 
 /* 首条左滑引导气泡 */
+/* 定位：按钮区由两个 69px 宽槽位组成（组件 min-width 为 px 单位），
+   水平方向 right:69px + translateX(50%) 与按钮区绝对居中；
+   垂直方向圆钮组（图标76rpx+间距10rpx+文字约30rpx）居卡片正中，
+   图标顶部约在中心上方 58rpx，气泡底边放在中心上方 74rpx，距图标 16rpx 不远离 */
 .guide-bubble {
   position: absolute;
-  top: -18rpx;
-  right: 40rpx;
+  bottom: calc(50% + 74rpx);
+  right: 69px;
+  transform: translateX(50%);
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -91,47 +96,35 @@
 }
 
 .guide-bubble-text {
-  background: linear-gradient(135deg, #FFB74D 0%, #FF8A9B 100%);
-  color: #fff;
+  background: #fff;
+  color: var(--primary-color);
   font-size: 24rpx;
   font-weight: 500;
-  padding: 14rpx 26rpx;
-  border-radius: 28rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 30rpx;
   white-space: nowrap;
-  box-shadow: 0 8rpx 24rpx rgba(229, 115, 115, 0.35);
+  box-shadow: 0 8rpx 24rpx rgba(255, 122, 158, 0.25);
 }
 
-/* 指向下方按钮的小三角箭头 */
+/* 指向下方圆钮的小三角箭头（与气泡同色，负边距无缝衔接） */
 .guide-bubble-arrow {
   width: 0;
   height: 0;
-  margin-top: 4rpx;
+  margin-top: -2rpx;
   border-left: 12rpx solid transparent;
   border-right: 12rpx solid transparent;
-  border-top: 14rpx solid #FF8A9B;
+  border-top: 14rpx solid #fff;
 }
 
 @keyframes guideBubbleIn {
   from {
     opacity: 0;
-    transform: translateY(14rpx) scale(0.92);
+    transform: translateX(50%) translateY(14rpx) scale(0.92);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(50%) translateY(0) scale(1);
   }
-}
-
-.delete-btn,
-mp-slideview .delete-btn,
-.weui-slideview__btn.delete-btn {
-  background-color: #E57373 !important;
-}
-
-.mark-btn,
-mp-slideview .mark-btn,
-.weui-slideview__btn.mark-btn {
-  background-color: #FFB74D !important;
 }
 
 /* 标记高亮 */

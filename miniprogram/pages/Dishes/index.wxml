@@ -28,7 +28,7 @@
   </view>
 
   <!-- 可滚动内容区（自带下拉刷新，排序时关闭避免误刷新；拖拽进行时禁用滚动） -->
-  <scroll-view class="content-scroll" scroll-y="{{!sortMode || dragIndex < 0}}"
+  <scroll-view class="content-scroll" scroll-y="{{!dragId}}"
                scroll-top="{{scrollTop}}"
                refresher-enabled="{{!sortMode}}"
                refresher-triggered="{{refreshing}}"
@@ -52,21 +52,27 @@
 
   <!-- 有菜品时的布局 -->
   <block wx:if="{{dishes.length > 0}}">
-    <!-- 横向分类胶囊 -->
-    <scroll-view class="category-tabs {{sortMode ? 'sort-disabled' : ''}}" scroll-x enhanced show-scrollbar="{{false}}">
-      <view class="tabs-inner">
-        <view class="tab-pill {{currentCategory === item._id ? 'active' : ''}}"
-              wx:for="{{categories}}" wx:key="_id"
-              wx:if="{{categoryCount[item._id] > 0}}"
-              data-id="{{item._id}}" bindtap="selectCategory">
-          <text class="tab-pill-icon">{{item.icon}}</text>
-          <text class="tab-pill-name">{{item.name}}</text>
-          <text class="tab-pill-count">{{categoryCount[item._id]}}</text>
+    <!-- 分类行：横向胶囊（滚动）+ 右侧固定渐变排序入口（仅可排序时显示，吸顶常显） -->
+    <view class="category-row {{sortMode ? 'sort-disabled' : ''}}">
+      <scroll-view class="category-tabs" scroll-x enhanced show-scrollbar="{{false}}">
+        <view class="tabs-inner">
+          <view class="tab-pill {{currentCategory === item._id ? 'active' : ''}}"
+                wx:for="{{categories}}" wx:key="_id"
+                wx:if="{{categoryCount[item._id] > 0}}"
+                data-id="{{item._id}}" bindtap="selectCategory">
+            <text class="tab-pill-icon">{{item.icon}}</text>
+            <text class="tab-pill-name">{{item.name}}</text>
+            <text class="tab-pill-count">{{categoryCount[item._id]}}</text>
+          </view>
         </view>
+      </scroll-view>
+      <view class="category-sort" bindtap="enterSort" wx:if="{{canSort && !sortMode}}">
+        <text class="category-sort-icon">⇅</text>
+        <text class="category-sort-text">排序</text>
       </view>
-    </scroll-view>
+    </view>
 
-    <!-- 排序模式提示条 -->
+    <!-- 排序模式提示条：fixed 浮层吸顶，不占文档流，保证网格起始 Y 不变 -->
     <view class="sort-bar" wx:if="{{sortMode}}">
       <text class="sort-bar-tip">长按菜品拖动调整顺序</text>
       <view class="sort-bar-actions">
@@ -75,40 +81,31 @@
       </view>
     </view>
 
-    <!-- 工具行：排序入口（仅非排序模式且可排序时显示） -->
-    <view class="tool-row" wx:if="{{canSort && !sortMode}}">
-      <view class="sort-entry" bindtap="enterSort">
-        <view class="sort-entry-icon">
-          <view class="se-line"></view>
-          <view class="se-line"></view>
-          <view class="se-line"></view>
-        </view>
-        <text class="sort-entry-text">排序</text>
-      </view>
-    </view>
-
-    <!-- 菜品列表：排序与浏览共用同一个 grid 节点，保证位置像素级重合 -->
+    <!-- 菜品列表：排序与浏览共用同一个 grid 节点；接管后卡片按实测坐标绝对定位，像素级重合 -->
     <view class="dish-list">
-      <view class="dish-grid cols-{{gridCols}}"
+      <view class="dish-grid cols-{{gridCols}} {{sortReady ? 'sort-ready' : ''}} {{sortAnim ? 'sort-anim' : ''}} {{noTrans ? 'no-trans' : ''}}"
+            style="{{sortReady ? 'height: ' + sortGridH + 'px; transform: translateY(' + (0 - gridShift) + 'px);' : ''}}"
             wx:if="{{(sortMode && sortList.length > 0) || (!sortMode && dishesByCategory[currentCategory].length > 0)}}">
-        <view class="dish-card {{sortMode ? 'sort-card' : ''}} {{dragIndex === index ? 'dragging' : ''}}"
+        <view class="dish-card {{sortMode ? 'sort-card' : ''}} {{dragId === item._id ? 'drag-src' : ''}}"
               wx:for="{{sortMode ? sortList : dishesByCategory[currentCategory]}}" wx:key="_id"
-              data-index="{{index}}" data-id="{{item._id}}"
-              style="{{sortMode && dragIndex === index ? 'position: fixed; left: ' + dragPos.x + 'px; top: ' + dragPos.y + 'px; width: ' + dragSize.w + 'px; height: ' + dragSize.h + 'px; z-index: 100;' : ''}}"
+              data-id="{{item._id}}"
+              style="{{sortReady && slots[index] ? 'left: 0; top: 0; width: ' + slots[index].w + 'px; height: ' + slots[index].h + 'px; transform: translate(' + slots[index].sx + 'px, ' + slots[index].sy + 'px);' : ''}}"
               bindtap="onCardTap"
               bindlongpress="onSortLongPress"
               bindtouchmove="onSortTouchMove"
               bindtouchend="onSortTouchEnd"
               bindtouchcancel="onSortTouchEnd">
-          <view class="card-image-wrap">
-            <image class="card-image" src="{{item._localImg || item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
-            <view class="card-order-badge" wx:if="{{!sortMode && item.orderCount > 0}}">
-              <text>🔥 {{item.orderCount}}</text>
+          <view class="card-inner">
+            <view class="card-image-wrap">
+              <image class="card-image" src="{{item._localImg || item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
+              <view class="card-order-badge" wx:if="{{!sortMode && item.orderCount > 0}}">
+                <text>🔥 {{item.orderCount}}</text>
+              </view>
             </view>
-          </view>
-          <view class="card-body">
-            <text class="card-name">{{item.name}}</text>
-            <text class="card-desc" wx:if="{{item.description}}">{{item.description}}</text>
+            <view class="card-body">
+              <text class="card-name">{{item.name}}</text>
+              <text class="card-desc" wx:if="{{item.description}}">{{item.description}}</text>
+            </view>
           </view>
           <view class="sort-handle" wx:if="{{sortMode}}">✥</view>
         </view>
@@ -120,12 +117,26 @@
       <view class="list-bottom" wx:if="{{!sortMode}}">— 已经到底啦 —</view>
     </view>
 
-    <!-- 悬浮添加按钮 -->
-    <view class="fab {{sortMode ? 'sort-disabled' : ''}}" bindtap="toAddPage">
-      <text class="fab-text">+</text>
+    <!-- 悬浮添加按钮：sticky 包裹层，随内容滚动，接近底部时吸在右下角 -->
+    <view class="fab-wrap">
+      <view class="fab {{sortMode ? 'sort-disabled' : ''}}" bindtap="toAddPage">
+        <text class="fab-text">+</text>
+      </view>
     </view>
   </block>
-  </scroll-view>
+    </scroll-view>
+</view>
+
+<!-- 拖拽浮层：被拖卡片的克隆，fixed 跟手，松手回弹落位 -->
+<view class="drag-ghost cols-{{gridCols}} {{dragSettling ? 'settling' : ''}}" wx:if="{{dragId}}"
+      style="left: {{dragPos.x}}px; top: {{dragPos.y}}px; width: {{dragSize.w}}px; height: {{dragSize.h}}px;">
+  <view class="card-image-wrap">
+    <image class="card-image" src="{{dragItem._localImg || dragItem.imageUrl || '/images/default.jpg'}}" mode="aspectFill"></image>
+  </view>
+  <view class="card-body">
+    <text class="card-name">{{dragItem.name}}</text>
+    <text class="card-desc" wx:if="{{dragItem.description}}">{{dragItem.description}}</text>
+  </view>
 </view>
 
 <bind-guard />

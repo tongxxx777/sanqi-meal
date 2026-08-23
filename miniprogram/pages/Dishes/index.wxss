@@ -134,19 +134,59 @@
 
 /* ========== 横向分类胶囊 ========== */
 /* 吸顶：页面滚动时分类栏固定在顶部，观感与之前固定布局一致 */
-.category-tabs {
+/* 分类行：胶囊滚动区 + 右侧排序入口，整体粘性吸顶 */
+.category-row {
   position: sticky;
   top: 0;
   z-index: 10;
+  display: flex;
+  align-items: center;
   background: var(--card-bg);
+  padding: 20rpx 24rpx 12rpx;
+  box-sizing: border-box;
+}
+
+.category-tabs {
+  flex: 1;
+  min-width: 0;          /* 允许收缩，避免挤压右侧排序按钮 */
   white-space: nowrap;
-  padding: 20rpx 0 12rpx;
 }
 
 .tabs-inner {
   display: flex;
-  padding: 0 24rpx;
   gap: 16rpx;
+}
+
+/* 排序入口：分类行右侧固定的渐变胶囊按钮，吸顶常显、一眼可见 */
+.category-sort {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 60rpx;
+  padding: 0 26rpx;
+  margin-left: 16rpx;
+  box-sizing: border-box;
+  border-radius: 30rpx;
+  background: var(--gradient-primary);
+  box-shadow: var(--shadow-button);
+  transition: transform 0.2s ease;
+}
+
+.category-sort:active {
+  transform: scale(0.94);
+}
+
+.category-sort-icon {
+  font-size: 26rpx;
+  color: #FFFFFF;
+  margin-right: 6rpx;
+  line-height: 1;
+}
+
+.category-sort-text {
+  font-size: 26rpx;
+  color: #FFFFFF;
+  font-weight: 500;
 }
 
 .tab-pill {
@@ -417,10 +457,20 @@
 }
 
 /* ========== 悬浮添加按钮 ========== */
+/* 包裹层：sticky 吸底，使按钮随内容滚动，接近底部时吸在右下角 */
+.fab-wrap {
+  position: sticky;
+  bottom: calc(40rpx + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 36rpx;
+  margin-top: 24rpx;
+  height: 100rpx;
+  pointer-events: none;   /* 包裹层不拦截，点击穿透到内部按钮 */
+}
+
 .fab {
-  position: fixed;
-  right: 36rpx;
-  bottom: calc(80rpx + env(safe-area-inset-bottom));
+  position: static;
   width: 100rpx;
   height: 100rpx;
   border-radius: 50%;
@@ -429,7 +479,7 @@
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-fab);
-  z-index: 999;
+  pointer-events: auto;
   transition: transform 0.2s ease;
 }
 
@@ -446,74 +496,25 @@
 
 /* ========== 排序模式 ========== */
 
-/* 工具行：排序入口。
-   上方 = 分类胶囊下 padding(12rpx) + 本 margin-top(20rpx) = 32rpx，
-   下方 = 本 margin-bottom(16rpx) + 网格 padding-top(16rpx) = 32rpx，上下对称；
-   与 .sort-bar 占位完全一致（margin-top 20 + height 80 + margin-bottom 16），
-   进入/退出排序时下方网格起始 Y 不变，菜品图片像素级重合 */
-.tool-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  height: 80rpx;
-  margin: 20rpx 0 16rpx;
-  padding: 0 24rpx;
-  box-sizing: border-box;
-}
-
-.sort-entry {
-  display: flex;
-  align-items: center;
-  height: 56rpx;
-  padding: 0 28rpx;
-  box-sizing: border-box;
-  background: rgba(255, 122, 158, 0.1);
-  border-radius: 28rpx;
-  transition: transform 0.2s ease;
-}
-
-.sort-entry:active {
-  transform: scale(0.95);
-}
-
-.sort-entry-icon {
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-  margin-right: 10rpx;
-}
-
-.sort-entry-icon .se-line {
-  width: 22rpx;
-  height: 4rpx;
-  background: var(--primary-color);
-  border-radius: 2rpx;
-}
-.sort-entry-icon .se-line:nth-child(2) { width: 16rpx; }
-.sort-entry-icon .se-line:nth-child(3) { width: 22rpx; }
-
-.sort-entry-text {
-  font-size: 24rpx;
-  color: var(--primary-color);
-  font-weight: 500;
-}
-
-/* 排序提示条。占位与 .tool-row 完全一致（margin-top 20 + height 80 + margin-bottom 16），
-   进入/退出排序时网格起始 Y 不变，菜品图片像素级重合 */
+/* 排序提示条：fixed 浮层吸顶，不占文档流。
+   因此进入/退出排序时下方网格起始 Y 不变，菜品图片像素级重合 */
 .sort-bar {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 20;
+  left: 0;
+  right: 0;
+  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 80rpx;
-  margin: 20rpx 0 16rpx;
+  height: 88rpx;
   padding: 0 24rpx;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20rpx);
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(24rpx);
+  -webkit-backdrop-filter: blur(24rpx);
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.06);
 }
 
 .sort-bar-tip {
@@ -560,29 +561,75 @@
   opacity: 0.6;
 }
 
-/* 排序容器：直接复用 .dish-grid.cols-x 的 flex 布局，与浏览完全一致 */
-.dish-grid.sort-grid {
-  display: flex;
-  flex-wrap: wrap;
+/* 排序接管容器：显式高度（内联）+ 相对定位；卡片 absolute + translate 按实测坐标原位接管，像素级重合 */
+.dish-grid.sort-ready {
+  position: relative;
 }
 
-/* 排序卡片：走普通 flex 流（与浏览卡片同款），仅叠加拖拽相关 */
-.dish-card.sort-card {
+.dish-grid.sort-ready .dish-card {
+  position: absolute;
   margin: 0;
-  border: 2rpx solid transparent;
-  /* 非拖拽卡片让位时平滑滑动，避免跳动 */
-  transition: transform 0.18s ease;
-}
-
-/* 拖拽中的卡片：fixed 跟手（内联 left/top 控制）、无过渡、放大、阴影 */
-.dish-card.sort-card.dragging {
   transition: none;
-  position: fixed;
-  z-index: 100;
-  margin: 0;
-  transform: scale(1.06);
-  box-shadow: 0 8rpx 24rpx rgba(255, 122, 158, 0.3), 0 0 0 2rpx var(--primary-color);
 }
+
+/* 换位补位动画：仅过渡 transform，GPU 合成，丝滑让位 */
+.dish-grid.sort-anim .dish-card {
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* 进出排序的瞬时帧：禁掉一切过渡，防止 transform 插值导致卡片飞移 */
+.dish-grid.no-trans .dish-card {
+  transition: none !important;
+}
+
+/* 排序态禁用点按缩放反馈（兜底测量帧，避免 :active scale 污染测量） */
+.dish-card.sort-card:active {
+  transform: none;
+}
+
+/* 被拖卡片原位占位：半透明提示「这里空出来了」，位置随槽位补位动画 */
+.dish-card.drag-src {
+  opacity: 0.25;
+}
+
+/* 卡片内容层 */
+.card-inner {
+  width: 100%;
+}
+
+/* 拖拽浮层：fixed 跟手 + 放大浮起，松手回弹落位 */
+.drag-ghost {
+  position: fixed;
+  z-index: 200;
+  background: var(--card-bg);
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-sizing: border-box;
+  box-shadow: 0 12rpx 30rpx rgba(255, 122, 158, 0.32), 0 0 0 2rpx var(--primary-color);
+  transform: scale(1.06);
+  pointer-events: none;
+  will-change: left, top;
+}
+
+.drag-ghost.settling {
+  transition: left 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+              top 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: scale(1);
+}
+
+/* 浮层列数档位样式与网格内卡片保持一致 */
+.drag-ghost.cols-3 .card-name { font-size: 26rpx; }
+.drag-ghost.cols-3 .card-desc { font-size: 20rpx; }
+.drag-ghost.cols-3 .card-body { padding: 12rpx 12rpx 16rpx; }
+.drag-ghost.cols-4 { border-radius: 16rpx; }
+.drag-ghost.cols-4 .card-name { font-size: 24rpx; margin-bottom: 0; }
+.drag-ghost.cols-4 .card-desc { display: none; }
+.drag-ghost.cols-4 .card-body { padding: 10rpx 10rpx 14rpx; }
+.drag-ghost.cols-6 { border-radius: 14rpx; }
+.drag-ghost.cols-6 .card-name { font-size: 20rpx; margin-bottom: 0; }
+.drag-ghost.cols-6 .card-desc { display: none; }
+.drag-ghost.cols-6 .card-body { padding: 8rpx 6rpx 10rpx; }
 
 /* 移动图标徽标：抓手符号 ✥ */
 .sort-handle {
@@ -604,7 +651,7 @@
 }
 
 /* 排序模式下：所有外围功能置灰不可点 */
-.category-tabs.sort-disabled,
+.category-row.sort-disabled,
 .search-box.sort-disabled,
 .header-actions.sort-disabled,
 .fab.sort-disabled {

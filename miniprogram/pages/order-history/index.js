@@ -229,11 +229,11 @@ Page({
     return `${hours}:${minutes}`
   },
 
-  // 获取滑动按钮配置
-  getSlideButtons(marked) {
+  // 获取滑动按钮配置（deleteDisabled 为 true 时删除按钮呈禁用态）
+  getSlideButtons(marked, deleteDisabled = false) {
     return [
       { text: marked ? '取消' : '标记', type: 'default', extClass: 'mark-btn' },
-      { text: '删除', type: 'warn', extClass: 'delete-btn' }
+      { text: '删除', type: 'warn', extClass: deleteDisabled ? 'delete-btn btn-disabled' : 'delete-btn' }
     ]
   },
 
@@ -244,6 +244,11 @@ Page({
     if (index === 0) {
       this.toggleMark(id)
     } else {
+      const target = this.data.orders.find(item => item._id === id)
+      if (target?.deleteDisabled) {
+        this.showTip('这条记录不能删除哦~')
+        return
+      }
       this.deleteOrder(id)
     }
   },

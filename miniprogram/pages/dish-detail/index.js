@@ -66,7 +66,7 @@ Page({
     dish._localImg = imageCache.resolve(dish.imageUrl) || dish.imageUrl || ''
     this.setData({
       dish,
-      dateText: this.formatDate(dish.createTime),
+      dateMiniText: this.formatDateMini(dish.createTime),
       creatorName: this.getCreatorName(dish._openid)
     })
 
@@ -78,16 +78,19 @@ Page({
     return app.getDisplayName(openid)
   },
 
-  // 格式化日期
-  formatDate(date) {
+  // 格式化迷你日期（数据档案格展示：M月D日）
+  formatDateMini(date) {
     if (!date) return ''
     const d = new Date(date)
-    const year = d.getFullYear()
-    const month = (d.getMonth() + 1).toString().padStart(2, '0')
-    const day = d.getDate().toString().padStart(2, '0')
-    const hours = d.getHours().toString().padStart(2, '0')
-    const minutes = d.getMinutes().toString().padStart(2, '0')
-    return `${year}年${month}月${day}日 ${hours}:${minutes}`
+    return `${d.getMonth() + 1}月${d.getDate()}日`
+  },
+
+  // 放大预览菜品照片
+  previewImage() {
+    const url = this.data.dish?._localImg || this.data.dish?.imageUrl || this.data.previewImageUrl
+    if (url) {
+      wx.previewImage({ urls: [url] })
+    }
   },
 
   // 编辑菜品

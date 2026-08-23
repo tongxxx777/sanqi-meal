@@ -33,7 +33,7 @@
   justify-content: space-between;
   background: white;
   border-radius: 20rpx;
-  padding: 28rpx 24rpx;
+  padding: 32rpx 24rpx;
   margin-bottom: 16rpx;
   box-shadow: var(--shadow-card-light);
 }
@@ -61,12 +61,20 @@
 }
 
 .action-btn {
-  font-size: 24rpx;
-  padding: 10rpx 20rpx;
-  border-radius: 20rpx;
+  font-size: 26rpx;
+  padding: 14rpx 22rpx;
+  border-radius: 22rpx;
 }
 
 .action-btn.move {
+  font-size: 32rpx;
+  min-width: 60rpx;
+  height: 60rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   color: var(--primary-color);
   background: var(--border-color);
 }
