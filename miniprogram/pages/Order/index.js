@@ -433,10 +433,14 @@ Page({
     const selectedByCategory = {}
     cats.forEach(cat => {
       const catDishes = dishes.filter(d => d.category === cat._id)
-      // 排序：先按点单次数降序，再按创建时间降序
+      // 排序：sort 升序优先（有 sort 的排前面），无 sort 按 createTime 倒序排后面
+      // 与菜品库一致，两页所见即所得；点单次数仍展示但不参与排序
       catDishes.sort((a, b) => {
-        const countDiff = (b.orderCount || 0) - (a.orderCount || 0)
-        if (countDiff !== 0) return countDiff
+        const aHas = typeof a.sort === 'number'
+        const bHas = typeof b.sort === 'number'
+        if (aHas && bHas) return a.sort - b.sort
+        if (aHas) return -1
+        if (bHas) return 1
         const aTime = a.createTime ? new Date(a.createTime).getTime() : 0
         const bTime = b.createTime ? new Date(b.createTime).getTime() : 0
         return bTime - aTime

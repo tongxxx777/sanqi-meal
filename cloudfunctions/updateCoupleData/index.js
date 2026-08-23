@@ -32,7 +32,7 @@ function pickVer(collection, meta) {
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const currentOpenid = wxContext.OPENID
-  const { collection, docId, docIds, action, data, field, by } = event
+  const { collection, docId, docIds, action, data, field, by, updates } = event
 
   try {
     // 获取当前 coupleId（容器缓存，命中时省 1 次 User 表查询）
@@ -155,6 +155,37 @@ exports.main = async (event, context) => {
           .where({ _id: _.in(docIds), coupleId })
           .update({ data: { [field]: _.inc(by) } })
         return { success: true, updated: docIds.length }
+      }
+
+      case 'batchUpdate': {
+        // 批量更新（菜品排序专用）：一次云函数更新多条文档 + incVersion 一次
+        if (!updates || !Array.isArray(updates) || !updates.length) {
+          return { success: false, message: 'updates 不能为空' }
+        }
+        const ids = updates.map(u => u.docId).filter(Boolean)
+        if (ids.length !== updates.length) {
+          return { success: false, message: 'updates 含无效 docId' }
+        }
+        // 归属校验：传入的 docId 必须全部属于当前 coupleId
+        const countRes = await db.collection(collection)
+          .where({ _id: _.in(ids), coupleId })
+          .count()
+        if (countRes.total !== ids.length) {
+          return { success: false, message: '无权操作或文档不存在' }
+        }
+        // 循环逐条更新（每条 data 各异，无法用 where().update() 合并）
+        let updated = 0
+        for (const u of updates) {
+          try {
+            const r = await db.collection(collection).doc(u.docId).update({ data: u.data })
+            updated += (r.stats && r.stats.updated) || 0
+          } catch (e) {
+            console.error('batchUpdate single error', u.docId, e)
+          }
+        }
+        const vf = verFieldOf(collection)
+        const meta = vf ? await couplemeta.incVersion(db, coupleId, vf) : null
+        return { success: true, updated, ver: pickVer(collection, meta) }
       }
 
       default:

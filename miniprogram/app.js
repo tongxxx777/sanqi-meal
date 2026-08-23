@@ -670,6 +670,22 @@ App({
     this._persistDishes()
   },
 
+  // 菜品排序保存后本地同步（写 sort 字段 + 版本 + 序号 + 持久化）
+  // sortList: 排序后的菜品完整对象数组（含 _id），按顺序写 sort = 0..n-1
+  applyDishSorted(sortList, ver) {
+    const store = this.globalData.dishStore
+    if (store.loaded && Array.isArray(sortList) && sortList.length) {
+      const sortMap = {}
+      sortList.forEach((d, i) => { if (d._id) sortMap[d._id] = i })
+      store.dishes = store.dishes.map(d =>
+        sortMap[d._id] !== undefined ? Object.assign({}, d, { sort: sortMap[d._id] }) : d
+      )
+      this._persistDishes()
+    }
+    this.applyVersions(ver)
+    this._bumpSeq('dish')
+  },
+
   // ========== storage 持久化（v2 key）==========
 
   _persistMeta() {

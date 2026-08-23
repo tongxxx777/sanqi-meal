@@ -3,19 +3,37 @@
   <view class="page-header">
     <view class="header-row">
       <text class="page-title">菜品库</text>
-      <view class="header-add" bindtap="toAddPage" wx:if="{{dishes.length > 0}}">
-        <text class="header-add-icon">+</text>
-        <text class="header-add-text">添加</text>
+      <view class="header-actions {{sortMode ? 'sort-disabled' : ''}}">
+        <view class="header-grid-toggle" bindtap="toggleGridCols" wx:if="{{dishes.length > 0}}">
+          <view class="grid-icon cols-{{gridCols}}">
+            <view class="gi-cell"></view>
+            <view class="gi-cell"></view>
+            <view class="gi-cell"></view>
+            <view class="gi-cell"></view>
+          </view>
+        </view>
+        <view class="header-add" bindtap="toAddPage" wx:if="{{dishes.length > 0}}">
+          <text class="header-add-icon">+</text>
+          <text class="header-add-text">添加</text>
+        </view>
       </view>
     </view>
     <text class="page-subtitle">和{{partnerName}}一起管理你们的菜单</text>
     <!-- 搜索框 -->
-    <view class="search-box">
+    <view class="search-box {{sortMode ? 'sort-disabled' : ''}}">
       <text class="search-icon">🔍</text>
       <input class="search-input" placeholder="搜索菜品名称或描述" value="{{searchKey}}" bindinput="onSearchInput" confirm-type="search" />
       <text class="search-clear" wx:if="{{searchKey}}" bindtap="clearSearch">✕</text>
     </view>
   </view>
+
+  <!-- 可滚动内容区（自带下拉刷新，排序时关闭避免误刷新；拖拽进行时禁用滚动） -->
+  <scroll-view class="content-scroll" scroll-y="{{!sortMode || dragIndex < 0}}"
+               scroll-top="{{scrollTop}}"
+               refresher-enabled="{{!sortMode}}"
+               refresher-triggered="{{refreshing}}"
+               refresher-default-style="black"
+               bindrefresherrefresh="onRefresh">
 
   <!-- 空状态 - 仅在数据库真的没菜且非搜索时展示 -->
   <view class="empty-state" wx:if="{{allDishes.length === 0 && !loading && !searchKey}}">
@@ -35,7 +53,7 @@
   <!-- 有菜品时的布局 -->
   <block wx:if="{{dishes.length > 0}}">
     <!-- 横向分类胶囊 -->
-    <scroll-view class="category-tabs" scroll-x enhanced show-scrollbar="{{false}}">
+    <scroll-view class="category-tabs {{sortMode ? 'sort-disabled' : ''}}" scroll-x enhanced show-scrollbar="{{false}}">
       <view class="tabs-inner">
         <view class="tab-pill {{currentCategory === item._id ? 'active' : ''}}"
               wx:for="{{categories}}" wx:key="_id"
@@ -48,15 +66,43 @@
       </view>
     </scroll-view>
 
-    <!-- 菜品列表 - 普通文档流容器，滚动交给页面本身，下拉刷新用原生 onPullDownRefresh -->
+    <!-- 排序模式提示条 -->
+    <view class="sort-bar" wx:if="{{sortMode}}">
+      <text class="sort-bar-tip">长按菜品拖动调整顺序</text>
+      <view class="sort-bar-actions">
+        <view class="sort-btn-cancel" bindtap="exitSortNoSave">取消</view>
+        <view class="sort-btn-save {{sortSaving ? 'saving' : ''}}" bindtap="saveSort">完成</view>
+      </view>
+    </view>
+
+    <!-- 工具行：排序入口（仅非排序模式且可排序时显示） -->
+    <view class="tool-row" wx:if="{{canSort && !sortMode}}">
+      <view class="sort-entry" bindtap="enterSort">
+        <view class="sort-entry-icon">
+          <view class="se-line"></view>
+          <view class="se-line"></view>
+          <view class="se-line"></view>
+        </view>
+        <text class="sort-entry-text">排序</text>
+      </view>
+    </view>
+
+    <!-- 菜品列表：排序与浏览共用同一个 grid 节点，保证位置像素级重合 -->
     <view class="dish-list">
-      <view class="dish-grid" wx:if="{{dishesByCategory[currentCategory].length > 0}}">
-        <view class="dish-card"
-              wx:for="{{dishesByCategory[currentCategory]}}" wx:key="_id"
-              data-id="{{item._id}}" bindtap="toDetailPage">
+      <view class="dish-grid cols-{{gridCols}}"
+            wx:if="{{(sortMode && sortList.length > 0) || (!sortMode && dishesByCategory[currentCategory].length > 0)}}">
+        <view class="dish-card {{sortMode ? 'sort-card' : ''}} {{dragIndex === index ? 'dragging' : ''}}"
+              wx:for="{{sortMode ? sortList : dishesByCategory[currentCategory]}}" wx:key="_id"
+              data-index="{{index}}" data-id="{{item._id}}"
+              style="{{sortMode && dragIndex === index ? 'position: fixed; left: ' + dragPos.x + 'px; top: ' + dragPos.y + 'px; width: ' + dragSize.w + 'px; height: ' + dragSize.h + 'px; z-index: 100;' : ''}}"
+              bindtap="onCardTap"
+              bindlongpress="onSortLongPress"
+              bindtouchmove="onSortTouchMove"
+              bindtouchend="onSortTouchEnd"
+              bindtouchcancel="onSortTouchEnd">
           <view class="card-image-wrap">
             <image class="card-image" src="{{item._localImg || item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
-            <view class="card-order-badge" wx:if="{{item.orderCount > 0}}">
+            <view class="card-order-badge" wx:if="{{!sortMode && item.orderCount > 0}}">
               <text>🔥 {{item.orderCount}}</text>
             </view>
           </view>
@@ -64,20 +110,22 @@
             <text class="card-name">{{item.name}}</text>
             <text class="card-desc" wx:if="{{item.description}}">{{item.description}}</text>
           </view>
+          <view class="sort-handle" wx:if="{{sortMode}}">✥</view>
         </view>
       </view>
       <view class="list-empty" wx:else>
         <text class="list-empty-text">{{searchKey ? '该分类没有匹配结果' : '该分类暂无菜品'}}</text>
       </view>
 
-      <view class="list-bottom">— 已经到底啦 —</view>
+      <view class="list-bottom" wx:if="{{!sortMode}}">— 已经到底啦 —</view>
     </view>
 
     <!-- 悬浮添加按钮 -->
-    <view class="fab" bindtap="toAddPage">
+    <view class="fab {{sortMode ? 'sort-disabled' : ''}}" bindtap="toAddPage">
       <text class="fab-text">+</text>
     </view>
   </block>
+  </scroll-view>
 </view>
 
 <bind-guard />

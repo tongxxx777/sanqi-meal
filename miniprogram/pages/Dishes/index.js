@@ -14,6 +14,28 @@ Page({
     hasLoaded: false,
     partnerName: '',
     searchKey: '',
+    // 列数档位：3→4→6 循环，默认 3
+    gridCols: 3,
+    // 排序模式
+    sortMode: false,           // 是否处于排序模式
+    sortList: [],              // 排序快照（排序模式下的菜品数组）
+    sortSaving: false,         // 保存中
+    canSort: false,            // 当前分类是否允许排序（非全部、非搜索、菜品数>1）
+    // 拖拽相关
+    dragIndex: -1,            // 正在拖拽的卡片索引，-1 表示未拖拽
+    dragPos: { x: 0, y: 0 },  // 被拖卡片 fixed 定位（屏幕坐标 px）
+    dragSize: { w: 0, h: 0 }, // 被拖卡片尺寸（px）
+    refreshing: false,        // 下拉刷新中
+    scrollTop: 0,             // scroll-view 滚动位置
+  },
+
+  onLoad() {
+    // 读取本地持久化的列数偏好
+    const saved = wx.getStorageSync('dishes_grid_cols')
+    const valid = [3, 4, 6].includes(saved)
+    if (valid) {
+      this.setData({ gridCols: saved })
+    }
   },
 
   async onShow() {
@@ -65,14 +87,23 @@ Page({
       searchKey: savedKey,
       loading: false
     })
+    this._updateCanSort()
     if (resetState) {
       this._scrollToListTop()
     }
   },
 
-  // 回顶：页面级滚动直接滚回 0（瞬时无动画，与之前行为一致）
+  // 计算当前分类是否允许排序：非全部、非搜索、菜品数>1
+  _updateCanSort() {
+    const cat = this.data.currentCategory
+    const list = this.data.dishesByCategory[cat] || []
+    const can = cat !== '__all__' && !this.data.searchKey && list.length > 1
+    this.setData({ canSort: can })
+  },
+
+  // 回顶：通过 scroll-view 的 scroll-top 绑定瞬时回顶
   _scrollToListTop() {
-    wx.pageScrollTo({ scrollTop: 0, duration: 0 })
+    this.setData({ scrollTop: 0 })
   },
 
   // 获取伴侣名字
@@ -85,10 +116,11 @@ Page({
   // 原生页面下拉刷新（3s 防抖）- 强制版本校验 + 重拉变化数据
   // 关键：原生手势只在页面 scrollTop=0 继续下拉时触发，
   // 列表中间位置上滑回顶绝不会误触发 —— 这是本次修复 bug 的核心
-  async onPullDownRefresh() {
+  // scroll-view 下拉刷新（排序模式 refresher 已禁用，不会触发）
+  async onRefresh() {
     const now = Date.now()
     if (now - app.globalData.lastPullTs < 3000) {
-      wx.stopPullDownRefresh()
+      this.setData({ refreshing: false })
       return
     }
     app.globalData.lastPullTs = now
@@ -96,9 +128,9 @@ Page({
       await app.syncOnShow('dishes', { force: true })
       this.renderFromStore({ resetState: true })
     } catch (e) {
-      console.error('dishes onPullDownRefresh error', e)
+      console.error('dishes onRefresh error', e)
     } finally {
-      wx.stopPullDownRefresh()
+      this.setData({ refreshing: false })
     }
   },
 
@@ -133,9 +165,22 @@ Page({
     const dishesByCategory = {}
     cats.forEach(cat => {
       if (cat._id === '__all__') {
+        // 全部分类保持现状（createTime 倒序，由 reloadDishes orderBy 保证）
         dishesByCategory[cat._id] = dishes
       } else {
-        dishesByCategory[cat._id] = dishes.filter(d => d.category === cat._id)
+        // 具体分类按 sort 升序，无 sort 的旧菜品排末尾（按 createTime 倒序）
+        const catDishes = dishes.filter(d => d.category === cat._id).slice()
+        catDishes.sort((a, b) => {
+          const aHas = typeof a.sort === 'number'
+          const bHas = typeof b.sort === 'number'
+          if (aHas && bHas) return a.sort - b.sort
+          if (aHas) return -1
+          if (bHas) return 1
+          const aTime = a.createTime ? new Date(a.createTime).getTime() : 0
+          const bTime = b.createTime ? new Date(b.createTime).getTime() : 0
+          return bTime - aTime
+        })
+        dishesByCategory[cat._id] = catDishes
       }
     })
     return { dishesByCategory }
@@ -158,6 +203,7 @@ Page({
     const id = e.currentTarget.dataset.id
     this.setData({ currentCategory: id })
     this._scrollToListTop()
+    this._updateCanSort()
   },
 
   // 搜索输入
@@ -171,6 +217,16 @@ Page({
   clearSearch() {
     this.setData({ searchKey: '' })
     this.filterDishes('')
+  },
+
+  // 切换列数档位 2→3→4→6→2
+  toggleGridCols() {
+    const order = [3, 4, 6]
+    const cur = this.data.gridCols
+    const idx = order.indexOf(cur)
+    const next = order[(idx + 1) % order.length]
+    this.setData({ gridCols: next })
+    wx.setStorageSync('dishes_grid_cols', next)
   },
 
   // 过滤菜品
@@ -195,6 +251,7 @@ Page({
       currentCategory: '__all__'
     })
     this._scrollToListTop()
+    this._updateCanSort()
   },
 
   // 跳转到添加页
@@ -208,10 +265,173 @@ Page({
 
   // 跳转到详情页
   toDetailPage(e) {
+    // 排序模式下卡片 tap 不跳详情
+    if (this.data.sortMode) return
     const id = e.currentTarget.dataset.id
     const dish = this.data.dishes.find(item => item._id === id)
     const imageUrl = dish?.imageUrl ? encodeURIComponent(dish.imageUrl) : ''
     wx.navigateTo({ url: `/pages/dish-detail/index?id=${id}&imageUrl=${imageUrl}` })
+  },
+
+  // ========== 排序模式 ==========
+
+  // 进入排序模式：快照当前分类列表（布局完全复用浏览 flex，无需测量）
+  enterSort() {
+    if (!this.data.canSort) return
+    const cat = this.data.currentCategory
+    const list = (this.data.dishesByCategory[cat] || []).slice()
+    if (list.length < 2) return
+    this.setData({
+      sortMode: true,
+      sortList: list,
+      dragIndex: -1,
+      dragPos: { x: 0, y: 0 },
+      dragSize: { w: 0, h: 0 },
+    })
+  },
+
+  // 取消排序：丢弃 sortList 退出
+  exitSortNoSave() {
+    this.setData({
+      sortMode: false,
+      sortList: [],
+      dragIndex: -1,
+      dragPos: { x: 0, y: 0 },
+      dragSize: { w: 0, h: 0 },
+      sortSaving: false,
+    })
+  },
+
+  // 完成排序：保存到云端
+  async saveSort() {
+    if (this.data.sortSaving) return
+    this.setData({ sortSaving: true })
+    wx.showLoading({ title: '保存中...', mask: true })
+    try {
+      const sortList = this.data.sortList
+      const updates = sortList.map((d, i) => ({ docId: d._id, data: { sort: i } }))
+      const res = await wx.cloud.callFunction({
+        name: 'updateCoupleData',
+        data: {
+          collection: 'DishList',
+          action: 'batchUpdate',
+          updates,
+        },
+      })
+      wx.hideLoading()
+      if (res.result && res.result.success) {
+        app.applyDishSorted(sortList, res.result.ver)
+        // 刷新页面展示（按新 sort 排序）
+        this.renderFromStore({ resetState: false })
+        this.setData({ sortMode: false, sortList: [], dragIndex: -1, sortSaving: false })
+        wx.showToast({ title: '排序已保存', icon: 'success' })
+      } else {
+        this.setData({ sortSaving: false })
+        wx.showToast({ title: res.result?.message || '保存失败', icon: 'none' })
+      }
+    } catch (e) {
+      wx.hideLoading()
+      this.setData({ sortSaving: false })
+      console.error('save sort error', e)
+      wx.showToast({ title: '保存失败，请重试', icon: 'none' })
+    }
+  },
+
+  // 卡片点击：仅浏览模式跳详情
+  onCardTap(e) {
+    if (this.data.sortMode) return
+    this.toDetailPage(e)
+  },
+
+  // 长按卡片激活拖拽：立即进入拖动状态
+  onSortLongPress(e) {
+    if (!this.data.sortMode) return
+    const index = e.currentTarget.dataset.index
+    const touch = e.touches && e.touches[0]
+    if (!touch) return
+    this._touchStart = { x: touch.clientX, y: touch.clientY }
+    this._lastMoveTs = 0
+    // 震动反馈，明确告知进入拖拽
+    wx.vibrateShort && wx.vibrateShort({ type: 'light' })
+    // 测被拖卡片初始位置（屏幕坐标），作为 fixed 跟手基准
+    const q = wx.createSelectorQuery().in(this)
+    q.selectAll('.sort-card').boundingClientRect(rects => {
+      if (!rects || !rects.length) return
+      const rect = rects[index]
+      if (!rect) return
+      this._dragRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
+      // 缓存所有卡片中心（用于换位判定）
+      this._cardCenters = rects.map(r => ({
+        cx: r.left + r.width / 2,
+        cy: r.top + r.height / 2,
+      }))
+      this.setData({
+        dragIndex: index,
+        dragPos: { x: rect.left, y: rect.top },
+        dragSize: { w: rect.width, h: rect.height },
+      })
+    }).exec()
+  },
+
+  // 拖拽移动：fixed 跟手 + 找最近卡片换位
+  onSortTouchMove(e) {
+    if (this.data.dragIndex < 0 || !this._dragRect) return
+    const touch = e.touches && e.touches[0]
+    if (!touch) return
+    // 节流 ~16ms，减少 setData 频率保证流畅
+    const now = Date.now()
+    if (this._lastMoveTs && now - this._lastMoveTs < 16) return
+    this._lastMoveTs = now
+
+    // 被拖卡片 fixed 跟随手指
+    const dx = touch.clientX - this._touchStart.x
+    const dy = touch.clientY - this._touchStart.y
+    this.setData({
+      dragPos: {
+        x: this._dragRect.left + dx,
+        y: this._dragRect.top + dy,
+      },
+    })
+
+    // 找手指最近的“其他卡片”中心 → 目标索引
+    const centers = this._cardCenters
+    if (!centers || !centers.length) return
+    const dragIdx = this.data.dragIndex
+    let targetIndex = dragIdx
+    let minDist = Infinity
+    centers.forEach((c, i) => {
+      if (i === dragIdx) return
+      const dist = Math.abs(c.cx - touch.clientX) + Math.abs(c.cy - touch.clientY)
+      if (dist < minDist) { minDist = dist; targetIndex = i }
+    })
+    if (targetIndex === dragIdx) return
+
+    // 交换数组顺序：被拖卡在数组里也移动，flex 坑位正确，其余卡片平滑滑动
+    const list = this.data.sortList.slice()
+    const [moved] = list.splice(dragIdx, 1)
+    list.splice(targetIndex, 0, moved)
+    this.setData({ sortList: list, dragIndex: targetIndex })
+    // 重排后下一帧重测中心（被拖卡 fixed 不变，其余卡片位置变了）
+    wx.nextTick(() => {
+      const q = wx.createSelectorQuery().in(this)
+      q.selectAll('.sort-card').boundingClientRect(rects => {
+        if (!rects) return
+        this._cardCenters = rects.map(r => ({
+          cx: r.left + r.width / 2,
+          cy: r.top + r.height / 2,
+        }))
+      }).exec()
+    })
+  },
+
+  // 拖拽结束落位
+  onSortTouchEnd() {
+    if (this.data.dragIndex < 0) return
+    this.setData({ dragIndex: -1, dragPos: { x: 0, y: 0 }, dragSize: { w: 0, h: 0 } })
+    this._dragRect = null
+    this._touchStart = null
+    this._cardCenters = null
+    this._lastMoveTs = 0
   },
 
   // 格式化日期
