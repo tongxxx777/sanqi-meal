@@ -12,8 +12,14 @@
         <text class="category-name">{{item.name}}</text>
       </view>
       <view class="category-actions">
-        <view class="action-btn move" wx:if="{{index > 0}}" catchtap="moveUp" data-index="{{index}}">↑</view>
-        <view class="action-btn move" wx:if="{{index < categories.length - 1}}" catchtap="moveDown" data-index="{{index}}">↓</view>
+        <view class="sort-btns">
+          <view class="sort-btn {{index === 0 ? 'disabled' : ''}}" catchtap="moveUp" data-index="{{index}}">
+            <view class="chevron chevron-up"></view>
+          </view>
+          <view class="sort-btn {{index === categories.length - 1 ? 'disabled' : ''}}" catchtap="moveDown" data-index="{{index}}">
+            <view class="chevron chevron-down"></view>
+          </view>
+        </view>
         <view class="action-btn delete" catchtap="deleteCategory" data-index="{{index}}">删除</view>
       </view>
     </view>

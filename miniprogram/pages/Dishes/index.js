@@ -306,11 +306,15 @@ Page({
       dragItem: null,
       gridShift: 0,
     }, () => {
-      this._measureSlots(slots => {
-        if (!slots) { done && done(false); return }
+      this._measureSlots(m => {
+        if (!m) { done && done(false); return }
+        this._geo = m.geo
+        this._natH = {}
+        list.forEach((d, i) => { this._natH[d._id] = m.natH[i] })
+        const { slots, gridH } = this._computeSlots(list)
         this.setData({
           slots,
-          sortGridH: this._gridH,
+          sortGridH: gridH,
           sortReady: true,
         }, () => {
           wx.nextTick(() => this.setData({ sortAnim: true, noTrans: false }))
@@ -320,23 +324,59 @@ Page({
     })
   },
 
-  // 一次性测量：构建槽位坐标系（相对 grid 原点，减法天然抵消滚动，全程不再重测）
+  // 一次性测量：卡片 rect + 正文高度，推导网格几何信息（列坐标/列宽/行间距/底部收尾）
+  // 与每张卡的自然高度（= 正方形图即卡宽 + 正文实测高），全程不再重测
   _measureSlots(cb) {
     const q = wx.createSelectorQuery().in(this)
     q.selectAll('.dish-card').boundingClientRect()
     q.select('.dish-grid').boundingClientRect()
+    q.selectAll('.card-body').boundingClientRect()
     q.exec(res => {
       if (!res || !res[0] || !res[0].length || !res[1]) return cb(null)
       const rects = res[0]
       const gridRect = res[1]
-      this._gridH = gridRect.height
-      cb(rects.map(r => ({
-        sx: r.left - gridRect.left,
-        sy: r.top - gridRect.top,
-        w: r.width,
-        h: r.height,
-      })))
+      const bodies = res[2] || []
+      const cols = this.data.gridCols
+      const geo = {
+        colX: [],
+        colW: rects[0].width,
+        y0: rects[0].top - gridRect.top,
+        rowGap: 0,
+        tail: 0,
+      }
+      for (let c = 0; c < Math.min(cols, rects.length); c++) {
+        geo.colX.push(rects[c].left - gridRect.left)
+      }
+      if (rects.length > cols) {
+        geo.rowGap = (rects[cols].top - rects[0].top) - rects[0].height
+      }
+      const last = rects[rects.length - 1]
+      geo.tail = gridRect.height - (last.top - gridRect.top + last.height)
+      const natH = rects.map((r, i) => r.width + (bodies[i] ? bodies[i].height : 0))
+      cb({ geo, natH })
     })
+  },
+
+  // 由当前顺序计算槽位布局：每行高度 = 行内卡片自然高度最大值（与 flex stretch 行为一致），
+  // 高卡片换入矮行时该行被撑高、下方行随 transition 平滑下移，杜绝描述文字被裁切；
+  // 初始顺序的计算结果与实测布局完全一致，保证进入排序像素级重合
+  _computeSlots(list) {
+    const cols = this.data.gridCols
+    const geo = this._geo
+    const slots = new Array(list.length)
+    let y = geo.y0
+    for (let i = 0; i < list.length; i += cols) {
+      const rowEnd = Math.min(i + cols, list.length)
+      let rowH = 0
+      for (let j = i; j < rowEnd; j++) {
+        rowH = Math.max(rowH, this._natH[list[j]._id] || 0)
+      }
+      for (let j = i; j < rowEnd; j++) {
+        slots[j] = { sx: geo.colX[j - i], sy: y, w: geo.colW, h: rowH }
+      }
+      y += rowH + geo.rowGap
+    }
+    return { slots, gridH: list.length ? y - geo.rowGap + geo.tail : 0 }
   },
 
   // 取消排序：丢弃快照退出
@@ -438,8 +478,6 @@ Page({
       this._gridViewY = gridRect.top
       this._svRect = { top: svRect.top, bottom: svRect.bottom }
       this._baseScrollTop = st
-      // 虚拟滚动上限：grid 底边最多滚到 scroll-view 视口底
-      this._maxShift = Math.max(0, gridRect.top + this._gridH - svRect.bottom)
       this._gridShift = 0
       this._lastMoveTs = 0
 
@@ -503,11 +541,12 @@ Page({
     }
     const curIdx = this.data.sortList.findIndex(d => d._id === dragId)
     if (target < 0 || curIdx < 0 || target === curIdx) return
-    // 插入式换位：被拖项移到目标槽位，其余卡片靠 transform 过渡平滑补位
+    // 插入式换位：被拖项移到目标槽位；行高随行内容重算，其余卡片靠 transform 过渡平滑补位
     const list = this.data.sortList.slice()
     const [moved] = list.splice(curIdx, 1)
     list.splice(target, 0, moved)
-    this.setData({ sortList: list })
+    const layout = this._computeSlots(list)
+    this.setData({ sortList: list, slots: layout.slots, sortGridH: layout.gridH })
     this._vibrate()
   },
 
@@ -527,7 +566,9 @@ Page({
         delta = Math.ceil((y - (this._svRect.bottom - EDGE)) / EDGE * SPEED)
       }
       if (!delta) return
-      const next = Math.max(0, Math.min(this._maxShift, this._gridShift + delta))
+      // 滚动上限随行高动态计算：grid 底边最多滚到 scroll-view 视口底
+      const maxShift = Math.max(0, this._gridViewY + this.data.sortGridH - this._svRect.bottom)
+      const next = Math.max(0, Math.min(maxShift, this._gridShift + delta))
       if (next === this._gridShift) return
       this._gridShift = next
       this.setData({ gridShift: next })
