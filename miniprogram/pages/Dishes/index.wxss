@@ -568,7 +568,6 @@
 
 .dish-grid.sort-ready .dish-card {
   position: absolute;
-  margin: 0;
   transition: none;
 }
 
@@ -590,11 +589,6 @@
 /* 被拖卡片原位占位：半透明提示「这里空出来了」，位置随槽位补位动画 */
 .dish-card.drag-src {
   opacity: 0.25;
-}
-
-/* 卡片内容层 */
-.card-inner {
-  width: 100%;
 }
 
 /* 拖拽浮层：fixed 跟手 + 放大浮起，松手回弹落位 */

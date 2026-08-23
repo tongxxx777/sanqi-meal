@@ -95,17 +95,15 @@
               bindtouchmove="onSortTouchMove"
               bindtouchend="onSortTouchEnd"
               bindtouchcancel="onSortTouchEnd">
-          <view class="card-inner">
-            <view class="card-image-wrap">
-              <image class="card-image" src="{{item._localImg || item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
-              <view class="card-order-badge" wx:if="{{!sortMode && item.orderCount > 0}}">
-                <text>🔥 {{item.orderCount}}</text>
-              </view>
+          <view class="card-image-wrap">
+            <image class="card-image" src="{{item._localImg || item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
+            <view class="card-order-badge" wx:if="{{!sortMode && item.orderCount > 0}}">
+              <text>🔥 {{item.orderCount}}</text>
             </view>
-            <view class="card-body">
-              <text class="card-name">{{item.name}}</text>
-              <text class="card-desc" wx:if="{{item.description}}">{{item.description}}</text>
-            </view>
+          </view>
+          <view class="card-body">
+            <text class="card-name">{{item.name}}</text>
+            <text class="card-desc" wx:if="{{item.description}}">{{item.description}}</text>
           </view>
           <view class="sort-handle" wx:if="{{sortMode}}">✥</view>
         </view>

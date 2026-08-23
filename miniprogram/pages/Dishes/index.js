@@ -38,8 +38,7 @@ Page({
   },
 
   onUnload() {
-    this._stopAutoScroll()
-    if (this._settleTimer) { clearTimeout(this._settleTimer); this._settleTimer = null }
+    this._resetDragRuntime()
   },
 
   onLoad() {
@@ -347,11 +346,7 @@ Page({
 
   // 退出排序回浏览态：先带 noTrans 摘除绝对定位（防 transform 过渡飞卡），下一帧恢复
   _exitSort(extra = {}) {
-    if (this._settleTimer) { clearTimeout(this._settleTimer); this._settleTimer = null }
-    this._stopAutoScroll()
-    this._gridShift = 0
-    this._grabOffset = null
-    this._finger = null
+    this._resetDragRuntime()
     this.setData({
       sortMode: false,
       sortReady: false,
@@ -544,6 +539,15 @@ Page({
     if (this._scrollTimer) { clearInterval(this._scrollTimer); this._scrollTimer = null }
   },
 
+  // 清理拖拽运行时（计时器 + 实例变量），不涉及视图状态；退出排序/落位/卸载共用
+  _resetDragRuntime() {
+    if (this._settleTimer) { clearTimeout(this._settleTimer); this._settleTimer = null }
+    this._stopAutoScroll()
+    this._gridShift = 0
+    this._grabOffset = null
+    this._finger = null
+  },
+
   // 松手：浮层回弹飞回目标槽位，~220ms 后落位
   onSortTouchEnd() {
     if (!this.data.dragId || this.data.dragSettling) return
@@ -563,12 +567,8 @@ Page({
 
   // 落位：销毁浮层、恢复槽位卡片；虚拟滚动同帧回同步原生 scrollTop（零跳变）
   _finishDrag() {
-    if (this._settleTimer) { clearTimeout(this._settleTimer); this._settleTimer = null }
-    this._stopAutoScroll()
     const target = (this._baseScrollTop || 0) + (this._gridShift || 0)
-    this._gridShift = 0
-    this._grabOffset = null
-    this._finger = null
+    this._resetDragRuntime()
     this.setData({
       dragId: '',
       dragItem: null,
