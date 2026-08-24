@@ -1,27 +1,33 @@
 <view class="container">
   <view class="page-header">
-    <text class="page-title">分类管理</text>
-    <text class="page-subtitle">管理菜品分类</text>
+    <view class="header-main">
+      <text class="page-title">分类管理</text>
+      <text class="page-subtitle">{{sortMode ? '长按拖动调整顺序，点完成自动保存' : '管理菜品分类'}}</text>
+    </view>
+    <view class="sort-toggle {{sortMode ? 'active' : ''}}" bindtap="toggleSortMode">{{sortMode ? '完成' : '排序'}}</view>
   </view>
 
   <!-- 分类列表 -->
-  <view class="category-list">
-    <view class="category-item" wx:for="{{categories}}" wx:key="_id">
+  <view class="category-list {{sortMode ? 'sort-mode' : ''}}">
+    <view class="category-item {{draggingIndex === index ? 'dragging' : ''}}"
+          wx:for="{{categories}}" wx:key="_id"
+          style="transform: translateY({{draggingIndex === index ? dragOffset : (shifts[index] || 0)}}px);{{animOff ? 'transition: none;' : ''}}">
       <view class="category-main" bindtap="editCategory" data-index="{{index}}">
         <text class="category-icon">{{item.icon}}</text>
         <text class="category-name">{{item.name}}</text>
       </view>
       <view class="category-actions">
-        <view class="sort-btns">
-          <view class="sort-btn {{index === 0 ? 'disabled' : ''}}" catchtap="moveUp" data-index="{{index}}">
-            <view class="chevron chevron-up"></view>
-          </view>
-          <view class="sort-btn {{index === categories.length - 1 ? 'disabled' : ''}}" catchtap="moveDown" data-index="{{index}}">
-            <view class="chevron chevron-down"></view>
-          </view>
+        <view class="action-btn delete" wx:if="{{!sortMode}}" catchtap="deleteCategory" data-index="{{index}}">删除</view>
+        <view class="drag-handle" wx:else>
+          <view class="handle-line"></view>
+          <view class="handle-line"></view>
+          <view class="handle-line"></view>
         </view>
-        <view class="action-btn delete" catchtap="deleteCategory" data-index="{{index}}">删除</view>
       </view>
+      <!-- 排序模式下的整行触摸层：拦截点击编辑，处理长按拖拽 -->
+      <view wx:if="{{sortMode}}" class="drag-layer" data-index="{{index}}"
+            bindlongpress="onDragStart" catchtouchmove="onDragMove"
+            bindtouchend="onDragEnd" bindtouchcancel="onDragEnd"></view>
     </view>
 
     <view class="empty-tip" wx:if="{{!loading && categories.length === 0}}">
@@ -29,13 +35,8 @@
     </view>
   </view>
 
-  <!-- 保存排序按钮 -->
-  <view class="save-sort-btn" wx:if="{{sortChanged}}" bindtap="saveSortOrder">
-    <text>保存排序</text>
-  </view>
-
-  <!-- 添加按钮 -->
-  <view class="add-btn" bindtap="showAddModal">
+  <!-- 添加按钮（排序模式下隐藏） -->
+  <view class="add-btn" wx:if="{{!sortMode}}" bindtap="showAddModal">
     <text>+ 添加分类</text>
   </view>
 

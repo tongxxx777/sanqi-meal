@@ -18,6 +18,14 @@ Page({
     transferTarget: '',
     transferOptions: [],
     sortChanged: false,
+    // 排序模式
+    sortMode: false,
+    draggingIndex: -1,
+    dragOffset: 0,
+    // 其他行的让位位移（px，与 categories 等长）
+    shifts: [],
+    // 松手重排瞬间关闭过渡，避免复位动画闪烁
+    animOff: false,
   },
 
   async onShow() {
@@ -251,26 +259,101 @@ Page({
     }
   },
 
-  // 上移（本地交换）
-  moveUp(e) {
-    const index = e.currentTarget.dataset.index
-    if (index <= 0) return
-    const categories = [].concat(this.data.categories)
-    const temp = categories[index]
-    categories[index] = categories[index - 1]
-    categories[index - 1] = temp
-    this.setData({ categories, sortChanged: true })
+  // 切换排序模式：进入直接切；退出时有改动则自动保存（保存失败则留在排序模式）
+  async toggleSortMode() {
+    if (!this.data.sortMode) {
+      this.setData({ sortMode: true })
+      return
+    }
+    if (this.data.sortChanged) {
+      await this.saveSortOrder()
+      if (this.data.sortChanged) return
+    }
+    this.setData({ sortMode: false, draggingIndex: -1, dragOffset: 0, shifts: [], animOff: false })
+    this._drag = null
   },
 
-  // 下移（本地交换）
-  moveDown(e) {
+  // 长按开始拖拽
+  async onDragStart(e) {
+    if (!this.data.sortMode || this._drag) return
     const index = e.currentTarget.dataset.index
-    if (index >= this.data.categories.length - 1) return
-    const categories = [].concat(this.data.categories)
-    const temp = categories[index]
-    categories[index] = categories[index + 1]
-    categories[index + 1] = temp
-    this.setData({ categories, sortChanged: true })
+    const touch = e.touches && e.touches[0]
+    if (!touch) return
+
+    // 测量行高（卡片高度 + 下边距）
+    const rowH = await new Promise(resolve => {
+      wx.createSelectorQuery()
+        .select('.category-item')
+        .boundingClientRect(rect => {
+          const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
+          const rpx = win.windowWidth / 750
+          resolve(rect ? rect.height + 16 * rpx : 120 * rpx)
+        })
+        .exec()
+    })
+
+    try { wx.vibrateShort({ type: 'light' }) } catch (err) {}
+
+    this._drag = { startY: touch.clientY, origin: index, target: index, rowH }
+    this.setData({
+      draggingIndex: index,
+      dragOffset: 0,
+      shifts: this.data.categories.map(() => 0)
+    })
+  },
+
+  // 拖拽移动：拖动项贴手指，其他行 translateY 滑动让位（不重排数组，避免错位）
+  onDragMove(e) {
+    const d = this._drag
+    if (!d) return
+    const touch = e.touches && e.touches[0]
+    if (!touch) return
+
+    const deltaY = touch.clientY - d.startY
+    const n = this.data.categories.length
+    const { origin, rowH } = d
+    const target = Math.max(0, Math.min(n - 1, origin + Math.round(deltaY / rowH)))
+
+    const update = { dragOffset: deltaY }
+    if (target !== d.target) {
+      d.target = target
+      // 让位规则：目标在下，(origin, target] 的行上移一行；目标在上，[target, origin) 的行下移一行
+      update.shifts = this.data.categories.map((_, i) => {
+        if (i === origin) return 0
+        if (target > origin && i > origin && i <= target) return -rowH
+        if (target < origin && i >= target && i < origin) return rowH
+        return 0
+      })
+    }
+    this.setData(update)
+  },
+
+  // 拖拽结束：此刻才真正重排数组，复位时关闭过渡防止闪烁
+  onDragEnd() {
+    const d = this._drag
+    if (!d) return
+    this._drag = null
+
+    const { origin, target } = d
+    if (target === origin) {
+      this.setData({ draggingIndex: -1, dragOffset: 0, shifts: [] })
+      return
+    }
+
+    const categories = this.data.categories.slice()
+    const moved = categories.splice(origin, 1)[0]
+    categories.splice(target, 0, moved)
+
+    this.setData({
+      categories,
+      sortChanged: true,
+      draggingIndex: -1,
+      dragOffset: 0,
+      shifts: [],
+      animOff: true
+    })
+    // DOM 重排完成后恢复过渡动画
+    setTimeout(() => this.setData({ animOff: false }), 50)
   },
 
   // 保存排序
