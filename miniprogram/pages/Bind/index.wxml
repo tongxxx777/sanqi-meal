@@ -1,5 +1,3 @@
-﻿
-
 <view class="container">
   <!-- 加载中 -->
   <view wx:if="{{loading}}" class="loading">
@@ -25,7 +23,11 @@
             <text class="couple-name">{{partnerNickname}}</text>
           </view>
         </view>
-        <text class="couple-slogan">一起吃饭的日子</text>
+        <view class="couple-slogan">
+          <view class="slogan-line slogan-line--l"></view>
+          <text class="slogan-text">叁餐有你 柒待余生</text>
+          <view class="slogan-line slogan-line--r"></view>
+        </view>
       </view>
 
       <!-- 共同统计 -->
