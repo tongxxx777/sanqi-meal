@@ -32,7 +32,7 @@ function pickVer(collection, meta) {
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const currentOpenid = wxContext.OPENID
-  const { collection, docId, docIds, action, data, field, by, updates } = event
+  const { collection, docId, action, data, updates } = event
 
   try {
     // 获取当前 coupleId（容器缓存，命中时省 1 次 User 表查询）
@@ -131,30 +131,6 @@ exports.main = async (event, context) => {
         const cf = countFieldOf(collection)
         const meta = vf ? await couplemeta.incVersion(db, coupleId, vf, cf ? { [cf]: -1 } : null) : null
         return { success: true, removed: result.stats.removed, ver: pickVer(collection, meta) }
-      }
-
-      case 'inc': {
-        // 特殊操作：自增字段（计数类调整，不触发版本变化）
-        const incData = {}
-        for (const key in data) {
-          incData[key] = _.inc(data[key])
-        }
-        result = await db.collection(collection).doc(docId).update({ data: incData })
-        return { success: true, updated: result.stats.updated }
-      }
-
-      case 'batchInc': {
-        // 批量自增：where().update() 一次调用更新多条，避免 N 条文档 N 次数据库调用
-        if (!docIds || !Array.isArray(docIds) || !docIds.length) {
-          return { success: false, message: 'docIds 不能为空' }
-        }
-        if (!field || !by) {
-          return { success: false, message: 'field 和 by 不能为空' }
-        }
-        await db.collection(collection)
-          .where({ _id: _.in(docIds), coupleId })
-          .update({ data: { [field]: _.inc(by) } })
-        return { success: true, updated: docIds.length }
       }
 
       case 'batchUpdate': {

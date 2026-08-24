@@ -14,8 +14,6 @@ exports.main = async (event, context) => {
     order = 'desc',
     limit = 100,
     skip = 0,
-    countOnly = false,
-    todayOnly = false,
     sinceDays = 0
   } = event
 
@@ -25,9 +23,6 @@ exports.main = async (event, context) => {
 
     // 如果没有 coupleId（未绑定），返回空数据
     if (!coupleId) {
-      if (countOnly) {
-        return { success: true, total: 0 }
-      }
       return { success: true, data: [], total: 0 }
     }
 
@@ -45,29 +40,13 @@ exports.main = async (event, context) => {
     // 构建 where 条件：按 coupleId 查询
     let whereCondition = { coupleId }
 
-    // 按天数范围查询：拉取最近 sinceDays 天内创建的数据（优先于 todayOnly）
+    // 按天数范围查询：拉取最近 sinceDays 天内创建的数据
     // 用于首页按“期望用餐日”聚合时，把提前几天下的单也捞回来
     if (sinceDays > 0) {
       const since = new Date()
       since.setDate(since.getDate() - sinceDays)
       since.setHours(0, 0, 0, 0)
       whereCondition.createTime = _.gte(since)
-    } else if (todayOnly) {
-      // 如果只查今天的数据
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      whereCondition.createTime = _.gte(today)
-    }
-
-    // 如果只需要统计数量
-    if (countOnly) {
-      const countRes = await db.collection(collection)
-        .where(whereCondition)
-        .count()
-      return {
-        success: true,
-        total: countRes.total
-      }
     }
 
     // 查询数据

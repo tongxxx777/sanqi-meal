@@ -51,17 +51,6 @@ exports.main = async (event, context) => {
     const dishCol = db.collection('DishList')
 
     switch (action) {
-      case 'init': {
-        // 幂等：已有分类则跳过（保留独立 action 兼容旧版前端）
-        const existing = await col.where({ coupleId }).count()
-        if (existing.total > 0) {
-          return { success: true, message: '已初始化' }
-        }
-        await initCategories(col, dishCol, coupleId, currentOpenid)
-        const meta = await couplemeta.incVersion(db, coupleId, 'categoryVer')
-        return { success: true, message: '初始化完成', categoryVer: meta ? meta.categoryVer : null }
-      }
-
       case 'list': {
         // 判空自动初始化：前端永远只调 list 一次，不再单独调 init
         const existing = await col.where({ coupleId }).count()
