@@ -334,17 +334,44 @@
   height: 100%;
 }
 
+/* 点过次数角标：右上角悬浮式爱心胶囊，白底粉字，轻盈不遮图 */
 .card-order-badge {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(255, 122, 158, 0.55));
-  padding: 24rpx 10rpx 8rpx;
-  font-size: 20rpx;
-  color: #FFFFFF;
-  text-align: center;
+  top: 10rpx;
+  right: 10rpx;
+  display: flex;
+  align-items: center;
+  padding: 4rpx 14rpx 6rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 999rpx;
+  box-shadow: 0 2rpx 8rpx rgba(255, 122, 158, 0.18);
 }
+
+.badge-heart {
+  color: var(--primary-color);
+  font-size: 18rpx;
+  line-height: 1;
+  margin-right: 4rpx;
+}
+
+.badge-count {
+  color: var(--primary-color);
+  font-size: 20rpx;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+/* 紧凑档位（4/6 列卡片小）：胶囊整体缩小一号 */
+.dish-grid.cols-4 .card-order-badge,
+.dish-grid.cols-6 .card-order-badge {
+  top: 6rpx;
+  right: 6rpx;
+  padding: 2rpx 8rpx 4rpx;
+}
+.dish-grid.cols-4 .badge-heart,
+.dish-grid.cols-6 .badge-heart { font-size: 14rpx; margin-right: 2rpx; }
+.dish-grid.cols-4 .badge-count,
+.dish-grid.cols-6 .badge-count { font-size: 16rpx; }
 
 /* 信息区 — 紧凑排列在图片下方 */
 .card-body {

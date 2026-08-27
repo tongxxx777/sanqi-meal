@@ -41,12 +41,15 @@
               <text class="remark-text">{{item.remark}}</text>
             </view>
             <view class="history-footer">
-              <text class="history-creator">{{item.creatorName}} 点的菜</text>
+              <text class="history-creator">{{item.creatorName}} 点的餐 · 共{{item.dishes.length}}道</text>
               <view class="history-footer-right">
                 <view class="status-tag-mini {{item.status === 'completed' ? 'status-completed' : item.status === 'waiting' ? 'status-waiting' : 'status-pending'}}">
                   {{item.status === 'completed' ? '已完成' : item.status === 'waiting' ? '待接单' : '进行中'}}
                 </view>
-                <text class="dish-count">共 {{item.dishes.length}} 道</text>
+                <view class="reorder-btn" hover-class="reorder-btn-hover" data-id="{{item._id}}" catchtap="onReorderTap">
+                  <text class="reorder-icon">♡</text>
+                  <text class="reorder-text">再来亿单</text>
+                </view>
               </view>
             </view>
           </view>

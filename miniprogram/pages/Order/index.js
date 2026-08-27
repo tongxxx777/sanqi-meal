@@ -44,6 +44,7 @@ Page({
     orderId: '',
     partnerName: '对方',
     searchKey: '',
+    searchFocus: false, // 搜索框焦点态：onHide 时置 false 主动失焦，防止切回 tab 自动弹键盘
     // 下拉刷新状态
     refresherTriggered: false,
   },
@@ -53,32 +54,52 @@ Page({
     this.loadPartnerName()
     this.initExpect()
     const isFirst = !this.data.hasLoaded
+    // 再来一单：消费历史页写入的选中集合（一次性，读完即清，避免下次 onShow 误触发）
+    const reorder = app.globalData.pendingReorder || null
+    app.globalData.pendingReorder = null
     // 版本校验：每次 onShow 直连读 CoupleMeta，对方有修改则精准重拉对应数据
     const r = await app.syncOnShow('order')
     if (isFirst) {
       this.setData({ hasLoaded: true })
-      this.renderFromStore({ resetState: true })
+      this.renderFromStore({ resetState: true, selectIds: reorder && reorder.ids })
     } else {
       // 用渲染序号判断本端/对方数据是否变化（版本号机制只感知对方写入、感知不到本端写入，
       // 故删菜/加菜后需靠 renderSeq 触发重渲染，避免返回页面仍显示旧数据）
       const needRender = app.checkRenderSeq(this, ['dish', 'category'])
-      if (needRender) {
-        // 菜品/分类有变化才重渲染（保留已选菜品与搜索状态）；无变化时不动页面
-        this.renderFromStore({ resetState: false })
+      if (reorder || needRender) {
+        // 菜品/分类有变化才重渲染（保留已选菜品与搜索状态）；无变化时不动页面；
+        // 再来一单时用订单菜品替换当前选中并清空搜索词
+        this.renderFromStore({ resetState: false, selectIds: reorder && reorder.ids })
       } else {
         this.setData({ loading: false })
       }
     }
     // 记录当前渲染快照，供下次 onShow 比对
     app.markRenderSeq(this, ['dish', 'category'])
+
+    // 再来一单结果提示（部分菜品可能已不在菜单）
+    if (reorder) {
+      const msg = reorder.missingCount > 0
+        ? `已选 ${reorder.ids.length} 道，另有 ${reorder.missingCount} 道不在菜单啦`
+        : `已为你选好 ${reorder.ids.length} 道菜～`
+      wx.showToast({ title: msg, icon: 'none', duration: 2000 })
+    }
+  },
+
+  // tab 切走时主动失焦搜索框：
+  // input 原生焦点在 tab 页 hide 后残留，切回时微信会自动恢复焦点呼出键盘
+  onHide() {
+    if (this.data.searchFocus) {
+      this.setData({ searchFocus: false })
+    }
   },
 
   // 从共享 dishStore 渲染（唯一数据源）
   renderFromStore(options = {}) {
-    const { resetState = false } = options
-    // 保留当前已选中的菜品 id 与搜索词
-    const selectedIds = resetState ? [] : this.data.allDishes.filter(d => d.selected).map(d => d._id)
-    const savedKey = resetState ? '' : this.data.searchKey
+    const { resetState = false, selectIds = null } = options
+    // selectIds：再来一单显式指定选中集合（替换语义），同时清空搜索词避免选中菜被过滤隐藏
+    const selectedIds = selectIds || (resetState ? [] : this.data.allDishes.filter(d => d.selected).map(d => d._id))
+    const savedKey = selectIds ? '' : (resetState ? '' : this.data.searchKey)
 
     let dishes = this._mapDishes(app.globalData.dishStore.dishes)
     if (selectedIds.length > 0) {
@@ -363,6 +384,11 @@ Page({
     }
   },
 
+  // 搜索框聚焦：把 focus 属性同步为 true（需经历 true→false 才能在 onHide 时真正失焦）
+  onSearchFocus() {
+    if (!this.data.searchFocus) this.setData({ searchFocus: true })
+  },
+
   // 搜索输入
   onSearchInput(e) {
     const searchKey = e.detail.value.trim()
@@ -567,17 +593,25 @@ Page({
   },
 
   // 切换选中状态
+  // 关键：allDishes 是选中态唯一数据源，dishes 只是当前搜索结果的子集。
+  // 若只更新 dishes，换关键词搜索时 filterDishes 会从 allDishes 重建列表，选中态丢失
+  // （表现为搜第二个菜选中后，第一个菜被覆盖）
   toggleSelect(e) {
     const id = e.currentTarget.dataset.id
+    const allDishes = this.data.allDishes.map(item =>
+      item._id === id ? { ...item, selected: !item.selected } : item
+    )
     const dishes = this.data.dishes.map(item =>
       item._id === id ? { ...item, selected: !item.selected } : item
     )
 
     const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes)
-    const selectedDishes = dishes.filter(item => item.selected)
+    // 已选集合从全量数据计算，跨搜索关键词的选中不丢失
+    const selectedDishes = allDishes.filter(item => item.selected)
 
     this.setData({
       dishes,
+      allDishes,
       dishesByCategory,
       selectedByCategory,
       selectedDishes,
@@ -608,17 +642,22 @@ Page({
   },
 
   // 从购物车移除
+  // 同步更新 allDishes：被移除的菜可能不在当前搜索结果里，只改 dishes 会移除无效
   removeFromCart(e) {
     const id = e.currentTarget.dataset.id
+    const allDishes = this.data.allDishes.map(item =>
+      item._id === id ? { ...item, selected: false } : item
+    )
     const dishes = this.data.dishes.map(item =>
       item._id === id ? { ...item, selected: false } : item
     )
 
     const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes)
-    const selectedDishes = dishes.filter(item => item.selected)
+    const selectedDishes = allDishes.filter(item => item.selected)
 
     this.setData({
       dishes,
+      allDishes,
       dishesByCategory,
       selectedByCategory,
       selectedDishes,
@@ -626,13 +665,15 @@ Page({
     })
   },
 
-  // 清空购物车
+  // 清空购物车（两份列表同步置空，防止搜索过滤掉的菜残留选中态）
   clearCart() {
+    const allDishes = this.data.allDishes.map(item => ({ ...item, selected: false }))
     const dishes = this.data.dishes.map(item => ({ ...item, selected: false }))
     const { dishesByCategory, selectedByCategory } = this._syncCategoryData(dishes)
 
     this.setData({
       dishes,
+      allDishes,
       dishesByCategory,
       selectedByCategory,
       selectedDishes: [],

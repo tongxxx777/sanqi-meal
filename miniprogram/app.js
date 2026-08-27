@@ -82,6 +82,10 @@ App({
       // 历史页第一页数据（分页的第 2 页起由页面自行加载）
       historyStore: { orders: [], hasMore: true, page: 0, loaded: false },
 
+      // 再来一单信箱：历史页写入 → order 页 onShow 消费（一次性，读完即清）
+      // { ids: 菜品 id 数组, missingCount: 已不在菜单的道数 }
+      pendingReorder: null,
+
       // 渲染序号：store 数据每变化一次（本端写回 +1，云端重拉也 +1）序号 +1
       // 每个页面独立记录"我上次渲染时的序号"，onShow 时比对，变了就重渲染。
       // 解决"本端写操作（删菜/加菜等）后版本号已同步，导致 onShow 误判无变化"的问题。

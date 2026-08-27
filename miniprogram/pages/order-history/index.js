@@ -353,6 +353,42 @@ Page({
   // 阻止冒泡
   preventClose() {},
 
+  // 再来一单：把该单菜品重新选入点餐页（替换当前已选）
+  async onReorderTap(e) {
+    const id = e.currentTarget.dataset.id
+    const order = this.data.orders.find(item => item._id === id)
+    if (!order || !order.dishes || !order.dishes.length) return
+
+    // 订单菜品 id 去重（订单为历史快照，防御性处理）
+    const ids = [...new Set(order.dishes.map(d => d._id).filter(Boolean))]
+
+    // 冷启动直落历史页时菜品库可能未加载，先补拉一次
+    if (!app.globalData.dishStore.loaded) {
+      wx.showLoading({ title: '准备中...', mask: true })
+      await app.reloadDishes()
+      wx.hideLoading()
+      if (!app.globalData.dishStore.dishes.length) {
+        wx.showToast({ title: '菜品加载失败，请重试', icon: 'none' })
+        return
+      }
+    }
+
+    // 只保留菜单里仍存在的菜
+    const live = app.globalData.dishStore.dishes
+    const liveIds = ids.filter(i => live.some(d => d._id === i))
+    const missingCount = ids.length - liveIds.length
+
+    // 全部失效：不跳转
+    if (liveIds.length === 0) {
+      wx.showToast({ title: '这些菜已经不在菜单里啦', icon: 'none' })
+      return
+    }
+
+    // 写入信箱由点餐页 onShow 消费（switchTab 无法带参）
+    app.globalData.pendingReorder = { ids: liveIds, missingCount }
+    wx.switchTab({ url: '/pages/order/index' })
+  },
+
   // 跳转到详情页
   goToDetail(e) {
     const id = e.currentTarget.dataset.id

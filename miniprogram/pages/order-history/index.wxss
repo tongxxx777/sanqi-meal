@@ -241,13 +241,6 @@
   margin-right: 16rpx;
 }
 
-.dish-count {
-  font-size: 26rpx;
-  color: var(--primary-color);
-  font-weight: 500;
-  flex-shrink: 0;
-}
-
 .history-footer-right {
   display: flex;
   align-items: center;
@@ -274,6 +267,41 @@
 .status-tag-mini.status-completed {
   background: #E8F5E9;
   color: #4CAF50;
+}
+
+/* 再来亿单：融入 footer 行；高亮粉底 + 粉描边 + 空心小心，轻甜情侣感 */
+.reorder-btn {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  flex-shrink: 0;
+  background: var(--highlight-bg);
+  border: 2rpx solid var(--primary-dark);
+  color: var(--primary-color);
+  font-size: 24rpx;
+  font-weight: 500;
+  padding: 10rpx 24rpx;
+  border-radius: 40rpx;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.reorder-btn-hover {
+  opacity: 0.75;
+  transform: scale(0.94);
+}
+
+.reorder-icon {
+  font-size: 26rpx;
+  line-height: 1;
+}
+
+.reorder-text {
+  line-height: 1;
+}
+
+/* 标记高亮卡片上换纯白底，与粉渐变背景拉开层次 */
+.history-item.marked .reorder-btn {
+  background: #FFFFFF;
 }
 
 /* 加载更多 */

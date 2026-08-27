@@ -14,6 +14,7 @@ Page({
     hasLoaded: false,
     partnerName: '',
     searchKey: '',
+    searchFocus: false, // 搜索框焦点态：onHide 时置 false 主动失焦，防止切回 tab 自动弹键盘
     // 列数档位：3→4→6 循环，默认 3
     gridCols: 3,
     // 排序模式
@@ -72,6 +73,14 @@ Page({
     }
     // 记录当前渲染快照，供下次 onShow 比对
     app.markRenderSeq(this, ['dish', 'category', 'user'])
+  },
+
+  // tab 切走时主动失焦搜索框：
+  // input 原生焦点在 tab 页 hide 后残留，切回时微信会自动恢复焦点呼出键盘
+  onHide() {
+    if (this.data.searchFocus) {
+      this.setData({ searchFocus: false })
+    }
   },
 
   // 从共享 dishStore 渲染（唯一数据源）
@@ -216,6 +225,11 @@ Page({
     this.setData({ currentCategory: id })
     this._scrollToListTop()
     this._updateCanSort()
+  },
+
+  // 搜索框聚焦：把 focus 属性同步为 true（需经历 true→false 才能在 onHide 时真正失焦）
+  onSearchFocus() {
+    if (!this.data.searchFocus) this.setData({ searchFocus: true })
   },
 
   // 搜索输入

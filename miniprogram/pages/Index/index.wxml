@@ -72,7 +72,7 @@
             data-id="{{item._id}}" bindtap="goToTodayOrder">
         <view class="status-header">
           <view class="status-label-wrap">
-            <text class="status-label">{{item.creatorName}} 点了菜</text>
+            <text class="status-label">{{item.creatorName}} 点了餐</text>
             <view class="status-tag-mini {{item.status === 'completed' ? 'status-completed' : item.status === 'waiting' ? 'status-waiting' : 'status-pending'}}">
               {{item.status === 'completed' ? '已完成' : item.status === 'waiting' ? '待接单' : '进行中'}}
             </view>
@@ -122,7 +122,7 @@
         <text class="quick-label">绑定关系</text>
       </view>
       <view class="quick-item" bindtap="goToCategoryManage">
-        <view class="quick-icon quick-icon-purple">📋</view>
+        <view class="quick-icon quick-icon-purple">🌸</view>
         <text class="quick-label">菜品分类</text>
       </view>
     </view>

@@ -22,7 +22,7 @@
     <!-- 搜索框 -->
     <view class="search-box {{sortMode ? 'sort-disabled' : ''}}">
       <text class="search-icon">🔍</text>
-      <input class="search-input" placeholder="搜索菜品名称或描述" value="{{searchKey}}" bindinput="onSearchInput" confirm-type="search" />
+      <input class="search-input" placeholder="搜索菜品名称或描述" value="{{searchKey}}" focus="{{searchFocus}}" bindfocus="onSearchFocus" bindinput="onSearchInput" confirm-type="search" />
       <text class="search-clear" wx:if="{{searchKey}}" bindtap="clearSearch">✕</text>
     </view>
   </view>
@@ -98,7 +98,8 @@
           <view class="card-image-wrap">
             <image class="card-image" src="{{item._localImg || item.imageUrl || '/images/default.jpg'}}" mode="aspectFill" lazy-load></image>
             <view class="card-order-badge" wx:if="{{!sortMode && item.orderCount > 0}}">
-              <text>🔥 {{item.orderCount}}</text>
+              <text class="badge-heart">♥</text>
+              <text class="badge-count">{{item.orderCount}}</text>
             </view>
           </view>
           <view class="card-body">

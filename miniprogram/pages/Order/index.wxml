@@ -6,7 +6,7 @@
     <!-- 搜索框 -->
     <view class="search-box">
       <text class="search-icon">🔍</text>
-      <input class="search-input" placeholder="搜索菜品" value="{{searchKey}}" bindinput="onSearchInput" confirm-type="search" />
+      <input class="search-input" placeholder="搜索菜品" value="{{searchKey}}" focus="{{searchFocus}}" bindfocus="onSearchFocus" bindinput="onSearchInput" confirm-type="search" />
       <text class="search-clear" wx:if="{{searchKey}}" bindtap="clearSearch">✕</text>
     </view>
   </view>
