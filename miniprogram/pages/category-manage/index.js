@@ -271,35 +271,59 @@ Page({
     }
     this.setData({ sortMode: false, draggingIndex: -1, dragOffset: 0, shifts: [], animOff: false })
     this._drag = null
+    this._dragStarting = false
+    this._dragAbort = false
   },
 
-  // 长按开始拖拽
+  // 排序模式下长按行（drag-layer 触发）：开始拖拽
   async onDragStart(e) {
-    if (!this.data.sortMode || this._drag) return
+    if (!this.data.sortMode || this._drag || this._dragStarting) return
     const index = e.currentTarget.dataset.index
     const touch = e.touches && e.touches[0]
     if (!touch) return
+    await this.startDrag(index, touch)
+  },
 
-    // 测量行高（卡片高度 + 下边距）
-    const rowH = await new Promise(resolve => {
-      wx.createSelectorQuery()
-        .select('.category-item')
-        .boundingClientRect(rect => {
-          const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
-          const rpx = win.windowWidth / 750
-          resolve(rect ? rect.height + 16 * rpx : 120 * rpx)
-        })
-        .exec()
-    })
+  // 非排序模式长按分类：进入排序模式并直接开始拖动该行
+  async onRowLongPress(e) {
+    if (this.data.sortMode || this._drag || this._dragStarting) return
+    const index = e.currentTarget.dataset.index
+    const touch = e.touches && e.touches[0]
+    if (!touch) return
+    this.setData({ sortMode: true })
+    await this.startDrag(index, touch)
+  },
 
-    try { wx.vibrateShort({ type: 'light' }) } catch (err) {}
-
-    this._drag = { startY: touch.clientY, origin: index, target: index, rowH }
-    this.setData({
-      draggingIndex: index,
-      dragOffset: 0,
-      shifts: this.data.categories.map(() => 0)
-    })
+  // 拖拽初始化：测行高、震动、记录起点
+  async startDrag(index, touch) {
+    this._dragStarting = true
+    try {
+      // 测量行高（卡片高度 + 下边距）
+      const rowH = await new Promise(resolve => {
+        wx.createSelectorQuery()
+          .select('.category-item')
+          .boundingClientRect(rect => {
+            const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
+            const rpx = win.windowWidth / 750
+            resolve(rect ? rect.height + 16 * rpx : 120 * rpx)
+          })
+          .exec()
+      })
+      // 测量期间手指已抬起：放弃启动，避免行卡在拖拽态
+      if (this._dragAbort) {
+        this._dragAbort = false
+        return
+      }
+      try { wx.vibrateShort({ type: 'light' }) } catch (err) {}
+      this._drag = { startY: touch.clientY, origin: index, target: index, rowH }
+      this.setData({
+        draggingIndex: index,
+        dragOffset: 0,
+        shifts: this.data.categories.map(() => 0)
+      })
+    } finally {
+      this._dragStarting = false
+    }
   },
 
   // 拖拽移动：拖动项贴手指，其他行 translateY 滑动让位（不重排数组，避免错位）
@@ -331,7 +355,11 @@ Page({
   // 拖拽结束：此刻才真正重排数组，复位时关闭过渡防止闪烁
   onDragEnd() {
     const d = this._drag
-    if (!d) return
+    if (!d) {
+      // startDrag 测量未完成就抬手：作废本次启动
+      if (this._dragStarting) this._dragAbort = true
+      return
+    }
     this._drag = null
 
     const { origin, target } = d

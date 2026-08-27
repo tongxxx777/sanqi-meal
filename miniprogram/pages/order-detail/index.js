@@ -155,7 +155,7 @@ Page({
       this.setData({ 'order.status': 'pending' })
 
       wx.hideLoading()
-      wx.showToast({ title: '已接单，开始准备吧！', icon: 'success' })
+      wx.showToast({ title: '已接单，快去准备吧！', icon: 'success' })
     } catch (e) {
       wx.hideLoading()
       console.error('接单失败', e)

@@ -122,14 +122,27 @@
 
 .action-btn {
   font-size: 26rpx;
-  padding: 14rpx 22rpx;
-  border-radius: 22rpx;
+  font-weight: 500;
+  padding: 12rpx 26rpx;
+  border-radius: 24rpx;
+  transition: opacity 0.15s ease, background 0.15s ease;
 }
+
+.action-btn:active { opacity: 0.7; }
+
+.action-btn.edit {
+  color: var(--primary-color);
+  background: #FFF0F5;
+}
+
+.action-btn.edit:active { background: var(--border-color); }
 
 .action-btn.delete {
   color: #E57373;
   background: #FFF5F5;
 }
+
+.action-btn.delete:active { background: #FFEBEB; }
 
 .empty-tip {
   text-align: center;

@@ -57,12 +57,12 @@ Page({
     const id = this.data.orders[0]._id
     // 先滑出 + 气泡浮现
     this.setGuideState(id, true, true)
-    // 停留约 5 秒后收回 + 气泡淡出，并标记已看过
+    // 停留约 3 秒后收回 + 气泡淡出，并标记已看过
     this.data.guideTimer = setTimeout(() => {
       this.setGuideState(id, false, false)
       wx.setStorageSync('historyGuideShown', true)
       this.data.guideTimer = null
-    }, 5000)
+    }, 3000)
   },
 
   // 按订单 id 设置首条引导滑出/气泡显隐（防止演示期间列表刷新导致错位）
