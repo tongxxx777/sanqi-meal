@@ -109,7 +109,7 @@
   <!-- 评价（订单完成后：点餐人打分，大厨可回复一次） -->
   <view class="section review-section" wx:if="{{order.status === 'completed'}}">
     <view class="section-title">
-      <text class="section-icon">⭐</text>
+      <text class="section-icon">❤️</text>
       <text>评价这餐</text>
     </view>
 

@@ -308,7 +308,7 @@ Page({
       return `${cur ? '✓ ' : ''}${label}${arrow}`
     }
     wx.showActionSheet({
-      alertText: '再点一次 可反转顺序(菜单除外)',
+      alertText: '再点一次 可反转顺序 (菜单除外)',
       itemList: [
         item('time', '创建时间'),
         item('orderCount', '点菜次数'),
