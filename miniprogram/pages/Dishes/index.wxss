@@ -233,6 +233,33 @@
   color: #FFFFFF;
 }
 
+/* 「全部」排序方式 chip：嵌在激活胶囊内、数量后，白底粉字与胶囊渐变底区分 */
+.tab-pill-sort {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 10rpx;
+  padding: 4rpx 14rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  line-height: 1;
+}
+
+.tab-pill-sort:active {
+  opacity: 0.75;
+}
+
+.tab-pill-sort-icon {
+  font-size: 20rpx;
+  color: var(--primary-color);
+  margin-right: 4rpx;
+}
+
+.tab-pill-sort-label {
+  font-size: 20rpx;
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
 /* ========== 菜品列表 ========== */
 /* 普通文档流列表：底部多留空间，避免悬浮按钮遮住最后一行 */
 .dish-list {

@@ -8,7 +8,24 @@ Page({
     isCreator: false, // 当前用户是否是点餐人（创建者）
     isCook: false,    // 当前用户是否是做菜人（非创建者）
     partnerName: '',  // 对方昵称
-    dishesExpanded: false // 菜品清单是否展开
+    dishesExpanded: false, // 菜品清单是否展开
+    // 评价表单（点餐人，订单完成后）
+    ratingInput: 0,       // 点选星级 0-5
+    ratingLabels: ['', '有点翻车 🙈', '心意满分 💕', '味道在线 😊', '超好吃！😋', '幸福的味道！🥰'],
+    // 评价占位文案按星级联动：低分档温柔提建议，高分档夸幸福
+    reviewPlaceholders: [
+      '想对大厨说点什么呀~（非必填）',          // 0 未选星
+      '温柔地给大厨提个小建议~（非必填）',      // 1 有点翻车
+      '温柔地给大厨提个小建议~（非必填）',      // 2 心意满分
+      '说说哪里还能更合口味~（非必填）',        // 3 味道在线
+      '再夸夸大厨的手艺吧~（非必填）',          // 4 超好吃
+      '让大厨知道你有多幸福~（非必填）'         // 5 幸福的味道
+    ],
+    reviewText: '',       // 评价文字（可不填）
+    reviewSending: false, // 评价提交中（防重复）
+    // 大厨回复表单（做菜人，有评价后）
+    replyText: '',
+    replySending: false
   },
 
   async onLoad(options) {
@@ -17,6 +34,17 @@ Page({
       await app.loadUserInfo()
       this.loadOrder(options.id)
     }
+  },
+
+  async onShow() {
+    // 对方可能已接单/评价/回复：orderVer 变化时重拉本单（本端写回已同步版本号，不会误触发）
+    if (!this.data.order || !app.isBound()) return
+    try {
+      const { changed } = await app.syncOnShow('order', { force: true })
+      if (changed && changed.includes('order')) {
+        this.loadOrder(this.data.order._id)
+      }
+    } catch (e) { /* 版本校验失败静默降级，不影响当前展示 */ }
   },
 
   async loadOrder(id) {
@@ -62,6 +90,9 @@ Page({
     order.timeText = this.formatTime(order.createTime)
     order.expectText = this.expectDisplayText(order)
     order.creatorName = app.getDisplayName(order._openid)
+    // 评价/回复视图加工：时间文案（不改动 store 原始数据）
+    order.reviewView = order.review ? this.formatReviewEntry(order.review) : null
+    order.replyView = order.reviewReply ? this.formatReviewEntry(order.reviewReply) : null
     // 处理旧数据：如果没有 status 字段，默认为 'waiting'
     if (!order.status) {
       order.status = 'waiting'
@@ -126,6 +157,138 @@ Page({
     const hours = d.getHours().toString().padStart(2, '0')
     const minutes = d.getMinutes().toString().padStart(2, '0')
     return `${hours}:${minutes}`
+  },
+
+  // ========== 评价（订单完成后：点餐人打分，大厨可回复一次）==========
+
+  // 评价/回复条目视图加工：补时间文案
+  formatReviewEntry(entry) {
+    return Object.assign({}, entry, { timeText: this.formatEntryTime(entry.createTime) })
+  },
+
+  // 时间文案：统一带日期，同年 MM/DD HH:MM，跨年补上年份 YYYY/MM/DD HH:MM
+  formatEntryTime(date) {
+    if (!date) return ''
+    const d = new Date(date)
+    const now = new Date()
+    const time = this.formatTime(d)
+    if (d.getFullYear() !== now.getFullYear()) {
+      return `${d.getFullYear()}/${this.formatDateShort(d)} ${time}`
+    }
+    return `${this.formatDateShort(d)} ${time}`
+  },
+
+  // 点选星级
+  onStarTap(e) {
+    this.setData({ ratingInput: Number(e.currentTarget.dataset.value) })
+  },
+
+  onReviewTextInput(e) {
+    this.setData({ reviewText: e.detail.value })
+  },
+
+  onReplyInput(e) {
+    this.setData({ replyText: e.detail.value })
+  },
+
+  // 提交评价（仅点餐人、订单已完成、未评价过；星级必选，文字可不填）
+  async submitReview() {
+    const { order, ratingInput, reviewText, reviewSending } = this.data
+    if (!order || order.status !== 'completed' || order.review || reviewSending) return
+    if (!ratingInput) {
+      wx.showToast({ title: '先点个星星吧~', icon: 'none' })
+      return
+    }
+    const text = (reviewText || '').trim()
+    if (text.length > 200) {
+      wx.showToast({ title: '最多 200 字哦', icon: 'none' })
+      return
+    }
+
+    this.setData({ reviewSending: true })
+    const review = {
+      rating: ratingInput,
+      text,
+      _openid: app.globalData.currentUser?._id || '',
+      createTime: new Date().toISOString()
+    }
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'updateCoupleData',
+        data: {
+          collection: app.globalData.collectionOrderList,
+          docId: order._id,
+          action: 'update',
+          data: { review }
+        }
+      })
+
+      if (!res.result?.success) {
+        throw new Error(res.result?.message || '提交失败')
+      }
+
+      // 用响应里的新版本号同步本地 store（首页/历史页立即可见）
+      app.applyOrderUpdated(order._id, { review }, res.result.ver)
+      this.setData({
+        'order.review': review,
+        'order.reviewView': this.formatReviewEntry(review),
+        reviewSending: false
+      })
+      wx.showToast({ title: '评价成功', icon: 'success' })
+    } catch (e) {
+      console.error('提交评价失败', e)
+      this.setData({ reviewSending: false })
+      wx.showToast({ title: '提交失败，请重试', icon: 'none' })
+    }
+  },
+
+  // 大厨回复（仅做菜人、已有评价、未回复过）
+  async submitReply() {
+    const { order, replyText, replySending } = this.data
+    if (!order || !order.review || order.reviewReply || replySending) return
+    const text = (replyText || '').trim()
+    if (!text) return
+    if (text.length > 200) {
+      wx.showToast({ title: '最多 200 字哦', icon: 'none' })
+      return
+    }
+
+    this.setData({ replySending: true })
+    const reviewReply = {
+      text,
+      _openid: app.globalData.currentUser?._id || '',
+      createTime: new Date().toISOString()
+    }
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'updateCoupleData',
+        data: {
+          collection: app.globalData.collectionOrderList,
+          docId: order._id,
+          action: 'update',
+          data: { reviewReply }
+        }
+      })
+
+      if (!res.result?.success) {
+        throw new Error(res.result?.message || '回复失败')
+      }
+
+      app.applyOrderUpdated(order._id, { reviewReply }, res.result.ver)
+      this.setData({
+        'order.reviewReply': reviewReply,
+        'order.replyView': this.formatReviewEntry(reviewReply),
+        replyText: '',
+        replySending: false
+      })
+      wx.showToast({ title: '已回复', icon: 'success' })
+    } catch (e) {
+      console.error('回复评价失败', e)
+      this.setData({ replySending: false })
+      wx.showToast({ title: '回复失败，请重试', icon: 'none' })
+    }
   },
 
   // 做菜人接单：waiting → pending

@@ -106,6 +106,59 @@
     </view>
   </view>
 
+  <!-- 评价（订单完成后：点餐人打分，大厨可回复一次） -->
+  <view class="section review-section" wx:if="{{order.status === 'completed'}}">
+    <view class="section-title">
+      <text class="section-icon">⭐</text>
+      <text>评价这餐</text>
+    </view>
+
+    <!-- 点餐人：评价表单（未评价时） -->
+    <view class="review-form" wx:if="{{isCreator && !order.review}}">
+      <view class="review-stars">
+        <text class="review-star {{ratingInput >= item ? 'on' : 'off'}}" wx:for="{{[1, 2, 3, 4, 5]}}" wx:key="*this" data-value="{{item}}" bindtap="onStarTap">⭐</text>
+      </view>
+      <view class="review-rating-label">{{ratingLabels[ratingInput]}}</view>
+      <textarea class="review-textarea" value="{{reviewText}}" bindinput="onReviewTextInput" placeholder="{{reviewPlaceholders[ratingInput]}}" placeholder-class="review-textarea-ph" maxlength="200" cursor-spacing="24" adjust-position="{{true}}" show-confirm-bar="{{false}}" />
+      <view class="review-submit {{ratingInput ? 'active' : ''}} {{reviewSending ? 'disabled' : ''}}" bindtap="submitReview">
+        <text>{{reviewSending ? '提交中...' : '提交评价'}}</text>
+      </view>
+    </view>
+
+    <!-- 做菜人：等待评价（未评价时） -->
+    <view class="review-waiting" wx:if="{{isCook && !order.review}}">
+      <text class="review-waiting-icon">⏳</text>
+      <text class="review-waiting-text">等待 {{partnerName}} 评价这餐</text>
+    </view>
+
+    <!-- 评价卡片（双方可见） -->
+    <view class="review-card" wx:if="{{order.reviewView}}">
+      <view class="review-card-head">
+        <view class="review-card-stars">
+          <text class="review-card-star {{order.reviewView.rating >= item ? 'on' : 'off'}}" wx:for="{{[1, 2, 3, 4, 5]}}" wx:key="*this">⭐</text>
+        </view>
+        <text class="review-card-time">{{order.reviewView.timeText}}</text>
+      </view>
+      <text class="review-card-text" wx:if="{{order.reviewView.text}}">{{order.reviewView.text}}</text>
+
+      <!-- 大厨回复（已回复） -->
+      <view class="review-reply" wx:if="{{order.replyView}}">
+        <view class="review-reply-head">
+          <text class="review-reply-icon">💌</text>
+          <text class="review-reply-name">大厨回复</text>
+          <text class="review-reply-time">{{order.replyView.timeText}}</text>
+        </view>
+        <text class="review-reply-text">{{order.replyView.text}}</text>
+      </view>
+
+      <!-- 做菜人：回复输入（未回复时） -->
+      <view class="review-reply-bar" wx:if="{{isCook && !order.reviewReply}}">
+        <input class="review-reply-input" value="{{replyText}}" bindinput="onReplyInput" bindconfirm="submitReply" placeholder="回复一下 TA 的评价..." placeholder-class="review-reply-input-ph" maxlength="200" confirm-type="send" adjust-position="{{true}}" cursor-spacing="24" />
+        <view class="review-reply-send {{replyText ? 'active' : ''}} {{replySending ? 'disabled' : ''}}" bindtap="submitReply">回复</view>
+      </view>
+    </view>
+  </view>
+
   <!-- 底部操作区域 ========================================== -->
 
   <!-- 待接单 + 点餐人：等待 TA 接单 + 分享 -->
@@ -135,18 +188,6 @@
   <!-- 进行中 + 做菜人：确认完成按钮 -->
   <view class="complete-btn" wx:if="{{order.status === 'pending' && isCook}}" bindtap="markAsCompleted">
     <text>确认完成</text>
-  </view>
-
-  <!-- 进行中 + 点餐人：等待完成 -->
-  <view class="waiting-complete" wx:if="{{order.status === 'pending' && isCreator}}">
-    <text class="waiting-icon">⏳</text>
-    <text class="waiting-text">等待大厨完成...</text>
-  </view>
-
-  <!-- 已完成：状态提示 -->
-  <view class="waiting-complete done-tip" wx:if="{{order.status === 'completed'}}">
-    <text class="waiting-icon">✅</text>
-    <text class="waiting-text">已完成，菜品已上桌 🎉</text>
   </view>
 </view>
 

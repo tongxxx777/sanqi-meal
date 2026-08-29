@@ -63,6 +63,11 @@
             <text class="tab-pill-icon">{{item.icon}}</text>
             <text class="tab-pill-name">{{item.name}}</text>
             <text class="tab-pill-count">{{categoryCount[item._id]}}</text>
+            <!-- 「全部」排序方式 chip：嵌在激活胶囊内、数量后，catchtap 避免触发胶囊切换 -->
+            <view class="tab-pill-sort" wx:if="{{item._id === '__all__' && currentCategory === '__all__' && !sortMode && dishesByCategory['__all__'].length > 1}}" catchtap="openAllSortSheet">
+              <text class="tab-pill-sort-icon">⇅</text>
+              <text class="tab-pill-sort-label">{{allSortType === 'time' ? '最新' : allSortType === 'orderCount' ? '最热' : '菜单'}}</text>
+            </view>
           </view>
         </view>
       </scroll-view>

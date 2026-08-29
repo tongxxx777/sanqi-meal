@@ -17,6 +17,9 @@ Page({
     searchFocus: false, // 搜索框焦点态：onHide 时置 false 主动失焦，防止切回 tab 自动弹键盘
     // 列数档位：3→4→6 循环，默认 3
     gridCols: 3,
+    // 「全部」分类排序方式：time/orderCount（支持正倒序）、category（无方向概念）
+    allSortType: 'time',
+    allSortDesc: true,
     // 排序模式
     sortMode: false,          // 是否处于排序模式
     sortReady: false,         // 测量完成、已切换绝对定位接管
@@ -48,6 +51,14 @@ Page({
     const valid = [3, 4, 6].includes(saved)
     if (valid) {
       this.setData({ gridCols: saved })
+    }
+    // 恢复「全部」排序偏好（默认 time + 最新在前，与历史行为一致）
+    const sort = wx.getStorageSync('dishes_all_sort')
+    if (sort && ['time', 'orderCount', 'category'].includes(sort.type)) {
+      this.setData({
+        allSortType: sort.type,
+        allSortDesc: sort.type === 'category' ? true : sort.desc !== false,
+      })
     }
   },
 
@@ -180,27 +191,70 @@ Page({
     return categories
   },
 
+  // createTime 时间戳（兼容字符串/Date/缺省）
+  _timeOf(d) {
+    return d.createTime ? new Date(d.createTime).getTime() : 0
+  },
+
+  // 分类内排序比较：sort 升序，无 sort 的旧菜品排末尾（按 createTime 倒序）
+  _cmpInCategory(a, b) {
+    const aHas = typeof a.sort === 'number'
+    const bHas = typeof b.sort === 'number'
+    if (aHas && bHas) return a.sort - b.sort
+    if (aHas) return -1
+    if (bHas) return 1
+    return this._timeOf(b) - this._timeOf(a)
+  },
+
+  // 「全部」列表统一排序：time=按时间、orderCount=按点菜次数、category=按分类现有顺序拼接
+  _sortAllDishes(dishes, categories) {
+    const list = (dishes || []).slice()
+    const { allSortType, allSortDesc } = this.data
+    if (allSortType === 'orderCount') {
+      list.sort((a, b) => {
+        const diff = (b.orderCount || 0) - (a.orderCount || 0)
+        if (diff) return allSortDesc ? diff : -diff
+        return this._timeOf(b) - this._timeOf(a) // 次数相同按时间倒序兜底
+      })
+      return list
+    }
+    if (allSortType === 'category') {
+      const cats = (categories || this.data.categories || []).filter(c => c._id !== '__all__')
+      const order = {}
+      cats.forEach((c, i) => { order[c._id] = i })
+      const groups = {}
+      list.forEach(d => {
+        const cid = d.category || 'other'
+        ;(groups[cid] = groups[cid] || []).push(d)
+      })
+      const cids = Object.keys(groups).sort((a, b) => {
+        const ai = order[a] === undefined ? cats.length : order[a]
+        const bi = order[b] === undefined ? cats.length : order[b]
+        return ai - bi
+      })
+      const result = []
+      cids.forEach(cid => {
+        result.push(...groups[cid].sort((x, y) => this._cmpInCategory(x, y)))
+      })
+      return result
+    }
+    // time：默认最新在前
+    list.sort((a, b) => allSortDesc ? this._timeOf(b) - this._timeOf(a) : this._timeOf(a) - this._timeOf(b))
+    return list
+  },
+
   // 重新按分类整理菜品数据
   _syncCategoryData(dishes, categories) {
     const cats = categories || this.data.categories || []
     const dishesByCategory = {}
     cats.forEach(cat => {
       if (cat._id === '__all__') {
-        // 全部分类保持现状（createTime 倒序，由 reloadDishes orderBy 保证）
-        dishesByCategory[cat._id] = dishes
+        // 「全部」按用户选择的排序方式统一排序
+        dishesByCategory[cat._id] = this._sortAllDishes(dishes, cats)
       } else {
         // 具体分类按 sort 升序，无 sort 的旧菜品排末尾（按 createTime 倒序）
         const catDishes = dishes.filter(d => d.category === cat._id).slice()
-        catDishes.sort((a, b) => {
-          const aHas = typeof a.sort === 'number'
-          const bHas = typeof b.sort === 'number'
-          if (aHas && bHas) return a.sort - b.sort
-          if (aHas) return -1
-          if (bHas) return 1
-          const aTime = a.createTime ? new Date(a.createTime).getTime() : 0
-          const bTime = b.createTime ? new Date(b.createTime).getTime() : 0
-          return bTime - aTime
-        })
+        catDishes.sort((a, b) => this._cmpInCategory(a, b))
         dishesByCategory[cat._id] = catDishes
       }
     })
@@ -211,7 +265,7 @@ Page({
     const allCat = { _id: '__all__', name: '全部', icon: '🍽️' }
     const cats = [allCat, ...categories]
     const dishesByCategory = existingDishesByCategory || {}
-    dishesByCategory['__all__'] = dishes
+    dishesByCategory['__all__'] = this._sortAllDishes(dishes, categories)
     const categoryCount = {}
     cats.forEach(cat => {
       categoryCount[cat._id] = (dishesByCategory[cat._id] || []).length
@@ -243,6 +297,44 @@ Page({
   clearSearch() {
     this.setData({ searchKey: '' })
     this.filterDishes('')
+  },
+
+  // 「全部」排序方式选择：重复点选当前方式（时间/点菜次数）翻转正倒序，菜单顺序无方向
+  openAllSortSheet() {
+    const { allSortType, allSortDesc } = this.data
+    const item = (type, label) => {
+      const cur = allSortType === type
+      const arrow = type === 'category' ? '' : ` ${cur ? (allSortDesc ? '↓' : '↑') : '↓'}`
+      return `${cur ? '✓ ' : ''}${label}${arrow}`
+    }
+    wx.showActionSheet({
+      alertText: '再点一次 可反转顺序(菜单除外)',
+      itemList: [
+        item('time', '创建时间'),
+        item('orderCount', '点菜次数'),
+        item('category', '菜单顺序'),
+      ],
+      success: ({ tapIndex }) => {
+        const type = ['time', 'orderCount', 'category'][tapIndex]
+        if (!type) return
+        let desc = true
+        if (type === allSortType) {
+          if (type === 'category') return // 菜单顺序无方向，重复点选无操作
+          desc = !allSortDesc
+        }
+        this.setData({ allSortType: type, allSortDesc: desc })
+        wx.setStorageSync('dishes_all_sort', { type, desc })
+        this._resortAllList()
+      },
+    })
+  },
+
+  // 排序方式变更：仅重排当前「全部」列表并回顶（纯内存重排，无云端请求）
+  _resortAllList() {
+    const dbc = Object.assign({}, this.data.dishesByCategory)
+    dbc['__all__'] = this._sortAllDishes(dbc['__all__'] || [])
+    this.setData({ dishesByCategory: dbc })
+    this._scrollToListTop()
   },
 
   // 切换列数档位 2→3→4→6→2

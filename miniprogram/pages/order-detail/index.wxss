@@ -361,19 +361,6 @@
   50% { transform: scale(1.03); }
 }
 
-/* 已完成提示 */
-.done-tip {
-  background: #F1F8E9;
-  color: var(--text-secondary);
-  border-radius: 16rpx;
-  margin: 16rpx 24rpx;
-}
-
-.done-tip .waiting-text {
-  color: #66BB6A;
-  font-weight: 500;
-}
-
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.02); }
@@ -481,25 +468,6 @@
 .waiting-text {
   font-size: 28rpx;
   color: var(--text-hint);
-}
-
-/* 点餐人等待确认完成 */
-.waiting-complete {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32rpx;
-  margin: 10rpx 24rpx;
-  background: #f5f5f5;
-  border-radius: 50rpx;
-  color: var(--text-hint);
-  font-size: 30rpx;
-}
-
-.waiting-complete .waiting-icon {
-  font-size: 36rpx;
-  margin-right: 12rpx;
-  margin-bottom: 0;
 }
 
 /* 加载中 */
@@ -634,6 +602,253 @@
 /* 转发按钮文字强制单行不折行 */
 .share-btn {
   white-space: nowrap;
+}
+
+/* ========== 评价区（完成后：点餐人打分 + 大厨回复）========== */
+
+/* 星级点选 */
+.review-stars {
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+  padding: 12rpx 0 4rpx;
+}
+
+.review-star {
+  font-size: 64rpx;
+  line-height: 1.1;
+  transition: transform 0.15s ease, opacity 0.15s ease, filter 0.15s ease;
+}
+
+.review-star.off {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.review-star.on {
+  animation: star-pop 0.25s ease;
+}
+
+.review-star:active {
+  transform: scale(1.2);
+}
+
+@keyframes star-pop {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* 星级文案（如"绝绝子！🤤"），未选时占位保持高度不跳动 */
+.review-rating-label {
+  min-height: 40rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--primary-deep);
+  margin-bottom: 20rpx;
+}
+
+/* 评价文字输入 */
+.review-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  height: 160rpx;
+  padding: 22rpx 26rpx;
+  background: var(--bg-color);
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.review-textarea-ph {
+  color: var(--text-hint);
+  font-size: 26rpx;
+}
+
+/* 提交评价按钮：选了星才点亮渐变粉 */
+.review-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 24rpx;
+  padding: 24rpx;
+  border-radius: 999rpx;
+  background: #EEDDE3;
+  color: #FFFFFF;
+  font-size: 30rpx;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.review-submit.active {
+  background: var(--gradient-primary);
+  box-shadow: var(--shadow-button);
+}
+
+.review-submit.active:active {
+  transform: scale(0.97);
+}
+
+.review-submit.disabled {
+  opacity: 0.6;
+}
+
+/* 做菜人等待评价 */
+.review-waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0 32rpx;
+}
+
+.review-waiting-icon {
+  font-size: 52rpx;
+  margin-bottom: 12rpx;
+}
+
+.review-waiting-text {
+  font-size: 26rpx;
+  color: var(--text-hint);
+}
+
+/* 评价卡片 */
+.review-card {
+  padding: 24rpx 26rpx;
+  background: var(--selected-bg);
+  border-radius: 20rpx;
+  animation: review-in 0.3s ease;
+}
+
+@keyframes review-in {
+  0% { opacity: 0; transform: translateY(10rpx); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.review-card-head {
+  display: flex;
+  align-items: center;
+}
+
+.review-card-stars {
+  display: flex;
+  gap: 6rpx;
+}
+
+.review-card-star {
+  font-size: 32rpx;
+  line-height: 1.1;
+}
+
+.review-card-star.off {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.review-card-time {
+  margin-left: auto;
+  font-size: 22rpx;
+  color: var(--text-hint);
+}
+
+.review-card-text {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: var(--text-primary);
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+/* 大厨回复（白卡 + 左侧粉条，层级低于评价本体） */
+.review-reply {
+  margin-top: 20rpx;
+  padding: 20rpx 24rpx;
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  border-left: 6rpx solid var(--primary-dark);
+  box-shadow: var(--shadow-card-light);
+}
+
+.review-reply-head {
+  display: flex;
+  align-items: center;
+}
+
+.review-reply-icon {
+  font-size: 28rpx;
+  margin-right: 8rpx;
+}
+
+.review-reply-name {
+  font-size: 24rpx;
+  color: var(--primary-deep);
+  font-weight: 600;
+}
+
+.review-reply-time {
+  margin-left: auto;
+  font-size: 22rpx;
+  color: var(--text-hint);
+}
+
+.review-reply-text {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 27rpx;
+  line-height: 1.55;
+  color: var(--text-primary);
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+/* 回复输入条（嵌在评价卡片内，白底与卡片浅粉底区分） */
+.review-reply-bar {
+  display: flex;
+  align-items: center;
+  margin-top: 20rpx;
+}
+
+.review-reply-input {
+  flex: 1;
+  height: 68rpx;
+  padding: 0 26rpx;
+  background: #FFFFFF;
+  border-radius: 999rpx;
+  font-size: 27rpx;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-card-light);
+}
+
+.review-reply-input-ph {
+  color: var(--text-hint);
+  font-size: 25rpx;
+}
+
+.review-reply-send {
+  flex-shrink: 0;
+  margin-left: 18rpx;
+  padding: 14rpx 32rpx;
+  border-radius: 999rpx;
+  background: #EEDDE3;
+  color: #FFFFFF;
+  font-size: 25rpx;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.review-reply-send.active {
+  background: var(--gradient-primary);
+  box-shadow: var(--shadow-button);
+}
+
+.review-reply-send.active:active {
+  transform: scale(0.94);
+}
+
+.review-reply-send.disabled {
+  opacity: 0.6;
 }
 
 .share-btn .share-text {
