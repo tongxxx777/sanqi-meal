@@ -735,6 +735,36 @@
   gap: 6rpx;
 }
 
+/* 星级文案：居中标语式，两侧粉色渐变细线（呼应头部 hero-sub 的装饰语言） */
+.review-card-mood {
+  margin-top: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-card-mood-line {
+  width: 56rpx;
+  height: 1rpx;
+}
+
+.review-card-mood-line--l {
+  background: linear-gradient(to left, rgba(255, 122, 158, 0.55), rgba(255, 122, 158, 0));
+}
+
+.review-card-mood-line--r {
+  background: linear-gradient(to right, rgba(255, 122, 158, 0.55), rgba(255, 122, 158, 0));
+}
+
+.review-card-mood-text {
+  margin: 0 20rpx;
+  font-size: 25rpx;
+  font-weight: 500;
+  color: var(--primary-deep);
+  letter-spacing: 3rpx;
+  white-space: nowrap;
+}
+
 .review-card-star {
   font-size: 32rpx;
   line-height: 1.1;

@@ -161,9 +161,11 @@ Page({
 
   // ========== 评价（订单完成后：点餐人打分，大厨可回复一次）==========
 
-  // 评价/回复条目视图加工：补时间文案
+  // 评价/回复条目视图加工：补时间文案；评价额外补星级文案（回复无 rating 不补）
   formatReviewEntry(entry) {
-    return Object.assign({}, entry, { timeText: this.formatEntryTime(entry.createTime) })
+    const view = Object.assign({}, entry, { timeText: this.formatEntryTime(entry.createTime) })
+    if (entry.rating) view.labelText = this.data.ratingLabels[entry.rating] || ''
+    return view
   },
 
   // 时间文案：统一带日期，同年 MM/DD HH:MM，跨年补上年份 YYYY/MM/DD HH:MM

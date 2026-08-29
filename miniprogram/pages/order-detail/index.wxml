@@ -139,6 +139,12 @@
         </view>
         <text class="review-card-time">{{order.reviewView.timeText}}</text>
       </view>
+      <!-- 星级文案：居中标语式，两侧渐变细线装饰（呼应头部 hero-sub） -->
+      <view class="review-card-mood" wx:if="{{order.reviewView.labelText}}">
+        <view class="review-card-mood-line review-card-mood-line--l"></view>
+        <text class="review-card-mood-text">{{order.reviewView.labelText}}</text>
+        <view class="review-card-mood-line review-card-mood-line--r"></view>
+      </view>
       <text class="review-card-text" wx:if="{{order.reviewView.text}}">{{order.reviewView.text}}</text>
 
       <!-- 大厨回复（已回复） -->
