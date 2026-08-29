@@ -10,6 +10,9 @@ Page({
     partnerAvatar: '',
     bindDays: 0,
     todayOrders: [],
+    tomorrowOrders: [],
+    mealOrders: [],      // 今天+明天合并渲染列表（明天单项带 _preview 标记）
+    tableEmptyText: '',  // 小饭桌空状态文案（今天无单时展示）
     dishCount: 0,
     orderCount: 0,
     isBound: false,
@@ -64,41 +67,73 @@ Page({
       bindDays,
       isBound,
       profileComplete: app.isProfileComplete(),
-      todayOrders: isBound ? this.computeTodayOrders() : [],
+      ...this.computeMealSection(isBound),
       dishCount: isBound ? dishCount : 0,
       orderCount: isBound ? orderCount : 0
     })
   },
 
-  // 由 homeStore 原始订单计算"今天食用"的列表（按期望用餐日聚合）
-  computeTodayOrders() {
-    const now = new Date()
-    const currentUserId = app.globalData.currentUser?._id
-    return (app.globalData.homeStore.orders || [])
-      // 计算有效用餐时间：优先期望时间，老数据兜底用创建时间
-      .map(o => ({ ...o, _eff: o.expectTime ? new Date(o.expectTime) : new Date(o.createTime) }))
-      // 只保留"今天食用"的
-      .filter(o => this.isSameDay(o._eff, now))
-      // 按用餐时间从早到晚排
-      .sort((a, b) => a._eff - b._eff)
-      .map(o => {
-        if (!o.status) o.status = 'pending'
-        return {
-          ...o,
-          creatorName: app.getDisplayName(o._openid),
-          isCreator: o._openid === currentUserId,
-          // 本区块只含"今日食用"的单，直接显示档位/时刻，
-          // 不用下单时冻结的 expectText（隔天会显示成"明天"）
-          timeText: this.todayOrderTimeText(o)
-        }
-      })
+  // 小饭桌区块数据：今明两天订单 + 空状态文案（未绑定时全部置空）
+  computeMealSection(isBound) {
+    if (!isBound) {
+      return { todayOrders: [], tomorrowOrders: [], mealOrders: [], tableEmptyText: '' }
+    }
+    const { today, tomorrow } = this.computeMealOrders()
+    return {
+      todayOrders: today,
+      tomorrowOrders: tomorrow,
+      // 合并渲染：今天单在前，明天单置后并标记 _preview（弱化预告样式）
+      mealOrders: [...today, ...tomorrow],
+      tableEmptyText: this.computeTableEmptyText(today, tomorrow)
+    }
   },
 
-  // 今日点餐的期望时间文案：今日就是今日，只显示档位或具体时刻
-  todayOrderTimeText(o) {
+  // 由 homeStore 原始订单计算"今天/明天食用"的两组列表（按期望用餐日聚合，滚动窗口）
+  computeMealOrders() {
+    const now = new Date()
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+    const currentUserId = app.globalData.currentUser?._id
+    const groups = { today: [], tomorrow: [] }
+    ;(app.globalData.homeStore.orders || [])
+      // 计算有效用餐时间：优先期望时间，老数据兜底用创建时间
+      .map(o => ({ ...o, _eff: o.expectTime ? new Date(o.expectTime) : new Date(o.createTime) }))
+      .forEach(o => {
+        if (this.isSameDay(o._eff, now)) groups.today.push(o)
+        else if (this.isSameDay(o._eff, tomorrow)) groups.tomorrow.push(o)
+      })
+    // 各组内按用餐时间从早到晚排
+    groups.today.sort((a, b) => a._eff - b._eff)
+    groups.tomorrow.sort((a, b) => a._eff - b._eff)
+    const decorate = (o, isTomorrow) => {
+      if (!o.status) o.status = 'pending'
+      return {
+        ...o,
+        creatorName: app.getDisplayName(o._openid),
+        isCreator: o._openid === currentUserId,
+        _preview: isTomorrow,
+        // 不用下单时冻结的 expectText（隔天会显示成"明天"），
+        // 按查看时的今明关系现算，明天单加"明天"前缀
+        timeText: (isTomorrow ? '明天 ' : '') + this.mealTimeText(o)
+      }
+    }
+    return {
+      today: groups.today.map(o => decorate(o, false)),
+      tomorrow: groups.tomorrow.map(o => decorate(o, true))
+    }
+  },
+
+  // 期望时间文案：只显示档位或具体时刻（"明天"前缀由调用方按需添加）
+  mealTimeText(o) {
     if (!o.expectTime) return o.expectText || this.formatTime(o.createTime)
     const SLOT_LABEL = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐' }
     return SLOT_LABEL[o.expectSlot] || o.expectTimeText || this.formatTime(o.expectTime)
+  },
+
+  // 小饭桌空状态文案：仅今天无单时展示；今天没点但明天有单时顺带预告明天已安排
+  computeTableEmptyText(today, tomorrow) {
+    if (today.length > 0) return ''
+    if (tomorrow.length > 0) return '今天还没点餐哦~'
+    return '小饭桌还空着呢，快去点些爱吃的吧~'
   },
 
   // 下拉刷新（3s 防抖）- 强制版本校验 + 重拉变化数据
@@ -155,8 +190,8 @@ Page({
     wx.switchTab({ url: '/pages/order/index' })
   },
 
-  // 跳转到今日订单详情
-  goToTodayOrder(e) {
+  // 跳转到订单详情（小饭桌今明两天的单共用）
+  goToMealOrder(e) {
     const id = e.currentTarget.dataset.id
     if (!id) return
     wx.navigateTo({ url: `/pages/order-detail/index?id=${id}` })

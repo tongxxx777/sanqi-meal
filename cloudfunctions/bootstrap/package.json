@@ -1,7 +1,7 @@
 {
   "name": "bootstrap",
   "version": "1.0.0",
-  "description": "Cold start aggregation: user + partner + meta + categories + today orders",
+  "description": "Cold start aggregation: user + partner + meta + categories + home meal orders (today & tomorrow)",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "^2.6.3"

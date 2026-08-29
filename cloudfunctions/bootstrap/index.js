@@ -1,5 +1,5 @@
 // 云函数入口文件 - 冷启动聚合接口
-// 一次调用返回：user + partner + CoupleMeta（懒创建）+ 分类（自动初始化）+ 今日订单原始数据
+// 一次调用返回：user + partner + CoupleMeta（懒创建）+ 分类（自动初始化）+ 小饭桌订单原始数据（近 30 天，页面侧按期望用餐日过滤今明）
 // 冷启动从原来的 6~7 次云函数调用合并为 1 次
 const cloud = require('wx-server-sdk')
 
@@ -119,7 +119,7 @@ exports.main = async (event, context) => {
 
     const coupleId = user.coupleId
 
-    // 3. 已绑定：并行拉取 partner / CoupleMeta（懒创建）/ 分类（自动初始化）/ 今日订单
+    // 3. 已绑定：并行拉取 partner / CoupleMeta（懒创建）/ 分类（自动初始化）/ 小饭桌订单
     const since = new Date()
     since.setDate(since.getDate() - 30)
     since.setHours(0, 0, 0, 0)

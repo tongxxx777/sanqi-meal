@@ -107,7 +107,7 @@ Page({
     this.setData({ order, loading: false, isCreator, isCook, partnerName, dishesExpanded: false })
   },
 
-  // 期望用餐时间展示文案（与首页今日点餐逻辑同步）：
+  // 期望用餐时间展示文案（与首页小饭桌 mealTimeText 逻辑同步）：
   // 当天餐（期望日=下单日）只显示档位/时刻（如"午餐"）；次日餐（期望日=下单日+1）显示"明天 xx"。
   // 判定基准是"下单日"而非查看时的今天——历史单显示稳定不随时间变化，也不动数据库
   expectDisplayText(order) {

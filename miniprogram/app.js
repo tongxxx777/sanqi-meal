@@ -77,7 +77,7 @@ App({
       counts: { dishCount: 0, orderCount: 0 },
       // 菜品库（dishes 页与 order 页共享同一份数据）
       dishStore: { dishes: [], loaded: false },
-      // 首页今日订单原始数据（近 30 天创建，页面侧按期望用餐日过滤）
+      // 首页小饭桌订单原始数据（近 30 天创建，页面侧按期望用餐日过滤出今明两天）
       homeStore: { orders: [], loaded: false },
       // 历史页第一页数据（分页的第 2 页起由页面自行加载）
       historyStore: { orders: [], hasMore: true, page: 0, loaded: false },
@@ -137,7 +137,7 @@ App({
 
   // ========== 冷启动聚合 ==========
 
-  // bootstrap：一次云函数调用拿全 user+partner+分类+今日订单+版本号
+  // bootstrap：一次云函数调用拿全 user+partner+分类+小饭桌订单+版本号
   async bootstrap(force = false) {
     if (this._bootstrapPromise && !force) return this._bootstrapPromise
     this._bootstrapPromise = this._doBootstrap()
@@ -416,7 +416,7 @@ App({
     }
   },
 
-  // 重拉首页今日订单原始数据（近 30 天创建）
+  // 重拉首页小饭桌订单原始数据（近 30 天创建）
   async reloadHome() {
     try {
       const res = await wx.cloud.callFunction({
@@ -893,7 +893,7 @@ App({
     const shareTitles = {
       'pages/index/index': this.getKitchenName() + ' · 专属小厨房',
       'pages/dishes/index': '来看看我们的小厨房菜单吧',
-      'pages/order/index': '今天吃什么？来' + this.getKitchenName() + '点餐吧',
+      'pages/order/index': '想吃点什么？来' + this.getKitchenName() + '点餐吧',
       'pages/order-history/index': '看看我们的美食记录',
       'pages/settings/index': this.getKitchenName() + ' · 专属小厨房'
     }

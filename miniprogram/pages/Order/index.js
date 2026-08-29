@@ -767,7 +767,7 @@ Page({
 
       const orderId = res.result._id
 
-      // 用响应里的完整订单与新版本号同步本地 store（首页今日订单立即可见，无需重拉）
+      // 用响应里的完整订单与新版本号同步本地 store（首页小饭桌立即可见，无需重拉）
       app.applyOrderAdded(res.result.doc, res.result.ver)
       // 本地菜品 orderCount 乐观 +1（不触发 dishVer，避免整库重拉）
       app.bumpDishOrderCount(selectedDishes.map(d => d._id), 1)
@@ -831,7 +831,7 @@ Page({
       }
     }
     return {
-      title: `今天吃什么？和${partnerName}一起来点餐吧`,
+      title: `想吃点什么？和我一起来点餐吧`,
       path: '/pages/order/index',
       imageUrl: '/images/default.jpg'
     }

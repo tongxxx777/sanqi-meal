@@ -23,7 +23,7 @@
     </view>
     <!-- 已绑定：情侣卡片 -->
     <view wx:else class="couple-header" bindtap="goToBind">
-      <view class="couple-greeting">{{greeting}}，今天想吃什么？</view>
+      <view class="couple-greeting">{{greeting}}，想吃点什么呀~</view>
       <view class="couple-avatars-top">
         <view class="couple-avatar-item" catchtap="goToSettings">
           <image class="couple-avatar-img" src="{{userAvatar || '/images/user-default.jpg'}}" mode="aspectFill"></image>
@@ -64,12 +64,18 @@
     </view>
   </view>
 
-  <!-- 今日状态卡片 -->
+  <!-- 小饭桌：今明两天的用餐安排 -->
   <view class="status-section" wx:if="{{isBound}}">
-    <view class="section-title">🍽️ 今日点餐</view>
-    <block wx:if="{{todayOrders.length > 0}}">
-      <view class="status-card" wx:for="{{todayOrders}}" wx:key="_id"
-            data-id="{{item._id}}" bindtap="goToTodayOrder">
+    <view class="section-title">🍚 小饭桌</view>
+    <!-- 今天没单时提示卡在最上方：明天有单则顺带预告，都没有则引导点餐 -->
+    <view class="empty-card" wx:if="{{todayOrders.length === 0}}">
+      <image class="empty-image" src="/images/2.gif" mode="aspectFit"></image>
+      <text class="empty-text">{{tableEmptyText}}</text>
+      <view class="btn-primary" bindtap="goToOrder">去点餐</view>
+    </view>
+    <block wx:if="{{mealOrders.length > 0}}">
+      <view class="status-card {{item._preview ? 'tomorrow' : ''}}" wx:for="{{mealOrders}}" wx:key="_id"
+            data-id="{{item._id}}" bindtap="goToMealOrder">
         <view class="status-header">
           <view class="status-label-wrap">
             <text class="status-label">{{item.creatorName}} 点了餐</text>
@@ -97,15 +103,10 @@
           <text>⏳ 等待大厨拍照上传~</text>
         </view>
         <view class="photo-hint completed-hint" wx:if="{{item.status === 'completed'}}">
-          <text>🎉 今天也好好吃饭了，真棒！</text>
+          <text>🎉 好好吃饭的我们，真棒！</text>
         </view>
       </view>
     </block>
-    <view class="empty-card" wx:else>
-      <image class="empty-image" src="/images/2.gif" mode="aspectFit"></image>
-      <text class="empty-text">今天还没有点餐哦~</text>
-      <view class="btn-primary" bindtap="goToOrder">去点餐</view>
-    </view>
   </view>
 
 

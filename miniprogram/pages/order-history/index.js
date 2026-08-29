@@ -128,7 +128,7 @@ Page({
     }
   },
 
-  // 期望用餐时间展示文案（与首页今日点餐逻辑同步）：
+  // 期望用餐时间展示文案（与首页小饭桌 mealTimeText 逻辑同步）：
   // 当天餐（期望日=下单日）只显示档位/时刻（如"午餐"）；次日餐（期望日=下单日+1）显示"明天 xx"。
   // 判定基准是"下单日"而非查看时的今天——历史单显示稳定不随时间变化，也不动数据库
   expectDisplayText(order) {
@@ -319,7 +319,7 @@ Page({
               return
             }
 
-            // 用响应里的新版本号同步本地 store（首页今日订单同步移除）
+            // 用响应里的新版本号同步本地 store（首页小饭桌同步移除）
             app.applyOrderRemoved(id, result.result.ver)
             // 本地菜品 orderCount 乐观 -1（云端已批量回收，这里同步本地展示）
             const target = this.data.orders.find(item => item._id === id)

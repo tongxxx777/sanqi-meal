@@ -109,7 +109,7 @@
   margin: 40rpx 16rpx 20rpx;
 }
 
-/* 今日状态 */
+/* 小饭桌（今明两天用餐安排） */
 .status-section {
   margin-top: 0;
   padding: 0 16rpx;
@@ -122,8 +122,19 @@
   box-shadow: var(--shadow-card-medium);
 }
 
-.status-card + .status-card {
+.status-card + .status-card,
+.empty-card + .status-card {
   margin-top: 20rpx;
+}
+
+/* 明天的单：弱化预告样式，与今天实卡形成层级 */
+.status-card.tomorrow {
+  opacity: 0.55;
+  box-shadow: var(--shadow-card);
+}
+
+.status-card.tomorrow .status-time {
+  font-size: 24rpx;
 }
 
 .status-label-wrap {

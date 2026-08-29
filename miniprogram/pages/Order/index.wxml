@@ -1,7 +1,7 @@
 <view class="container">
   <!-- 页面头部 -->
   <view class="page-header">
-    <text class="page-title">今天吃什么？</text>
+    <text class="page-title">想吃点什么？</text>
     <text class="page-subtitle">选好菜品，通知{{partnerName}}~</text>
     <!-- 搜索框 -->
     <view class="search-box">
