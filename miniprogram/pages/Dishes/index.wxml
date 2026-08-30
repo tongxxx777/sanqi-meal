@@ -123,7 +123,12 @@
 
     <!-- 悬浮添加按钮：sticky 包裹层，随内容滚动，接近底部时吸在右下角 -->
     <view class="fab-wrap">
-      <view class="fab {{sortMode ? 'sort-disabled' : ''}}" bindtap="toAddPage">
+      <!-- 首次引导气泡：本设备一次性，点气泡/点按钮/4s 后消失 -->
+      <view class="fab-tip" wx:if="{{showFabTip}}" catchtap="dismissFabTip">
+        <text class="fab-tip-text">点这里添加新菜品~</text>
+        <view class="fab-tip-arrow"></view>
+      </view>
+      <view class="fab {{sortMode ? 'sort-disabled' : ''}} {{fabPop ? 'fab-pop' : ''}}" bindtap="toAddPage">
         <text class="fab-text">+</text>
       </view>
     </view>

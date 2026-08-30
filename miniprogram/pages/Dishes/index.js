@@ -39,10 +39,14 @@ Page({
     gridShift: 0,             // 拖拽中虚拟滚动位移 px（grid 容器 translateY）
     refreshing: false,        // 下拉刷新中
     scrollTop: 0,             // scroll-view 滚动位置
+    // FAB 首次引导：气泡 + 弹跳动效（本设备一次性，storage 标记）
+    showFabTip: false,
+    fabPop: false,
   },
 
   onUnload() {
     this._resetDragRuntime()
+    if (this._fabTipTimer) { clearTimeout(this._fabTipTimer); this._fabTipTimer = null }
   },
 
   onLoad() {
@@ -122,6 +126,24 @@ Page({
     this._updateCanSort()
     if (resetState) {
       this._scrollToListTop()
+    }
+    this._maybeShowFabTip()
+  },
+
+  // FAB 首次引导：本设备第一次见到悬浮添加按钮时弹气泡 + 弹跳一次，4s 自动消失
+  _maybeShowFabTip() {
+    if (this._fabTipShown || !this.data.dishes.length) return
+    if (wx.getStorageSync('dishes_fab_tip')) { this._fabTipShown = true; return }
+    this._fabTipShown = true
+    this.setData({ showFabTip: true, fabPop: true })
+    this._fabTipTimer = setTimeout(() => this.dismissFabTip(), 4000)
+  },
+
+  dismissFabTip() {
+    if (this._fabTipTimer) { clearTimeout(this._fabTipTimer); this._fabTipTimer = null }
+    if (this.data.showFabTip) {
+      this.setData({ showFabTip: false, fabPop: false })
+      wx.setStorageSync('dishes_fab_tip', 1)
     }
   },
 
@@ -374,6 +396,7 @@ Page({
 
   // 跳转到添加页
   toAddPage() {
+    this.dismissFabTip()
     if (!app.isBound()) {
       wx.showToast({ title: '请先绑定伴侣', icon: 'none' })
       return
