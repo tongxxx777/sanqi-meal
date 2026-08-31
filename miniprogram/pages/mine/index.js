@@ -27,10 +27,15 @@ Page({
   async onShow() {
     // 用户信息 + 版本校验（对方改昵称/头像/厨房名时 userVer 变化会精准重拉）
     await app.loadUserInfo()
-    await app.syncOnShow('settings')
+    await app.syncOnShow('mine')
     this.renderUser()
     this.loadAppInfo()
     app.setKitchenTitle()
+    // 一次性标记：tab 页无法 navigateTo 传参，由 switchTab 方写入 globalData
+    if (app.globalData.pendingEditProfile) {
+      app.globalData.pendingEditProfile = false
+      this._autoEditProfile = true
+    }
     if (this._autoEditProfile) {
       this._autoEditProfile = false
       this.openEditProfile()
@@ -63,6 +68,11 @@ Page({
   // 跳转到绑定页面
   goToBind() {
     wx.navigateTo({ url: '/pages/bind/index' })
+  },
+
+  // 跳转到点餐记录
+  goToOrderRecords() {
+    wx.navigateTo({ url: '/pages/order-records/index' })
   },
 
   // 打开编辑个人信息弹窗

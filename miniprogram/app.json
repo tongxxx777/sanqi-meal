@@ -5,9 +5,9 @@
     "pages/dish-add/index",
     "pages/dish-detail/index",
     "pages/order/index",
-    "pages/order-history/index",
+    "pages/order-records/index",
     "pages/order-detail/index",
-    "pages/settings/index",
+    "pages/mine/index",
     "pages/bind/index",
     "pages/bind-confirm/index",
     "pages/category-manage/index"
@@ -40,10 +40,10 @@
       "selectedIconPath": "images/tab-bar/MissionIconColor.png",
       "text": "菜品库"
     }, {
-      "pagePath": "pages/order-history/index",
+      "pagePath": "pages/mine/index",
       "iconPath": "images/tab-bar/AccountIconGrey.png",
       "selectedIconPath": "images/tab-bar/AccountIconColor.png",
-      "text": "历史"
+      "text": "我的"
     }]
   },
   "usingComponents": {

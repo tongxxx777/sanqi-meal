@@ -71,7 +71,7 @@
         <image class="inviter-avatar" src="{{inviterAvatarUrl || '/images/user-default.jpg'}}" mode="aspectFill"></image>
         <view class="avatar-ring"></view>
       </view>
-      <text class="inviter-name">{{inviterNickname || '你的另一半'}}</text>
+      <text class="inviter-name">{{inviterNickname || '你的伴侣'}}</text>
       <text class="invite-desc">邀请你一起使用叁柒食小厨房</text>
       <text class="invite-sub">接受邀请，你们将共享专属菜单、订单和情侣记录</text>
     </view>
@@ -88,7 +88,7 @@
       </view>
       <view class="tips-item">
         <text class="tips-dot">●</text>
-        <text class="tips-text">可以查看彼此的点餐历史</text>
+        <text class="tips-text">可以查看彼此的点餐记录</text>
       </view>
     </view>
 

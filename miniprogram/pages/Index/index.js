@@ -202,9 +202,9 @@ Page({
     wx.navigateTo({ url: '/pages/bind/index' })
   },
 
-  // 跳转到设置页
-  goToSettings() {
-    wx.navigateTo({ url: '/pages/settings/index' })
+  // 跳转到点餐记录
+  goToOrderRecords() {
+    wx.navigateTo({ url: '/pages/order-records/index' })
   },
 
   // 跳转到分类管理
@@ -216,9 +216,10 @@ Page({
     wx.navigateTo({ url: '/pages/category-manage/index' })
   },
 
-  // 跳转到设置 profile
+  // 跳转到「我的」页并自动打开编辑资料（tab 页无法 navigateTo 传参，用一次性标记）
   goToSetProfile() {
-    wx.navigateTo({ url: '/pages/settings/index?editProfile=true' })
+    app.globalData.pendingEditProfile = true
+    wx.switchTab({ url: '/pages/mine/index' })
   },
 
   // 分享给好友

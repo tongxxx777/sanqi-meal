@@ -2,7 +2,7 @@
 const _originalPage = Page
 const _bindWhitelist = [
   'pages/index/index',
-  'pages/settings/index',
+  'pages/mine/index',
   'pages/bind/index',
   'pages/bind-confirm/index'
 ]
@@ -305,7 +305,7 @@ App({
   },
 
   // 页面 onShow 统一入口：版本校验 + 按变化精准重拉 + store 兜底加载
-  // scene: 'home' | 'dishes' | 'order' | 'history' | 'settings'
+  // scene: 'home' | 'dishes' | 'order' | 'records' | 'mine'
   async syncOnShow(scene, options = {}) {
     if (!this.isBound()) return { changed: [] }
     const coupleId = this.globalData.currentUser.coupleId
@@ -338,7 +338,7 @@ App({
     if (changed.includes('order')) tasks.push(this.reloadOrders())
     // 场景兜底：对应 store 未加载则补齐（首次访问）
     if (scene === 'home' && !g.homeStore.loaded) tasks.push(this.reloadHome())
-    if (scene === 'history' && !g.historyStore.loaded) tasks.push(this.reloadHistory())
+    if (scene === 'records' && !g.historyStore.loaded) tasks.push(this.reloadHistory())
     await Promise.all(tasks)
 
     // 重拉完成后再应用版本号：若期间对方又有写入，下次校验会发现版本差自动再拉
@@ -894,8 +894,8 @@ App({
       'pages/index/index': this.getKitchenName() + ' · 专属小厨房',
       'pages/dishes/index': '来看看我们的小厨房菜单吧',
       'pages/order/index': '想吃点什么？来' + this.getKitchenName() + '点餐吧',
-      'pages/order-history/index': '看看我们的美食记录',
-      'pages/settings/index': this.getKitchenName() + ' · 专属小厨房'
+      'pages/order-records/index': '看看我们的点餐记录',
+      'pages/mine/index': this.getKitchenName() + ' · 专属小厨房'
     }
 
     return {
@@ -912,7 +912,7 @@ App({
     const timelineTitles = {
       'pages/index/index': this.getKitchenName() + ' · 专属小厨房',
       'pages/dishes/index': this.getKitchenName() + ' · 我们的美食小厨房',
-      'pages/order-history/index': this.getKitchenName() + ' · 美食记忆'
+      'pages/order-records/index': this.getKitchenName() + ' · 美食记忆'
     }
 
     return {

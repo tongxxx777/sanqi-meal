@@ -67,7 +67,9 @@ Component({
     },
 
     goToSetProfile() {
-      wx.navigateTo({ url: '/pages/settings/index?editProfile=true' })
+      // tab 页无法 navigateTo 传参，用一次性标记让 mine 页 onShow 自动打开编辑资料
+      getApp().globalData.pendingEditProfile = true
+      wx.switchTab({ url: '/pages/mine/index' })
     }
   }
 })

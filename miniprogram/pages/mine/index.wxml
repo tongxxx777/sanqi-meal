@@ -4,7 +4,7 @@
     <view class="header-info">
       <text class="header-title">{{appName}}</text>
       <text class="header-subtitle" wx:if="{{isBound}}">和{{partnerName}}的专属小厨房</text>
-      <text class="header-subtitle" wx:else>快去绑定你的另一半吧</text>
+      <text class="header-subtitle" wx:else>快去绑定你的伴侣吧</text>
     </view>
   </view>
 
@@ -21,7 +21,7 @@
       </view>
       <view class="settings-item" bindtap="goToBind">
         <text class="item-icon">💕</text>
-        <text class="item-label">我的另一半</text>
+        <text class="item-label">我的伴侣</text>
         <view class="item-right" wx:if="{{isBound}}">
           <image class="partner-mini-avatar" src="{{partnerAvatar || 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'}}" mode="aspectFill"></image>
           <text class="item-value">{{partnerName}}</text>
@@ -33,28 +33,12 @@
   </view>
 
   <view class="settings-section">
-    <view class="section-title">数据统计</view>
+    <view class="section-title">订单</view>
     <view class="settings-card">
-      <view class="settings-item">
-        <text class="item-icon">🍽</text>
-        <text class="item-label">菜品总数</text>
-        <text class="item-value">{{dishCount}} 道</text>
-      </view>
-      <view class="settings-item">
-        <text class="item-icon">📋</text>
-        <text class="item-label">点餐次数</text>
-        <text class="item-value">{{orderCount}} 次</text>
-      </view>
-    </view>
-  </view>
-
-  <view class="settings-section">
-    <view class="section-title">关于</view>
-    <view class="settings-card">
-      <view class="settings-item">
-        <text class="item-icon">📱</text>
-        <text class="item-label">版本号</text>
-        <text class="item-value">{{version}}</text>
+      <view class="settings-item" bindtap="goToOrderRecords">
+        <text class="item-icon">🍜</text>
+        <text class="item-label">点餐记录</text>
+        <text class="item-arrow">></text>
       </view>
     </view>
   </view>

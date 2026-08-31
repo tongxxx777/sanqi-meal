@@ -57,7 +57,7 @@
     <view class="bind-tip-card" bindtap="goToBind">
       <text class="bind-tip-icon">💕</text>
       <view class="bind-tip-content">
-        <text class="bind-tip-title">还没有绑定另一半</text>
+        <text class="bind-tip-title">还没有绑定伴侣</text>
         <text class="bind-tip-desc">点击邀请 TA 入驻你的小厨房</text>
       </view>
 
@@ -114,9 +114,9 @@
   <view class="quick-section">
     <view class="section-title">⚡ 快捷操作</view>
     <view class="quick-grid">
-      <view class="quick-item" bindtap="goToSettings">
-        <view class="quick-icon quick-icon-green">😊</view>
-        <text class="quick-label">个人中心</text>
+      <view class="quick-item" bindtap="goToOrderRecords">
+        <view class="quick-icon quick-icon-green">🍜</view>
+        <text class="quick-label">点餐记录</text>
       </view>
       <view class="quick-item" bindtap="goToBind">
         <view class="quick-icon quick-icon-pink">💕</view>

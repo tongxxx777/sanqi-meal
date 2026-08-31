@@ -1,7 +1,7 @@
 <view class="container">
   <!-- 页面头部 -->
   <view class="page-header">
-    <text class="page-title">点餐历史</text>
+    <text class="page-title">点餐记录</text>
     <text class="page-subtitle">和{{partnerName}}的每一餐 ~</text>
   </view>
 

@@ -79,7 +79,7 @@
           <view class="tips-list">
             <text class="tips-item">· 菜品库内容双方共享</text>
             <text class="tips-item">· 点餐后可分享通知对方</text>
-            <text class="tips-item">· 可以查看彼此的点餐历史</text>
+            <text class="tips-item">· 可以查看彼此的点餐记录</text>
           </view>
         </view>
       </view>
@@ -143,7 +143,7 @@
             bindtap="bindPartner"
             loading="{{submitting}}"
           >
-            绑定另一半
+            绑定伴侣
           </button>
         </view>
       </view>

@@ -26,7 +26,7 @@ Page({
     await this.loadUserInfo()
     const isFirst = !this.data.hasLoaded
     // 版本校验：每次 onShow 直连读 CoupleMeta，对方有修改则精准重拉对应数据
-    const r = await app.syncOnShow('history')
+    const r = await app.syncOnShow('records')
     if (isFirst) {
       this.setData({ hasLoaded: true })
       this.renderFromStore()
@@ -398,7 +398,7 @@ Page({
   // 下拉刷新（系统级，页面无 scroll-view 时可触发；当前使用 scroll-view 内置 refresher）
   async onPullDownRefresh() {
     try {
-      await app.syncOnShow('history', { force: true })
+      await app.syncOnShow('records', { force: true })
       this.renderFromStore()
     } finally {
       wx.stopPullDownRefresh()
@@ -415,7 +415,7 @@ Page({
     app.globalData.lastPullTs = now
     this.setData({ refresherTriggered: true })
     try {
-      await app.syncOnShow('history', { force: true })
+      await app.syncOnShow('records', { force: true })
       this.renderFromStore()
     } catch (e) {
       console.error('history onRefresh error', e)
@@ -432,8 +432,8 @@ Page({
   // 分享给好友
   onShareAppMessage() {
     return {
-      title: '看看我们的美食记录',
-      path: '/pages/order-history/index',
+      title: '看看我们的点餐记录',
+      path: '/pages/order-records/index',
       imageUrl: '/images/default.jpg'
     }
   },
