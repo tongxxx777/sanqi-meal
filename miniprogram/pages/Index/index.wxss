@@ -51,7 +51,7 @@
 
 .container {
   padding: 0;
-  padding-bottom: 180rpx;
+  padding-bottom: 20rpx;
 }
 
 /* 欢迎区域 */
@@ -312,7 +312,7 @@
 
 /* 底部装饰 */
 .footer-decoration {
-  padding: 60rpx 30rpx;
+  padding: 60rpx 30rpx 20rpx;
   text-align: center;
 }
 
@@ -452,11 +452,6 @@
   color: var(--primary-color);
 }
 
-.bind-tip-arrow {
-  font-size: 32rpx;
-  color: var(--primary-color);
-}
-
 /* profile 提醒卡片 */
 .profile-tip-card {
   background: linear-gradient(135deg, var(--border-color) 0%, var(--primary-light) 100%);
@@ -467,9 +462,5 @@
 }
 
 .profile-tip-card .bind-tip-desc {
-  color: var(--primary-color);
-}
-
-.profile-tip-card .bind-tip-arrow {
   color: var(--primary-color);
 }

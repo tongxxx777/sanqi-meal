@@ -3,7 +3,7 @@
 .container {
   min-height: 100vh;
   background: var(--bg-color);
-  padding-bottom: 120rpx;
+  padding-bottom: 40rpx;
 }
 
 .page-header {

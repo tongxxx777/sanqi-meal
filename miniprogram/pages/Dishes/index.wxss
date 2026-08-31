@@ -71,8 +71,7 @@
   border-radius: 3rpx;
 }
 
-/* 档位视觉微调：2列稍大图标、6列更紧凑 */
-.grid-icon.cols-2 { grid-template-columns: 1fr 1fr; }
+/* 档位视觉微调：3列/6列图标更紧凑 */
 .grid-icon.cols-3 { grid-template-columns: 1fr 1fr 1fr; gap: 3rpx; width: 26rpx; height: 26rpx; }
 .grid-icon.cols-3 .gi-cell:nth-child(4) { display: none; }
 .grid-icon.cols-4 { grid-template-columns: 1fr 1fr; gap: 3rpx; }
@@ -285,18 +284,6 @@
   /* 作为排序拖动图标的定位参照，否则绝对定位的 handle 会跑到页面右上角 */
   position: relative;
 }
-
-/* 列数档位：默认 2 列（大图 + 描述） */
-.dish-grid.cols-2 {
-  gap: 20rpx;
-  padding-top: 20rpx;
-}
-.dish-grid.cols-2 .dish-card {
-  width: calc((100% - 20rpx) / 2);
-  margin-bottom: 24rpx;
-}
-.dish-grid.cols-2 .card-name { font-size: 28rpx; }
-.dish-grid.cols-2 .card-desc { display: block; font-size: 22rpx; }
 
 /* 3 列：均衡（图 + 菜名 + 描述） */
 .dish-grid.cols-3 {

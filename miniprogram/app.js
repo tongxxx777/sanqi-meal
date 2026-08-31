@@ -35,12 +35,6 @@ App({
   async onLaunch() {
     this.initcloud()
 
-    // 全局启用分享菜单（转发 + 朋友圈）
-    wx.showShareMenu({
-      withShareTicket: false,
-      menus: ['shareAppMessage', 'shareTimeline']
-    })
-
     this.globalData = {
       // 当前用户信息(动态获取)
       currentUser: null,
@@ -63,7 +57,6 @@ App({
       categories: [],
       categoriesLoaded: false,
       categoriesLoadPromise: null,
-      categoriesInited: false,
 
       // 下拉刷新节流（全局，防连续手抖下拉）
       lastPullTs: 0,
@@ -164,7 +157,6 @@ App({
       this._cacheCoupleId = coupleId
       g.categories = r.categories || []
       g.categoriesLoaded = true
-      g.categoriesInited = true
       g.homeStore = { orders: r.orders || [], loaded: true }
       if (r.meta) this._applyMeta(r.meta)
       try { wx.setStorageSync('v2_categories_' + coupleId, g.categories) } catch (e) { /* ignore */ }
@@ -292,7 +284,6 @@ App({
         if (Array.isArray(cats) && cats.length) {
           g.categories = cats
           g.categoriesLoaded = true
-          g.categoriesInited = true
         }
       }
       if (!g.historyStore.loaded) {
@@ -366,7 +357,6 @@ App({
         if (res.result?.success) {
           g.categories = res.result.data
           g.categoriesLoaded = true
-          g.categoriesInited = true
           const coupleId = g.currentUser?.coupleId
           if (coupleId) {
             try { wx.setStorageSync('v2_categories_' + coupleId, res.result.data) } catch (e) { /* ignore */ }
@@ -755,7 +745,6 @@ App({
     g.counts = { dishCount: 0, orderCount: 0 }
     g.categories = []
     g.categoriesLoaded = false
-    g.categoriesInited = false
     g.dishStore = { dishes: [], loaded: false }
     g.homeStore = { orders: [], loaded: false }
     g.historyStore = { orders: [], hasMore: true, page: 0, loaded: false }
@@ -877,47 +866,6 @@ App({
     } catch (e) {
       console.error('update kitchen name error', e)
       return { success: false, message: '更新失败' }
-    }
-  },
-
-  // ========== 全局分享配置 ==========
-
-  /**
-   * 全局转发兜底 —— 所有未自定义 onShareAppMessage 的页面走这里
-   * 页面可通过定义自己的 onShareAppMessage 覆盖
-   */
-  onShareAppMessage(options) {
-    const pages = getCurrentPages()
-    const route = pages[pages.length - 1]?.route || ''
-
-    const shareTitles = {
-      'pages/index/index': this.getKitchenName() + ' · 专属小厨房',
-      'pages/dishes/index': '来看看我们的小厨房菜单吧',
-      'pages/order/index': '想吃点什么？来' + this.getKitchenName() + '点餐吧',
-      'pages/order-records/index': '看看我们的点餐记录',
-      'pages/mine/index': this.getKitchenName() + ' · 专属小厨房'
-    }
-
-    return {
-      title: shareTitles[route] || this.getKitchenName() + ' · 和TA的专属小厨房',
-      path: '/pages/index/index',
-      imageUrl: '/images/default.jpg'
-    }
-  },
-
-  onShareTimeline() {
-    const pages = getCurrentPages()
-    const route = pages[pages.length - 1]?.route || ''
-
-    const timelineTitles = {
-      'pages/index/index': this.getKitchenName() + ' · 专属小厨房',
-      'pages/dishes/index': this.getKitchenName() + ' · 我们的美食小厨房',
-      'pages/order-records/index': this.getKitchenName() + ' · 美食记忆'
-    }
-
-    return {
-      title: timelineTitles[route] || this.getKitchenName() + ' · 和TA的专属小厨房',
-      imageUrl: '/images/default.jpg'
     }
   },
 })

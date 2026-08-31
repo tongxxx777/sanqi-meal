@@ -15,7 +15,7 @@
   <view class="welcome-section {{isBound ? 'couple-mode' : ''}}">
     <!-- 未绑定：原欢迎卡片 -->
     <view wx:if="{{!isBound}}" class="welcome-card">
-      <image class="avatar-image" src="{{userAvatar || '/images/user-default.jpg'}}" mode="aspectFill" bindtap="goToSettings"></image>
+      <image class="avatar-image" src="{{userAvatar || '/images/user-default.jpg'}}" mode="aspectFill" bindtap="goToSetProfile"></image>
       <view class="welcome-text">
         <text class="greeting">{{greeting}}，{{userName || '新朋友'}}！</text>
         <text class="sub-greeting">今天也是元气满满的一天~</text>
@@ -25,7 +25,7 @@
     <view wx:else class="couple-header" bindtap="goToBind">
       <view class="couple-greeting">{{greeting}}，想吃点什么呀~</view>
       <view class="couple-avatars-top">
-        <view class="couple-avatar-item" catchtap="goToSettings">
+        <view class="couple-avatar-item" catchtap="goToSetProfile">
           <image class="couple-avatar-img" src="{{userAvatar || '/images/user-default.jpg'}}" mode="aspectFill"></image>
           <text class="couple-avatar-name">{{userName}}</text>
         </view>
@@ -95,11 +95,11 @@
           <text>📷 做好了记得拍一张~</text>
         </view>
         <!-- 待接单状态：所有人统一显示等待大厨接单 -->
-        <view class="photo-hint viewer-hint" wx:if="{{item.status === 'waiting'}}">
+        <view class="photo-hint" wx:if="{{item.status === 'waiting'}}">
           <text>⏳ 等待大厨接单~</text>
         </view>
         <!-- 点餐人：已接单但未上传成品 -->
-        <view class="photo-hint viewer-hint" wx:if="{{!item.finishedPhoto && item.status !== 'completed' && item.status !== 'waiting' && item.isCreator}}">
+        <view class="photo-hint" wx:if="{{!item.finishedPhoto && item.status !== 'completed' && item.status !== 'waiting' && item.isCreator}}">
           <text>⏳ 等待大厨拍照上传~</text>
         </view>
         <view class="photo-hint completed-hint" wx:if="{{item.status === 'completed'}}">

@@ -3,7 +3,7 @@
 .container {
   min-height: 100vh;
   background: var(--bg-color);
-  padding-bottom: calc(60rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
 }
 
 .loading {

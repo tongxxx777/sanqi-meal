@@ -25,10 +25,6 @@ page {
   --border-color: #FFD6E0;        /* 边框色同辅助色 */
   --divider-color: #FFE8EE;       /* 细分隔线 */
 
-  /* 语义色 */
-  --success-color: #FF7A9E;       /* 成功/积极 —— 继承主色 */
-  --warning-color: #FFB74D;       /* 警告 —— 保留暖橙 */
-
   /* 渐变预设（常用组合） */
   --gradient-primary: linear-gradient(135deg, #FF7A9E 0%, #FFB3C7 100%);
   --gradient-soft: linear-gradient(135deg, #FF7A9E 0%, #FFD6E0 100%);

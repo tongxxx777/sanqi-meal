@@ -767,13 +767,6 @@
   text-align: center;
 }
 
-.success-desc {
-  font-size: 26rpx;
-  color: var(--text-secondary);
-  margin-bottom: 30rpx;
-  text-align: center;
-}
-
 .success-subtitle {
   font-size: 28rpx;
   color: var(--primary-deep);

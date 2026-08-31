@@ -432,22 +432,6 @@
   background: #FFF5F5;
 }
 
-/* 点餐人查看照片提示 */
-.photo-viewer-hint {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20rpx;
-  margin-top: 16rpx;
-  background: #FFF5F2;
-  border-radius: 12rpx;
-}
-
-.viewer-text {
-  font-size: 26rpx;
-  color: var(--primary-deep);
-}
-
 /* 点餐人等待上传照片 */
 .photo-waiting {
   display: flex;

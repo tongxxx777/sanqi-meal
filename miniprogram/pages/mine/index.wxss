@@ -1,7 +1,7 @@
 /* 设置页样式 - 蜜桃奶油系 */
 
 .container {
-  padding-bottom: 60rpx;
+  padding-bottom: 20rpx;
   background: var(--bg-color);
   min-height: 100vh;
 }
@@ -206,7 +206,7 @@
 
 /* 底部版权 */
 .footer {
-  padding: 60rpx 0;
+  padding: 60rpx 0 20rpx;
   text-align: center;
 }
 
@@ -251,11 +251,6 @@
 .sheet-panel--hidden {
   transform: scale(0.9);
   opacity: 0;
-}
-
-/* 拖拽手柄 - 隐藏 */
-.sheet-handle {
-  display: none;
 }
 
 /* 标题区 */

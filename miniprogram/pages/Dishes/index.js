@@ -763,13 +763,4 @@ Page({
     const day = d.getDate().toString().padStart(2, '0')
     return `${month}-${day}`
   },
-
-  // 分享菜品库
-  onShareAppMessage() {
-    return {
-      title: '来看看我们的小厨房菜单吧',
-      path: '/pages/dishes/index',
-      imageUrl: '/images/default.jpg'
-    }
-  },
 })

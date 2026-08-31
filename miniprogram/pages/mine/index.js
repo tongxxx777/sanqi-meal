@@ -8,20 +8,11 @@ Page({
     partnerName: '',
     partnerAvatar: '',
     isBound: false,
-    dishCount: 0,
-    orderCount: 0,
-    version: '',
     showEditModal: false,
     _showSheet: false,   // 控制 DOM 挂载（动画用）
     tempNickname: '',
     tempAvatarUrl: '',
     saving: false,
-  },
-
-  onLoad(options) {
-    if (options.editProfile) {
-      this._autoEditProfile = true
-    }
   },
 
   async onShow() {
@@ -42,27 +33,21 @@ Page({
     }
   },
 
-  // 从 globalData 渲染用户信息与统计（唯一数据源）
+  // 从 globalData 渲染用户信息（唯一数据源）
   renderUser() {
-    const { currentUser, partner, counts } = app.globalData
-    const isBound = app.isBound()
+    const { currentUser, partner } = app.globalData
     this.setData({
       userName: currentUser?.nickname || '未设置',
       userAvatar: currentUser?.avatarUrl || '',
       partnerName: partner?.nickname || '',
       partnerAvatar: partner?.avatarUrl || '',
-      isBound,
-      dishCount: isBound ? counts.dishCount : 0,
-      orderCount: isBound ? counts.orderCount : 0
+      isBound: app.isBound()
     })
   },
 
   // 加载应用信息
   loadAppInfo() {
-    this.setData({
-      appName: app.getKitchenName(),
-      version: app.globalData.version
-    })
+    this.setData({ appName: app.getKitchenName() })
   },
 
   // 跳转到绑定页面

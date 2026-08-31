@@ -20,7 +20,6 @@ Page({
     expectTimeStr: '',      // 具体时刻 24h "HH:mm"（提交/校验用）
     expectTimeLabel: '',    // 具体时刻 12h 中文（展示用）
     customTimeStr: '',      // 自定义 picker 默认展示值（未选自定义时=下一个整点）
-    expectText: '',         // 预览文案
     timeStart: '00:00',     // picker 可选起始时间（选"今天"时为当前时刻）
     allDishes: [],
     categories: [],
@@ -167,7 +166,7 @@ Page({
           } else {
             t = this._slotTime(last, this._expectPref)
           }
-          this.setData({ expectSlot: last, expectTimeStr: t, expectTimeLabel: this.format12h(t) }, () => this.updatePreview())
+          this.setData({ expectSlot: last, expectTimeStr: t, expectTimeLabel: this.format12h(t) })
           return
         }
       }
@@ -245,7 +244,7 @@ Page({
       expectSlot: avail.key,
       expectTimeStr: t,
       expectTimeLabel: this.format12h(t)
-    }, () => this.updatePreview())
+    })
   },
 
   // 选择日期
@@ -257,8 +256,6 @@ Page({
       const cur = this.data.slotOptions.find(s => s.key === this.data.expectSlot)
       if (!cur || cur.disabled) {
         this.pickDefaultSlot()
-      } else {
-        this.updatePreview()
       }
     })
   },
@@ -269,13 +266,13 @@ Page({
     const slot = this.data.slotOptions.find(s => s.key === key)
     if (!slot || slot.disabled) return
     const t = this._slotTime(key, this._expectPref) || slot.time
-    this.setData({ expectSlot: key, expectTimeStr: t, expectTimeLabel: this.format12h(t) }, () => this.updatePreview())
+    this.setData({ expectSlot: key, expectTimeStr: t, expectTimeLabel: this.format12h(t) })
   },
 
   // 自定义时间选择（picker bindchange）
   onCustomTimeChange(e) {
     const t = e.detail.value
-    this.setData({ expectSlot: 'custom', expectTimeStr: t, expectTimeLabel: this.format12h(t), customTimeStr: t }, () => this.updatePreview())
+    this.setData({ expectSlot: 'custom', expectTimeStr: t, expectTimeLabel: this.format12h(t), customTimeStr: t })
   },
 
   // 自定义档位默认时间：当前时刻向上取整到下一个整点（如 9:30 → 10:00）
@@ -291,12 +288,6 @@ Page({
     const now = new Date()
     const [h, m] = hhmm.split(':').map(Number)
     return (h * 60 + m) > (now.getHours() * 60 + now.getMinutes())
-  },
-
-  // 更新预览文案
-  updatePreview() {
-    const expect = this._buildExpect()
-    this.setData({ expectText: expect ? expect.expectText : '' })
   },
 
   // 组装期望时间字段（数据不完整时返回 null）
@@ -777,7 +768,7 @@ Page({
       const slot = expect.expectSlot
       const prev = this._expectPref || {}
       const times = { ...(prev.times || {}) }
-      if (slot) times[slot] = expect.expectTimeStr
+      if (slot) times[slot] = this.data.expectTimeStr
       this._saveExpectPref(slot, times)
       // 显示成功弹窗
       this.setData({
@@ -796,11 +787,6 @@ Page({
 
   // 关闭成功弹窗
   closeSuccess() {
-    // 重置购物车并跳转订单详情页
-    const cart = wx.getStorageSync('cart') || []
-    const newCart = cart.filter(item => !item.checked || item.checked === false)
-    wx.setStorageSync('cart', newCart)
-
     wx.redirectTo({
       url: '/pages/order-detail/index?id=' + this.data.orderId
     })
@@ -808,9 +794,6 @@ Page({
 
   // 关闭成功弹窗（仅关闭弹窗，不跳转）
   dismissSuccess() {
-    const cart = wx.getStorageSync('cart') || []
-    const newCart = cart.filter(item => !item.checked || item.checked === false)
-    wx.setStorageSync('cart', newCart)
     this.setData({ showSuccess: false })
   },
 

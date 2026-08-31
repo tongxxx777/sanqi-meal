@@ -6,9 +6,7 @@ Page({
     _id: '',
     dish: null,
     previewImageUrl: '',
-    dateText: '',
     creatorName: '',
-    openid: '',
     categoryInfo: null,
   },
 
@@ -23,11 +21,7 @@ Page({
 
   async onShow() {
     // 确保用户信息已加载，避免 getDisplayName 返回"未知"
-    // 同时复用 currentUser._id 作为 openid，省去一次云函数调用
-    const { currentUser } = await app.loadUserInfo()
-    if (currentUser?._id) {
-      this.setData({ openid: currentUser._id })
-    }
+    await app.loadUserInfo()
     await app.loadCategories()
     await this.loadDish()
   },
@@ -142,15 +136,4 @@ Page({
     })
   },
 
-  // 分享菜品给好友
-  onShareAppMessage() {
-    const { dish, _id } = this.data
-    const name = dish?.name || '这道菜'
-    const imageUrl = dish?.imageUrl || '/images/default.jpg'
-    return {
-      title: `来尝尝「${name}」吧`,
-      path: `/pages/dish-detail/index?id=${_id}`,
-      imageUrl
-    }
-  },
 })

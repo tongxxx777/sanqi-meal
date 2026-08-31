@@ -141,7 +141,7 @@
           <button
             class="bind-btn {{inputCode.length === 6 ? 'active' : ''}}"
             bindtap="bindPartner"
-            loading="{{submitting}}"
+            loading="{{isSubmitting}}"
           >
             绑定伴侣
           </button>

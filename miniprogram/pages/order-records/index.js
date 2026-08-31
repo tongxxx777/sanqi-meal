@@ -10,7 +10,6 @@ Page({
     hasMore: true,
     page: 0,
     pageSize: 10,
-    openid: '',
     partnerName: '',
     showTipModal: false,
     tipText: '',
@@ -87,9 +86,8 @@ Page({
 
   // 加载用户信息
   async loadUserInfo() {
-    const { currentUser, partner } = await app.loadUserInfo()
+    const { partner } = await app.loadUserInfo()
     this.setData({
-      openid: currentUser?._id || '',
       partnerName: partner?.nickname || '对方'
     })
   },
@@ -208,8 +206,6 @@ Page({
     if (!date) return ''
     const d = new Date(date)
     const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
 
     if (d.toDateString() === today.toDateString()) {
       return '今天'
@@ -229,11 +225,11 @@ Page({
     return `${hours}:${minutes}`
   },
 
-  // 获取滑动按钮配置（deleteDisabled 为 true 时删除按钮呈禁用态）
-  getSlideButtons(marked, deleteDisabled = false) {
+  // 获取滑动按钮配置
+  getSlideButtons(marked) {
     return [
       { text: marked ? '取消' : '标记', type: 'default', extClass: 'mark-btn' },
-      { text: '删除', type: 'warn', extClass: deleteDisabled ? 'delete-btn btn-disabled' : 'delete-btn' }
+      { text: '删除', type: 'warn', extClass: 'delete-btn' }
     ]
   },
 
@@ -244,11 +240,6 @@ Page({
     if (index === 0) {
       this.toggleMark(id)
     } else {
-      const target = this.data.orders.find(item => item._id === id)
-      if (target?.deleteDisabled) {
-        this.showTip('这条记录不能删除哦~')
-        return
-      }
       this.deleteOrder(id)
     }
   },
@@ -395,16 +386,6 @@ Page({
     wx.navigateTo({ url: `/pages/order-detail/index?id=${id}` })
   },
 
-  // 下拉刷新（系统级，页面无 scroll-view 时可触发；当前使用 scroll-view 内置 refresher）
-  async onPullDownRefresh() {
-    try {
-      await app.syncOnShow('records', { force: true })
-      this.renderFromStore()
-    } finally {
-      wx.stopPullDownRefresh()
-    }
-  },
-
   // 下拉刷新（3s 防抖）- 强制版本校验 + 重拉变化数据
   async onRefresh() {
     const now = Date.now()
@@ -427,24 +408,6 @@ Page({
   // 上拉加载
   onReachBottom() {
     this.loadMore()
-  },
-
-  // 分享给好友
-  onShareAppMessage() {
-    return {
-      title: '看看我们的点餐记录',
-      path: '/pages/order-records/index',
-      imageUrl: '/images/default.jpg'
-    }
-  },
-
-  // 分享到朋友圈
-  onShareTimeline() {
-    return {
-      title: getApp().getKitchenName() + ' · 美食记忆',
-      query: '',
-      imageUrl: '/images/default.jpg'
-    }
   },
 
   // 页面隐藏/卸载时清理引导定时器

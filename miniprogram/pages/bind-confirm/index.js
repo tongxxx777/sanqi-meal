@@ -9,10 +9,7 @@ Page({
     loadFailed: false,
     failMessage: '',
     failCode: '',      // SELF_INVITE / NOT_FOUND / ALREADY_BOUND / PARTNER_BOUND
-    submitting: false,
-    // 当前用户信息
-    avatarUrl: '',
-    isBound: false
+    submitting: false
   },
 
   onLoad(options) {
@@ -54,8 +51,6 @@ Page({
       }
 
       const inviter = res.result.inviter
-      const { currentUser } = await app.loadUserInfo()
-      const isBound = app.isBound()
 
       // cloud:// 可直接渲染，无需临时链接
       let inviterAvatarUrl = inviter.avatarUrl || ''
@@ -63,9 +58,7 @@ Page({
       this.setData({
         loading: false,
         inviterNickname: inviter.nickname || '',
-        inviterAvatarUrl,
-        avatarUrl: currentUser?.avatarUrl || '',
-        isBound
+        inviterAvatarUrl
       })
     } catch (e) {
       console.error('loadCurrentUserAndInviter error', e)

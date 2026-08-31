@@ -10,7 +10,6 @@ Page({
     partnerAvatar: '',
     bindDays: 0,
     todayOrders: [],
-    tomorrowOrders: [],
     mealOrders: [],      // 今天+明天合并渲染列表（明天单项带 _preview 标记）
     tableEmptyText: '',  // 小饭桌空状态文案（今天无单时展示）
     dishCount: 0,
@@ -76,12 +75,11 @@ Page({
   // 小饭桌区块数据：今明两天订单 + 空状态文案（未绑定时全部置空）
   computeMealSection(isBound) {
     if (!isBound) {
-      return { todayOrders: [], tomorrowOrders: [], mealOrders: [], tableEmptyText: '' }
+      return { todayOrders: [], mealOrders: [], tableEmptyText: '' }
     }
     const { today, tomorrow } = this.computeMealOrders()
     return {
       todayOrders: today,
-      tomorrowOrders: tomorrow,
       // 合并渲染：今天单在前，明天单置后并标记 _preview（弱化预告样式）
       mealOrders: [...today, ...tomorrow],
       tableEmptyText: this.computeTableEmptyText(today, tomorrow)
@@ -220,27 +218,5 @@ Page({
   goToSetProfile() {
     app.globalData.pendingEditProfile = true
     wx.switchTab({ url: '/pages/mine/index' })
-  },
-
-  // 分享给好友
-  onShareAppMessage() {
-    const app = getApp()
-    const partnerName = this.data.partnerName || 'TA'
-    const isBound = this.data.isBound
-    return {
-      title: isBound ? `和${partnerName}的专属小厨房 · ${app.getKitchenName()}` : app.getKitchenName() + ' · 和TA的专属小厨房',
-      path: '/pages/index/index',
-      imageUrl: '/images/default.jpg'
-    }
-  },
-
-  // 分享到朋友圈
-  onShareTimeline() {
-    const app = getApp()
-    return {
-      title: app.getKitchenName() + ' · 和TA的专属小厨房',
-      query: '',
-      imageUrl: '/images/default.jpg'
-    }
   },
 })

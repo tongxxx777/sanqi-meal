@@ -152,16 +152,4 @@ button::after {
   opacity: 0.75;
 }
 
-/* 禁用态：圆钮与标签置灰，保留布局占位（extClass 追加 btn-disabled 启用） */
-.weui-slideview__btn__wrp.btn-disabled .weui-slideview__btn {
-  color: #B0B0B8;
-  opacity: 0.6;
-}
-
-.weui-slideview__btn__wrp.btn-disabled .weui-slideview__btn::before {
-  background: #F0F0F3;
-  border-color: #DDDDE3;
-  box-shadow: none;
-}
-
 
