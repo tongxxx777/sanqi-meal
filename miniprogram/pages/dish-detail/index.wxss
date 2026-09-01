@@ -209,6 +209,111 @@
   word-break: break-all;
 }
 
+/* ---- 用料/做法展示卡：与上浮卡同款白圆角 ---- */
+.recipe-card {
+  margin: 32rpx 28rpx 0;
+  background: #fff;
+  border-radius: 28rpx;
+  padding: 32rpx;
+  box-shadow: var(--shadow-card-medium);
+}
+
+.recipe-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.recipe-title-emoji {
+  font-size: 34rpx;
+}
+
+.recipe-title-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 1rpx;
+}
+
+/* 用料行：食材居左、用量居右浅粉强调 */
+.ing-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22rpx 4rpx;
+  border-bottom: 2rpx solid var(--divider-color);
+}
+
+.ing-row:last-child {
+  border-bottom: none;
+  padding-bottom: 4rpx;
+}
+
+.ing-name {
+  font-size: 28rpx;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.ing-amount {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: var(--primary-deep);
+  margin-left: 24rpx;
+  flex-shrink: 0;
+}
+
+/* 做法步骤：左图右文 */
+.cook-step {
+  display: flex;
+  gap: 24rpx;
+  padding: 26rpx 0;
+  border-bottom: 2rpx solid var(--divider-color);
+}
+
+.cook-step:last-child {
+  border-bottom: none;
+  padding-bottom: 4rpx;
+}
+
+.cook-step-img {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 20rpx;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-card-light);
+}
+
+.cook-step-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 序号圆徽：主色渐变实心 + 白字 */
+.cook-step-badge {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(255, 122, 158, 0.35);
+}
+
+.cook-step-desc {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 28rpx;
+  line-height: 1.7;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
 /* ---- 操作按钮：纵向两行，主编辑 + 次删除 ---- */
 .action-buttons {
   display: flex;

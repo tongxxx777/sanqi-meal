@@ -8,6 +8,8 @@ Page({
     previewImageUrl: '',
     creatorName: '',
     categoryInfo: null,
+    ingredientsView: [],
+    stepsView: [],
   },
 
   onLoad(options) {
@@ -61,14 +63,35 @@ Page({
     // 本地持久缓存优先，未命中走 cloud:// 并后台落盘
     dish._localImg = imageCache.resolve(dish.imageUrl) || dish.imageUrl || ''
     const categoryInfo = (app.globalData.categories || []).find(c => c._id === dish.category) || null
+    // 用料/做法展示数据：清洗空行，步骤图逐项走本地缓存
+    const ingredientsView = (dish.ingredients || []).filter(it => it.name || it.amount)
+    const stepsView = (dish.steps || [])
+      .filter(s => s.desc || s.imageUrl)
+      .map(s => ({
+        imageUrl: s.imageUrl || '',
+        desc: s.desc || '',
+        _localImg: s.imageUrl ? (imageCache.resolve(s.imageUrl) || s.imageUrl) : ''
+      }))
     this.setData({
       dish,
       categoryInfo,
+      ingredientsView,
+      stepsView,
       dateMiniText: this.formatDateMini(dish.createTime),
       creatorName: this.getCreatorName(dish._openid)
     })
 
     wx.setNavigationBarTitle({ title: dish.name })
+  },
+
+  // 放大预览步骤图（可在所有步骤图间左右滑动）
+  previewStepImage(e) {
+    const index = e.currentTarget.dataset.index
+    const urls = this.data.stepsView.map(s => s._localImg).filter(Boolean)
+    const current = this.data.stepsView[index]?._localImg
+    if (current) {
+      wx.previewImage({ current, urls })
+    }
   },
 
   // 获取创建者名字

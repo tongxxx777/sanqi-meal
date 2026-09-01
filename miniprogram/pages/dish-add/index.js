@@ -1,5 +1,9 @@
 const app = getApp()
 
+// 用料/做法数量上限
+const MAX_INGREDIENTS = 20
+const MAX_STEPS = 15
+
 Page({
   data: {
     _id: '',
@@ -11,6 +15,12 @@ Page({
     categories: [],
     categoryIndex: 0,
     saving: false,
+    // 用料：key 为 wx:key 稳定标识，不落库
+    ingredients: [{ key: 'i_0', name: '', amount: '' }],
+    maxIngredients: MAX_INGREDIENTS,
+    // 做法步骤：imageUrl 用于展示（本地临时路径或云端 fileID），tempFilePath 存在即本地待上传新图
+    steps: [{ key: 's_0', imageUrl: '', tempFilePath: '', desc: '' }],
+    maxSteps: MAX_STEPS,
     // 图片搜索结果相关
     showAIModal: false,
     aiImages: [],
@@ -53,11 +63,25 @@ Page({
       // 保留原始 fileID 用于保存，cloud:// 可直接用于展示
       let displayUrl = dish.imageUrl || ''
       this._rawImageUrl = dish.imageUrl || ''
+      // 回填用料/做法；缺失或为空时给一行空行方便直接填写
+      const ingredients = (dish.ingredients || []).map(it => ({
+        key: this._nextKey('i'),
+        name: it.name || '',
+        amount: it.amount || ''
+      }))
+      const steps = (dish.steps || []).map(s => ({
+        key: this._nextKey('s'),
+        imageUrl: s.imageUrl || '',
+        tempFilePath: '',
+        desc: s.desc || ''
+      }))
       this.setData({
         name: dish.name,
         description: dish.description || '',
         imageUrl: displayUrl,
-        categoryIndex: categoryIndex >= 0 ? categoryIndex : 0
+        categoryIndex: categoryIndex >= 0 ? categoryIndex : 0,
+        ingredients: ingredients.length ? ingredients : [{ key: this._nextKey('i'), name: '', amount: '' }],
+        steps: steps.length ? steps : [{ key: this._nextKey('s'), imageUrl: '', tempFilePath: '', desc: '' }]
       })
     } catch (e) {
       console.error('加载菜品失败', e)
@@ -84,6 +108,94 @@ Page({
   // 选择分类
   onCategoryChange(e) {
     this.setData({ categoryIndex: e.detail.value })
+  },
+
+  // 生成用料/步骤行的稳定 key（wx:key 用，避免输入时焦点错乱）
+  _nextKey(prefix) {
+    this._keySeq = (this._keySeq || 0) + 1
+    return `${prefix}_${Date.now()}_${this._keySeq}`
+  },
+
+  // ===== 用料 =====
+  onIngredientInput(e) {
+    const { index, field } = e.currentTarget.dataset
+    let value = e.detail.value
+    const max = field === 'name' ? 20 : 10
+    if (value.length > max) value = value.slice(0, max)
+    this.setData({ [`ingredients[${index}].${field}`]: value })
+    return value
+  },
+
+  addIngredient() {
+    const ingredients = this.data.ingredients
+    if (ingredients.length >= MAX_INGREDIENTS) return
+    this.setData({
+      ingredients: ingredients.concat([{ key: this._nextKey('i'), name: '', amount: '' }])
+    })
+  },
+
+  removeIngredient(e) {
+    const index = e.currentTarget.dataset.index
+    const ingredients = this.data.ingredients.slice()
+    ingredients.splice(index, 1)
+    // 删到 0 行时保留一个空行，方便直接填写
+    if (!ingredients.length) {
+      ingredients.push({ key: this._nextKey('i'), name: '', amount: '' })
+    }
+    this.setData({ ingredients })
+  },
+
+  // ===== 做法步骤 =====
+  onStepDescInput(e) {
+    const index = e.currentTarget.dataset.index
+    let value = e.detail.value
+    if (value.length > 200) value = value.slice(0, 200)
+    this.setData({ [`steps[${index}].desc`]: value })
+    return value
+  },
+
+  addStep() {
+    const steps = this.data.steps
+    if (steps.length >= MAX_STEPS) return
+    this.setData({
+      steps: steps.concat([{ key: this._nextKey('s'), imageUrl: '', tempFilePath: '', desc: '' }])
+    })
+  },
+
+  removeStep(e) {
+    const index = e.currentTarget.dataset.index
+    const steps = this.data.steps.slice()
+    steps.splice(index, 1)
+    if (!steps.length) {
+      steps.push({ key: this._nextKey('s'), imageUrl: '', tempFilePath: '', desc: '' })
+    }
+    this.setData({ steps })
+  },
+
+  // 选择/替换步骤图（每步 1 张，点图位即选图）
+  chooseStepImage(e) {
+    const index = e.currentTarget.dataset.index
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const tempFilePath = res.tempFiles[0].tempFilePath
+        this.setData({
+          [`steps[${index}].tempFilePath`]: tempFilePath,
+          [`steps[${index}].imageUrl`]: tempFilePath
+        })
+      }
+    })
+  },
+
+  // 删除步骤图
+  removeStepImage(e) {
+    const index = e.currentTarget.dataset.index
+    this.setData({
+      [`steps[${index}].tempFilePath`]: '',
+      [`steps[${index}].imageUrl`]: ''
+    })
   },
 
   // 选择图片
@@ -159,13 +271,17 @@ Page({
   // 上传图片到云存储（上传前压缩，降低存储体积与下载流量）
   async uploadImage() {
     if (!this.data.tempFilePath) return ''
+    return this._uploadToCloud(this.data.tempFilePath)
+  },
 
+  // 通用上传：本地临时路径 -> 云端 fileID（主图与步骤图共用）
+  async _uploadToCloud(tempFilePath) {
     const cloudPath = `dishes/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
 
     try {
-      let uploadPath = this.data.tempFilePath
+      let uploadPath = tempFilePath
       try {
-        const compressed = await wx.compressImage({ src: this.data.tempFilePath, quality: 80 })
+        const compressed = await wx.compressImage({ src: tempFilePath, quality: 80 })
         if (compressed && compressed.tempFilePath) uploadPath = compressed.tempFilePath
       } catch (e) { /* 压缩失败则用原图 */ }
       const res = await wx.cloud.uploadFile({
@@ -211,6 +327,26 @@ Page({
         imageUrl = '/images/default.jpg'
       }
 
+      // 清洗用料：去掉食材名和用量都空的行
+      const ingredients = this.data.ingredients
+        .map(it => ({ name: (it.name || '').trim(), amount: (it.amount || '').trim() }))
+        .filter(it => it.name || it.amount)
+
+      // 清洗步骤：去掉说明和图片都空的步
+      const cleanedSteps = this.data.steps
+        .map(s => ({ imageUrl: s.imageUrl || '', tempFilePath: s.tempFilePath || '', desc: (s.desc || '').trim() }))
+        .filter(s => s.desc || s.imageUrl)
+
+      // 顺序上传本地步骤图（tempFilePath 存在即待上传新图；任一失败中止保存）
+      const pendingUploads = cleanedSteps.filter(s => s.tempFilePath)
+      for (let i = 0; i < pendingUploads.length; i++) {
+        wx.showLoading({ title: `上传步骤图 ${i + 1}/${pendingUploads.length}` })
+        pendingUploads[i].imageUrl = await this._uploadToCloud(pendingUploads[i].tempFilePath)
+        pendingUploads[i].tempFilePath = ''
+      }
+      const steps = cleanedSteps.map(s => ({ imageUrl: s.imageUrl, desc: s.desc }))
+      wx.showLoading({ title: '保存中...' })
+
       const category = this.data.categories[this.data.categoryIndex]._id
 
       if (isEdit) {
@@ -226,6 +362,8 @@ Page({
               description: this.data.description.trim(),
               imageUrl,
               category,
+              ingredients,
+              steps,
               updateTime: new Date(),
             }
           }
@@ -246,6 +384,8 @@ Page({
           description: this.data.description.trim(),
           imageUrl,
           category,
+          ingredients,
+          steps,
           updateTime: new Date(),
         }), res.result.ver)
 
@@ -262,6 +402,8 @@ Page({
               description: this.data.description.trim(),
               imageUrl,
               category,
+              ingredients,
+              steps,
             }
           }
         })
@@ -386,6 +528,8 @@ Page({
       imageUrl: '',
       tempFilePath: '',
       categoryIndex: 0,
+      ingredients: [{ key: this._nextKey('i'), name: '', amount: '' }],
+      steps: [{ key: this._nextKey('s'), imageUrl: '', tempFilePath: '', desc: '' }],
       showAIModal: false,
       aiImages: [],
       aiImageUrls: [],

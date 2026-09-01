@@ -54,6 +54,36 @@
     </view>
   </view>
 
+  <!-- 用料展示卡：仅有数据时渲染 -->
+  <view class="recipe-card" wx:if="{{ingredientsView.length}}">
+    <view class="recipe-title">
+      <text class="recipe-title-emoji">🥚</text>
+      <text class="recipe-title-text">用料</text>
+    </view>
+    <view class="ing-list">
+      <view class="ing-row" wx:for="{{ingredientsView}}" wx:key="index">
+        <text class="ing-name">{{item.name}}</text>
+        <text class="ing-amount">{{item.amount}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 做法展示卡：仅有数据时渲染 -->
+  <view class="recipe-card" wx:if="{{stepsView.length}}">
+    <view class="recipe-title">
+      <text class="recipe-title-emoji">🔥</text>
+      <text class="recipe-title-text">做法</text>
+    </view>
+    <view class="cook-step" wx:for="{{stepsView}}" wx:key="index">
+      <image wx:if="{{item._localImg}}" class="cook-step-img" src="{{item._localImg}}" mode="aspectFill"
+             bindtap="previewStepImage" data-index="{{index}}"></image>
+      <view class="cook-step-main">
+        <view class="cook-step-badge">{{index + 1}}</view>
+        <text class="cook-step-desc">{{item.desc}}</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 操作按钮：纵向两行，主编辑 + 次删除 -->
   <view class="action-buttons">
     <view class="btn-edit" hover-class="btn-hover" hover-stay-time="80" bindtap="editDish">

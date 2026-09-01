@@ -107,6 +107,72 @@
       </picker>
     </view>
 
+    <!-- 用料（选填） -->
+    <view class="input-card">
+      <view class="input-label">
+        <text class="label-icon">🥚</text>
+        <text class="label-text">用料</text>
+        <view class="label-tag label-tag--optional">选填</view>
+      </view>
+
+      <view class="ingredient-row" wx:for="{{ingredients}}" wx:key="key">
+        <input class="ingredient-input ingredient-name" placeholder="食材，如：鸡蛋"
+               placeholderClass="input-placeholder"
+               bindinput="onIngredientInput" value="{{item.name}}"
+               data-index="{{index}}" data-field="name" />
+        <view class="ingredient-divider"></view>
+        <input class="ingredient-input ingredient-amount" placeholder="用量，如：1个"
+               placeholderClass="input-placeholder"
+               bindinput="onIngredientInput" value="{{item.amount}}"
+               data-index="{{index}}" data-field="amount" />
+        <view class="row-remove" wx:if="{{ingredients.length > 1}}" catchtap="removeIngredient" data-index="{{index}}" hover-class="row-remove-hover">✕</view>
+      </view>
+
+      <view class="btn-add-row" wx:if="{{ingredients.length < maxIngredients}}" bindtap="addIngredient" hover-class="btn-hover">
+        <text class="btn-add-icon">＋</text>
+        <text class="btn-add-text">再增加一行</text>
+      </view>
+    </view>
+
+    <!-- 做法（选填） -->
+    <view class="input-card">
+      <view class="input-label">
+        <text class="label-icon">🔥</text>
+        <text class="label-text">做法</text>
+        <view class="label-tag label-tag--optional">选填</view>
+      </view>
+
+      <view class="step-item" wx:for="{{steps}}" wx:key="key">
+        <view class="step-header">
+          <view class="step-badge">步骤{{index + 1}}</view>
+          <view class="step-remove" wx:if="{{steps.length > 1}}" catchtap="removeStep" data-index="{{index}}" hover-class="step-remove-hover">删除</view>
+        </view>
+
+        <view class="step-body">
+          <!-- 步骤图：无图显示虚线占位，有图满铺 + 右上角删除角标，点图替换 -->
+          <view class="step-image-box" bindtap="chooseStepImage" data-index="{{index}}" hover-class="btn-hover">
+            <image wx:if="{{item.imageUrl}}" class="step-image" src="{{item.imageUrl}}" mode="aspectFill"></image>
+            <view wx:else class="step-image-placeholder">
+              <text class="step-image-icon">📷</text>
+              <text class="step-image-text">步骤图</text>
+            </view>
+            <view wx:if="{{item.imageUrl}}" class="step-image-remove" catchtap="removeStepImage" data-index="{{index}}">✕</view>
+          </view>
+
+          <!-- 步骤说明 -->
+          <textarea class="step-desc" placeholder="写下这一步的做法吧~"
+                    placeholderClass="input-placeholder"
+                    bindinput="onStepDescInput" value="{{item.desc}}"
+                    data-index="{{index}}" auto-height maxlength="200" />
+        </view>
+      </view>
+
+      <view class="btn-add-row" wx:if="{{steps.length < maxSteps}}" bindtap="addStep" hover-class="btn-hover">
+        <text class="btn-add-icon">＋</text>
+        <text class="btn-add-text">再增加一步</text>
+      </view>
+    </view>
+
     <!-- 菜品描述（选填） -->
     <view class="input-card">
       <view class="input-label">
