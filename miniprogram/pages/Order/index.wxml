@@ -131,7 +131,6 @@
               class="expect-date {{expectDateIndex === index ? 'active' : ''}}"
               data-index="{{index}}" bindtap="selectExpectDate">
           <text class="ed-label">{{item.label}}</text>
-          <text class="ed-sub">{{item.month}}/{{item.day}}</text>
         </view>
       </view>
       <view class="expect-slots">

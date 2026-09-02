@@ -13,7 +13,7 @@ Page({
     isBound: false,
     dishes: [],
     // ===== 期望用餐时间 =====
-    dateOptions: [],        // [{label:'今天', dateStr:'2026-07-10', month, day}]
+    dateOptions: [],        // [{label:'今天', dateStr:'2026-07-10'}]
     expectDateIndex: 0,     // 选中的日期下标
     slotOptions: [],        // 带 disabled 的档位列表
     expectSlot: '',         // 选中的档位 key
@@ -183,7 +183,7 @@ Page({
       const d = new Date(today)
       d.setDate(today.getDate() + i)
       const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-      opts.push({ label: labels[i], dateStr, month: d.getMonth() + 1, day: d.getDate() })
+      opts.push({ label: labels[i], dateStr })
     }
     return opts
   },

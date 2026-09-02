@@ -232,31 +232,35 @@
   color: #FFFFFF;
 }
 
-/* 「全部」排序方式 chip：嵌在激活胶囊内、数量后，白底粉字与胶囊渐变底区分 */
-.tab-pill-sort {
+/* 排序方式入口：钉在分类行最前（滚动区之外），横向滑动分类时始终可见 */
+/* 淘宝闪购风格：标签 + 小尺寸下拉箭头，简洁紧凑，与分类胶囊同高对齐 */
+.all-sort-pill {
   display: inline-flex;
   align-items: center;
-  margin-left: 10rpx;
-  padding: 4rpx 14rpx;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 20rpx;
+  padding: 14rpx 24rpx;
+  margin-right: 16rpx;
+  background: var(--highlight-bg);
+  border-radius: 40rpx;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease;
+}
+
+.all-sort-pill:active {
+  opacity: 0.7;
+}
+
+.all-sort-label {
+  font-size: 26rpx;
+  color: var(--primary-color);
+  font-weight: 500;
   line-height: 1;
 }
 
-.tab-pill-sort:active {
-  opacity: 0.75;
-}
-
-.tab-pill-sort-icon {
-  font-size: 20rpx;
+.all-sort-arrow {
+  font-size: 18rpx;
   color: var(--primary-color);
-  margin-right: 4rpx;
-}
-
-.tab-pill-sort-label {
-  font-size: 20rpx;
-  color: var(--primary-color);
-  font-weight: 500;
+  margin-left: 6rpx;
+  line-height: 1;
 }
 
 /* ========== 菜品列表 ========== */

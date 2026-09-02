@@ -54,6 +54,13 @@
   <block wx:if="{{dishes.length > 0}}">
     <!-- 分类行：横向胶囊（滚动）+ 右侧固定渐变排序入口（仅可排序时显示，吸顶常显） -->
     <view class="category-row {{sortMode ? 'sort-disabled' : ''}}">
+      <!-- 排序方式入口：钉在分类行最前（滚动区之外），横向滑动分类时始终可见；标签 + 小箭头（淘宝闪购风格） -->
+      <view class="all-sort-pill"
+            wx:if="{{!sortMode && categoryCount[currentCategory] > 1}}"
+            bindtap="openAllSortSheet">
+        <text class="all-sort-label">{{curSortLabel}}</text>
+        <text class="all-sort-arrow">▾</text>
+      </view>
       <scroll-view class="category-tabs" scroll-x enhanced show-scrollbar="{{false}}">
         <view class="tabs-inner">
           <view class="tab-pill {{currentCategory === item._id ? 'active' : ''}}"
@@ -63,11 +70,6 @@
             <text class="tab-pill-icon">{{item.icon}}</text>
             <text class="tab-pill-name">{{item.name}}</text>
             <text class="tab-pill-count">{{categoryCount[item._id]}}</text>
-            <!-- 「全部」排序方式 chip：嵌在激活胶囊内、数量后，catchtap 避免触发胶囊切换 -->
-            <view class="tab-pill-sort" wx:if="{{item._id === '__all__' && currentCategory === '__all__' && !sortMode && dishesByCategory['__all__'].length > 1}}" catchtap="openAllSortSheet">
-              <text class="tab-pill-sort-icon">⇅</text>
-              <text class="tab-pill-sort-label">{{allSortType === 'time' ? '最新' : allSortType === 'orderCount' ? '最热' : '菜单'}}</text>
-            </view>
           </view>
         </view>
       </scroll-view>

@@ -386,7 +386,7 @@ App({
             collection: this.globalData.collectionDishList,
             orderBy: 'createTime',
             order: 'desc',
-            limit: 300
+            limit: 500
           }
         })
         if (res.result?.success) {
