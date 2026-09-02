@@ -70,16 +70,22 @@ async function searchBaiduImages(keyword, count = 5, refresh = false) {
  * @returns {Promise<{fileID: string, tempFileURL: string}>}
  */
 async function downloadAndUploadImage(imageUrl) {
+  // 体积上限 2MB：防止百度原图（可达 1-5MB）直接沉淀进云存储
+  const MAX_BYTES = 2 * 1024 * 1024
   // 下载图片
   const downloadRes = await axios.get(imageUrl, {
     responseType: 'arraybuffer',
     timeout: 30000,
+    maxContentLength: MAX_BYTES,
     headers: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       'Referer': 'https://image.baidu.com/',
     },
   })
   const buffer = Buffer.from(downloadRes.data)
+  if (buffer.length > MAX_BYTES) {
+    throw new Error(`图片体积超限（${(buffer.length / 1024 / 1024).toFixed(1)}MB > 2MB），请换一张`)
+  }
 
   // 上传到云存储（存到 dishes/ 目录）
   const cloudPath = `dishes/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`

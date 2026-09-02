@@ -397,7 +397,17 @@ Page({
         filePath: uploadPath
       })
 
-      await this.saveFinishedPhoto(uploadRes.fileID)
+      const oldPhoto = this.data.order.finishedPhoto
+      const saved = await this.saveFinishedPhoto(uploadRes.fileID)
+      if (!saved) {
+        // 落库失败：刚上传的文件成孤儿，回收
+        wx.cloud.deleteFile({ fileList: [uploadRes.fileID] }).catch(() => {})
+        throw new Error('save failed')
+      }
+      // 落库成功：回收被替换的旧成品照（静默失败不影响用户）
+      if (oldPhoto && oldPhoto.indexOf('cloud://') === 0 && oldPhoto !== uploadRes.fileID) {
+        wx.cloud.deleteFile({ fileList: [oldPhoto] }).catch(e => console.error('回收旧成品照失败', e))
+      }
 
       wx.hideLoading()
       wx.showToast({ title: '上传成功', icon: 'success' })
@@ -409,7 +419,7 @@ Page({
     }
   },
 
-  // 保存照片到订单记录
+  // 保存照片到订单记录；返回是否落库成功
   async saveFinishedPhoto(fileID) {
     const res = await wx.cloud.callFunction({
       name: 'updateCoupleData',
@@ -421,12 +431,12 @@ Page({
       }
     })
 
+    if (!res.result?.success) return false
     // 用响应里的新版本号同步本地 store
-    if (res.result?.success) {
-      app.applyOrderUpdated(this.data.order._id, { finishedPhoto: fileID }, res.result.ver)
-    }
+    app.applyOrderUpdated(this.data.order._id, { finishedPhoto: fileID }, res.result.ver)
     // cloud:// 可直接渲染，无需临时链接
     this.setData({ 'order.finishedPhoto': fileID })
+    return true
   },
 
   // 预览照片
@@ -454,15 +464,7 @@ Page({
         wx.showLoading({ title: '删除中...', mask: true })
 
         try {
-          // 删除云存储文件（finishedPhoto 保存的即原始 cloud:// fileID）
-          const rawId = this.data.order.finishedPhoto
-          if (rawId) {
-            await wx.cloud.deleteFile({
-              fileList: [rawId]
-            })
-          }
-
-          // 更新订单记录
+          // 先更新订单记录（落库失败则文件保留，不留下坏图引用）
           const updateRes = await wx.cloud.callFunction({
             name: 'updateCoupleData',
             data: {
@@ -472,11 +474,20 @@ Page({
               data: { finishedPhoto: '' }
             }
           })
+          if (!updateRes.result?.success) {
+            throw new Error(updateRes.result?.message || 'save failed')
+          }
+
+          // 落库成功后再删除云存储文件（finishedPhoto 保存的即原始 cloud:// fileID）
+          const rawId = this.data.order.finishedPhoto
+          if (rawId) {
+            await wx.cloud.deleteFile({
+              fileList: [rawId]
+            })
+          }
 
           // 用响应里的新版本号同步本地 store
-          if (updateRes.result?.success) {
-            app.applyOrderUpdated(this.data.order._id, { finishedPhoto: '' }, updateRes.result.ver)
-          }
+          app.applyOrderUpdated(this.data.order._id, { finishedPhoto: '' }, updateRes.result.ver)
           this.setData({ 'order.finishedPhoto': '' })
 
           wx.hideLoading()

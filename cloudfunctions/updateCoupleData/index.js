@@ -18,6 +18,17 @@ function countFieldOf(collection) {
   return ''
 }
 
+// 删除云存储文件：失败仅记日志，绝不阻断主流程
+async function safeDeleteFiles(fileList, tag) {
+  const ids = [...new Set(fileList)].filter(id => typeof id === 'string' && id.startsWith('cloud://'))
+  if (!ids.length) return
+  try {
+    await cloud.deleteFile({ fileList: ids })
+  } catch (e) {
+    console.error(tag, 'deleteFile error', e)
+  }
+}
+
 // 从 meta 中提取前端关心的版本字段
 function pickVer(collection, meta) {
   if (!meta) return null
@@ -106,6 +117,8 @@ exports.main = async (event, context) => {
           return { success: false, message: '无权操作' }
         }
         await db.collection('OrderList').doc(docId).remove()
+        // 联动删除成品照（dishes[].imageUrl 是菜品图快照，不属于本订单，不能删）
+        await safeDeleteFiles([order.finishedPhoto], 'removeOrder')
         // 批量回收菜品点单次数（下单时每道菜 +1，删单时对应 -1）
         const dishIds = (order.dishes || []).map(d => d._id).filter(Boolean)
         if (dishIds.length > 0) {
@@ -120,13 +133,48 @@ exports.main = async (event, context) => {
 
       case 'update': {
         result = await db.collection(collection).doc(docId).update({ data })
+        // 编辑菜品时被替换的旧图：逐一校验仍被订单快照引用的不删，更新成功后才清理
+        if (collection === 'DishList' && Array.isArray(event.oldFileIds) && event.oldFileIds.length) {
+          const keep = new Set([data && data.imageUrl, ...(((data && data.steps) || []).map(s => s && s.imageUrl))])
+          const orphanFileIds = []
+          for (const id of [...new Set(event.oldFileIds)]) {
+            if (typeof id !== 'string' || !id.startsWith('cloud://') || keep.has(id)) continue
+            // 查询失败按「仍被引用」处理，宁可不删也不误删
+            const ref = await db.collection('OrderList')
+              .where({ coupleId, 'dishes.imageUrl': id })
+              .count()
+              .catch(() => ({ total: 1 }))
+            if (ref.total === 0) orphanFileIds.push(id)
+          }
+          await safeDeleteFiles(orphanFileIds, 'update DishList oldFileIds')
+        }
         const vf = verFieldOf(collection)
         const meta = vf ? await couplemeta.incVersion(db, coupleId, vf) : null
         return { success: true, updated: result.stats.updated, ver: pickVer(collection, meta) }
       }
 
       case 'remove': {
+        // 删菜前先收集图片 fileID，并逐一检查是否仍被历史订单快照引用（被引用的绝不能删）
+        let orphanFileIds = []
+        if (collection === 'DishList') {
+          const dishRes = await db.collection(collection).doc(docId).get().catch(() => null)
+          const dish = dishRes && dishRes.data
+          if (dish) {
+            const ids = [dish.imageUrl, ...((dish.steps || []).map(s => s && s.imageUrl))]
+              .filter(id => typeof id === 'string' && id.startsWith('cloud://'))
+            for (const id of [...new Set(ids)]) {
+              // 查询失败按「仍被引用」处理，宁可不删也不误删
+              const ref = await db.collection('OrderList')
+                .where({ coupleId, 'dishes.imageUrl': id })
+                .count()
+                .catch(() => ({ total: 1 }))
+              if (ref.total === 0) orphanFileIds.push(id)
+            }
+          }
+        }
         result = await db.collection(collection).doc(docId).remove()
+        // 数据库删除成功后才清理文件
+        await safeDeleteFiles(orphanFileIds, 'remove DishList')
         const vf = verFieldOf(collection)
         const cf = countFieldOf(collection)
         const meta = vf ? await couplemeta.incVersion(db, coupleId, vf, cf ? { [cf]: -1 } : null) : null

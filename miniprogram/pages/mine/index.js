@@ -124,6 +124,7 @@ Page({
     this.setData({ saving: true })
     wx.showLoading({ title: '保存中...', mask: true })
 
+    let uploadedFileID = ''
     try {
       let avatarUrl = userAvatar
       // 如果选择了新头像，压缩后上传到云存储
@@ -139,6 +140,7 @@ Page({
           filePath: uploadPath
         })
         avatarUrl = uploadRes.fileID
+        uploadedFileID = uploadRes.fileID
       }
 
       // 调用云函数更新用户信息（响应直接返回最新 user/partner 与新 userVer）
@@ -149,6 +151,11 @@ Page({
 
       if (!res.result?.success) {
         throw new Error(res.result?.error || '保存失败')
+      }
+
+      // 换头像成功：回收旧头像文件（静默失败不影响用户）
+      if (uploadedFileID && userAvatar && userAvatar.indexOf('cloud://') === 0 && userAvatar !== avatarUrl) {
+        wx.cloud.deleteFile({ fileList: [userAvatar] }).catch(e => console.error('回收旧头像失败', e))
       }
 
       // 用响应里的最新数据同步全局（首页等其他页面立即读取到新昵称，无需二次拉取）
@@ -162,6 +169,10 @@ Page({
     } catch (e) {
       wx.hideLoading()
       console.error('save profile error', e)
+      // 落库失败：刚上传的新头像成孤儿，回收
+      if (uploadedFileID) {
+        wx.cloud.deleteFile({ fileList: [uploadedFileID] }).catch(() => {})
+      }
       wx.showToast({ title: '保存失败', icon: 'none' })
     } finally {
       this.setData({ saving: false })

@@ -63,6 +63,9 @@ Page({
       // 保留原始 fileID 用于保存，cloud:// 可直接用于展示
       let displayUrl = dish.imageUrl || ''
       this._rawImageUrl = dish.imageUrl || ''
+      // 记录原图片 fileID，保存成功后对比回收被替换/删除的旧图
+      this._origFileIds = [dish.imageUrl, ...((dish.steps || []).map(s => s && s.imageUrl))]
+        .filter(id => typeof id === 'string' && id.indexOf('cloud://') === 0)
       // 回填用料/做法；缺失或为空时给一行空行方便直接填写
       const ingredients = (dish.ingredients || []).map(it => ({
         key: this._nextKey('i'),
@@ -288,6 +291,9 @@ Page({
         cloudPath,
         filePath: uploadPath
       })
+      // 记录本次会话上传的 fileID，未落库的会在保存成功/退出页面时回收
+      this._sessionFileIds = this._sessionFileIds || []
+      this._sessionFileIds.push(res.fileID)
       return res.fileID
     } catch (e) {
       console.error('上传图片失败', e)
@@ -349,7 +355,12 @@ Page({
 
       const category = this.data.categories[this.data.categoryIndex]._id
 
+      // 最终落库使用的全部图片 fileID（主图 + 步骤图）
+      const usedFileIds = [imageUrl, ...steps.map(s => s.imageUrl)]
+
       if (isEdit) {
+        // 被替换/删除的旧图 fileID（云端带快照守卫校验后才删除）
+        const replacedOld = (this._origFileIds || []).filter(id => usedFileIds.indexOf(id) === -1)
         // 编辑模式：更新现有记录
         const res = await wx.cloud.callFunction({
           name: 'updateCoupleData',
@@ -357,6 +368,7 @@ Page({
             collection: app.globalData.collectionDishList,
             docId: _id,
             action: 'update',
+            oldFileIds: replacedOld,
             data: {
               name: name.trim(),
               description: this.data.description.trim(),
@@ -373,8 +385,13 @@ Page({
 
         if (!res.result?.success) {
           wx.showToast({ title: res.result?.message || '修改失败', icon: 'none' })
+          this.setData({ saving: false })
           return
         }
+
+        // 保存成功：回收本次会话上传但未落库的文件（如 AI 转存后又被替换的）
+        this._saved = true
+        this._cleanupSessionOrphans(usedFileIds)
 
         // 用响应里的新版本号同步本地 store（菜品库/点餐页立即可见，无需重拉）
         const oldDish = (app.globalData.dishStore.dishes || []).find(d => d._id === _id) || {}
@@ -418,6 +435,9 @@ Page({
 
         // 用响应里的完整新文档同步本地 store（菜品库/点餐页立即可见，无需重拉）
         app.applyDishAdded(res.result.doc, res.result.ver)
+        // 保存成功：回收本次会话上传但未落库的文件
+        this._saved = true
+        this._cleanupSessionOrphans(usedFileIds)
         wx.showToast({ title: '添加成功', icon: 'success' })
       }
 
@@ -431,6 +451,21 @@ Page({
       wx.showToast({ title: '保存失败', icon: 'none' })
       this.setData({ saving: false })
     }
+  },
+
+  // 回收本次会话上传但未出现在最终落库数据里的文件（静默失败，扫描脚本兜底）
+  _cleanupSessionOrphans(usedFileIds) {
+    const orphans = (this._sessionFileIds || []).filter(id => usedFileIds.indexOf(id) === -1)
+    if (!orphans.length) return
+    wx.cloud.deleteFile({ fileList: orphans }).catch(e => console.error('回收未用图片失败', e))
+  },
+
+  onUnload() {
+    // 未保存就退出：本次会话已上传云端的文件（AI 转存/失败重试的重复上传）全部回收
+    if (this._saved) return
+    const ids = this._sessionFileIds || []
+    if (!ids.length) return
+    wx.cloud.deleteFile({ fileList: ids }).catch(e => console.error('回收未保存图片失败', e))
   },
 
   // 预览图片
@@ -487,6 +522,9 @@ Page({
 
       // 保存原始 fileID，saveDish 时直接用，不再二次上传
       this._rawImageUrl = result.data.fileID
+      // AI 转存已落云存储，纳入会话跟踪（未保存/被替换时回收）
+      this._sessionFileIds = this._sessionFileIds || []
+      this._sessionFileIds.push(result.data.fileID)
       this.setData({
         tempFilePath: '',
         imageUrl: result.data.tempFileURL || result.data.fileID,
