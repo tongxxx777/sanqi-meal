@@ -13,6 +13,7 @@ Page({
     tempNickname: '',
     tempAvatarUrl: '',
     saving: false,
+    isAdmin: false,      // 是否管理员（控制「管理台」入口显隐）
   },
 
   async onShow() {
@@ -41,7 +42,8 @@ Page({
       userAvatar: currentUser?.avatarUrl || '',
       partnerName: partner?.nickname || '',
       partnerAvatar: partner?.avatarUrl || '',
-      isBound: app.isBound()
+      isBound: app.isBound(),
+      isAdmin: app.isAdmin()
     })
   },
 
@@ -58,6 +60,11 @@ Page({
   // 跳转到点餐记录
   goToOrderRecords() {
     wx.navigateTo({ url: '/pages/order-records/index' })
+  },
+
+  // 跳转到管理台（仅管理员可见入口）
+  goToAdmin() {
+    wx.navigateTo({ url: '/pages/admin/index' })
   },
 
   // 打开编辑个人信息弹窗

@@ -10,7 +10,8 @@
     "pages/mine/index",
     "pages/bind/index",
     "pages/bind-confirm/index",
-    "pages/category-manage/index"
+    "pages/category-manage/index",
+    "pages/admin/index"
   ],
   "window": {
     "backgroundColor": "#FFF6F8",

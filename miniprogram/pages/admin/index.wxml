@@ -1,0 +1,264 @@
+<view class="page" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+
+  <!-- 非管理员兜底（正常情况入口不可见，云端白名单也会拒绝） -->
+  <view wx:if="{{denied}}" class="denied">
+    <text class="denied-icon">🚫</text>
+    <text class="denied-text">这里只有管理员能进哦~</text>
+  </view>
+
+  <block wx:else>
+    <!-- 加载中 -->
+    <view wx:if="{{loading}}" class="loading-wrap">
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 加载失败：直接展示真实错误，便于定位 -->
+    <view wx:elif="{{loadError}}" class="empty">
+      <text class="empty-icon">🐌</text>
+      <text class="empty-text">加载失败：{{loadError}}</text>
+      <text class="empty-tip">请确认 adminQuery 已「上传并部署：云端安装依赖」，且部署环境与小程序云环境一致</text>
+    </view>
+
+    <block wx:else>
+      <!-- 情侣浏览头部：当前位次 + 展开选择面板 -->
+      <view class="couple-zone" wx:if="{{totalCouples}}">
+        <view class="couple-head" bindtap="togglePicker" hover-class="couple-head--hover">
+          <view class="couple-avatars">
+            <image
+              wx:for="{{currentCouple.avatars}}"
+              wx:for-item="av"
+              wx:key="*this"
+              class="couple-avatar couple-avatar--{{index}}"
+              src="{{av || '/images/default.jpg'}}"
+              mode="aspectFill"
+            ></image>
+          </view>
+          <view class="couple-head-info">
+            <text class="couple-head-names">{{currentCouple.names}}</text>
+            <text class="couple-head-stats">{{currentCouple.dishCount}} 道菜 · {{currentCouple.orderCount}} 单</text>
+          </view>
+          <view class="couple-head-right">
+            <text class="couple-head-pos">第 {{activePos}} 对 / 共 {{totalCouples}} 对</text>
+            <text class="couple-head-toggle">{{pickerOpen ? '收起 ▴' : '切换 ▾'}}</text>
+          </view>
+        </view>
+
+        <!-- 情侣选择面板：排序 + 筛选 + 网格 + 分页 -->
+        <view wx:if="{{pickerOpen}}" class="picker">
+          <view class="picker-toolbar">
+            <view class="sort-toggle">
+              <text class="sort-opt {{sortBy === 'orderCount' ? 'sort-opt--on' : ''}}" data-key="orderCount" bindtap="setSort">🧾 单多优先</text>
+              <text class="sort-opt {{sortBy === 'dishCount' ? 'sort-opt--on' : ''}}" data-key="dishCount" bindtap="setSort">🍲 菜多优先</text>
+            </view>
+            <input class="picker-search" placeholder="🔍 搜昵称" value="{{coupleSearch}}" bindinput="onCoupleSearch" />
+          </view>
+
+          <view wx:if="{{pagedCouples.length}}" class="picker-grid">
+            <view
+              wx:for="{{pagedCouples}}"
+              wx:key="coupleId"
+              class="pk-card {{item.active ? 'pk-card--on' : ''}}"
+              data-id="{{item.coupleId}}"
+              bindtap="selectCouple"
+              hover-class="pk-card--hover"
+            >
+              <text class="pk-pos">No.{{item.pos}}</text>
+              <view class="couple-avatars">
+                <image
+                  wx:for="{{item.avatars}}"
+                  wx:for-item="av"
+                  wx:key="*this"
+                  class="couple-avatar couple-avatar--{{index}}"
+                  src="{{av || '/images/default.jpg'}}"
+                  mode="aspectFill"
+                ></image>
+              </view>
+              <text class="pk-names">{{item.names}}</text>
+              <text class="pk-stats">{{item.dishCount}} 道菜 · {{item.orderCount}} 单</text>
+            </view>
+          </view>
+          <view wx:else class="picker-empty">没有匹配「{{coupleSearch}}」的情侣~</view>
+
+          <view wx:if="{{couplePageCount > 1}}" class="pager">
+            <text class="pager-btn {{couplePage === 0 ? 'pager-btn--off' : ''}}" bindtap="prevCouplePage">‹ 上一页</text>
+            <text
+              wx:for="{{pageNumbers}}"
+              wx:key="*this"
+              class="pager-num {{couplePage === item - 1 ? 'pager-num--on' : ''}}"
+              data-page="{{item - 1}}"
+              bindtap="gotoCouplePage"
+            >{{item}}</text>
+            <text class="pager-btn {{couplePage >= couplePageCount - 1 ? 'pager-btn--off' : ''}}" bindtap="nextCouplePage">下一页 ›</text>
+          </view>
+
+          <view wx:if="{{unboundCount > 0}}" class="picker-unbound">👤 另有 {{unboundCount}} 人未绑定</view>
+        </view>
+      </view>
+
+      <!-- Tab 条 -->
+      <view class="tab-bar" wx:if="{{totalCouples}}">
+        <view class="tab-item {{tab === 'orders' ? 'tab-item--active' : ''}}" data-tab="orders" bindtap="switchTab">
+          <text>🧾 订单</text>
+        </view>
+        <view class="tab-item {{tab === 'dishes' ? 'tab-item--active' : ''}}" data-tab="dishes" bindtap="switchTab">
+          <text>🍲 菜品</text>
+        </view>
+        <view class="tab-indicator {{tab === 'dishes' ? 'tab-indicator--right' : ''}}"></view>
+      </view>
+
+      <!-- 无情侣空态 -->
+      <view wx:if="{{!totalCouples}}" class="empty">
+        <text class="empty-icon">💑</text>
+        <text class="empty-text">还没有情侣上传菜品~</text>
+      </view>
+
+      <!-- 菜品列表（分类胶囊 + 排序 + 网格） -->
+      <block wx:if="{{totalCouples && tab === 'dishes'}}">
+        <view wx:if="{{!dishesLoaded}}" class="loading-wrap">
+          <text class="loading-text">加载中...</text>
+        </view>
+        <view wx:elif="{{!dishes.length}}" class="empty">
+          <text class="empty-icon">🍽️</text>
+          <text class="empty-text">这对情侣还没上传菜品~</text>
+        </view>
+        <block wx:else>
+          <!-- 工具区：排序胶囊 + 分类平铺多行，一眼看全 -->
+          <view class="dish-toolbar">
+            <view class="category-wrap">
+              <view class="all-sort-pill" wx:if="{{categoryCount[currentCategory] > 1}}" bindtap="openAllSortSheet">
+                <text class="all-sort-label">{{curSortLabel}}</text>
+                <text class="all-sort-arrow">▾</text>
+              </view>
+              <view
+                class="tab-pill {{currentCategory === item._id ? 'active' : ''}}"
+                wx:for="{{categories}}"
+                wx:key="_id"
+                wx:if="{{categoryCount[item._id] > 0}}"
+                data-id="{{item._id}}"
+                bindtap="selectCategory"
+              >
+                <text class="tab-pill-icon">{{item.icon}}</text>
+                <text class="tab-pill-name">{{item.name}}</text>
+                <text class="tab-pill-count">{{categoryCount[item._id]}}</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 网格（固定 6 列） -->
+          <view class="dish-grid">
+            <view
+              wx:for="{{dishesByCategory[currentCategory]}}"
+              wx:key="_id"
+              class="dish-card"
+              data-urls="{{item.galleryRaw}}"
+              bindtap="previewImage"
+              hover-class="dish-card--hover"
+            >
+              <view class="card-image-wrap">
+                <image class="card-image" src="{{item.cover}}" mode="aspectFill" lazy-load></image>
+                <view class="card-order-badge" wx:if="{{item.orderCount > 0}}">
+                  <text class="badge-heart">♥</text>
+                  <text class="badge-count">{{item.orderCount}}</text>
+                </view>
+                <view class="card-gallery-badge" wx:if="{{item.gallery.length > 1}}">{{item.gallery.length}}图</view>
+              </view>
+              <view class="card-body">
+                <text class="card-name">{{item.name}}</text>
+              </view>
+            </view>
+          </view>
+        </block>
+      </block>
+
+      <!-- 订单列表 -->
+      <block wx:if="{{totalCouples && tab === 'orders'}}">
+        <view wx:if="{{!orders.length && ordersLoading}}" class="loading-wrap">
+          <text class="loading-text">加载中...</text>
+        </view>
+        <view wx:elif="{{!orders.length}}" class="empty">
+          <text class="empty-icon">🧾</text>
+          <text class="empty-text">这对情侣还没下过单~</text>
+        </view>
+        <view wx:else class="order-list">
+          <view wx:for="{{orders}}" wx:key="_id" class="order-card">
+            <!-- 头部：时间 + 期望 + 状态 -->
+            <view class="order-head">
+              <view class="order-head-left">
+                <text class="order-time">{{item.timeText}}</text>
+                <text wx:if="{{item.expectText}}" class="order-expect">🕐 {{item.expectText}}</text>
+              </view>
+              <text class="order-status {{item.statusClass}}">{{item.statusText}}</text>
+            </view>
+
+            <!-- 菜品快照 -->
+            <view class="order-dishes" wx:if="{{item.dishViews.length}}">
+              <image
+                wx:for="{{item.dishViews}}"
+                wx:for-item="d"
+                wx:key="name"
+                wx:if="{{d.raw}}"
+                class="order-dish-img"
+                src="{{d.img}}"
+                mode="aspectFill"
+                data-urls="{{[d.raw]}}"
+                bindtap="previewImage"
+              ></image>
+            </view>
+            <view class="order-dish-names-row">
+              <text wx:for="{{item.dishViews}}" wx:for-item="d" wx:key="name" class="order-dish-name">{{d.name}}{{index < item.dishViews.length - 1 ? '、' : ''}}</text>
+            </view>
+
+            <!-- 备注 -->
+            <view wx:if="{{item.remark}}" class="order-remark">
+              <text class="order-remark-label">📝 备注</text>
+              <text class="order-remark-text">{{item.remark}}</text>
+            </view>
+
+            <!-- 评价 -->
+            <view wx:if="{{item.reviewView}}" class="review-card">
+              <view class="review-head">
+                <view class="review-stars">
+                  <text wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="*this" class="review-star {{item.reviewView.rating >= star ? 'on' : 'off'}}">⭐</text>
+                </view>
+                <text class="review-label">{{item.reviewView.labelText}}</text>
+              </view>
+              <text wx:if="{{item.reviewView.text}}" class="review-text">{{item.reviewView.text}}</text>
+              <text class="review-meta">{{item.reviewView.authorName}} · {{item.reviewView.timeText}}</text>
+
+              <!-- 大厨回复 -->
+              <view wx:if="{{item.replyView}}" class="reply-card">
+                <text class="reply-title">👨‍🍳 大厨回复</text>
+                <text class="reply-text">{{item.replyView.text}}</text>
+                <text class="review-meta">{{item.replyView.authorName}} · {{item.replyView.timeText}}</text>
+              </view>
+            </view>
+
+            <!-- 成品照 -->
+            <view wx:if="{{item.photoViews.length}}" class="order-photos">
+              <text class="order-photos-label">📸 成品照</text>
+              <view class="order-photos-row">
+                <image
+                  wx:for="{{item.photoViews}}"
+                  wx:for-item="p"
+                  wx:key="*this"
+                  class="order-photo"
+                  src="{{p}}"
+                  mode="aspectFill"
+                  data-urls="{{item.photoRaws}}"
+                  data-current="{{item.photoRaws[index]}}"
+                  bindtap="previewImage"
+                ></image>
+              </view>
+            </view>
+          </view>
+
+          <!-- 分页状态 -->
+          <view class="list-footer">
+            <text wx:if="{{ordersLoading}}" class="list-footer-text">加载中...</text>
+            <text wx:elif="{{!ordersHasMore}}" class="list-footer-text">没有更多了~</text>
+          </view>
+        </view>
+      </block>
+    </block>
+  </block>
+</view>

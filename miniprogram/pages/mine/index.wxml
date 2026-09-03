@@ -43,6 +43,17 @@
     </view>
   </view>
 
+  <view class="settings-section" wx:if="{{isAdmin}}">
+    <view class="section-title">管理</view>
+    <view class="settings-card">
+      <view class="settings-item" bindtap="goToAdmin">
+        <text class="item-icon">👑</text>
+        <text class="item-label">运营后台</text>
+        <text class="item-arrow">></text>
+      </view>
+    </view>
+  </view>
+
   <view class="settings-section">
     <view class="section-title">帮助与反馈</view>
     <view class="contact-card">

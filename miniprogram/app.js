@@ -4,7 +4,14 @@ const _bindWhitelist = [
   'pages/index/index',
   'pages/mine/index',
   'pages/bind/index',
-  'pages/bind-confirm/index'
+  'pages/bind-confirm/index',
+  'pages/admin/index'
+]
+
+// 管理员 openid 白名单（仅控制前端入口显隐，数据安全由 adminQuery 云函数白名单把守，两处需保持一致）
+// 【部署前必改】把自己的 openid 填进来（User 表中文档的 _id 即 openid）
+const ADMIN_OPENIDS = [
+  'onaJz5Q5YUemGamQy4ePlfuCmuFw'
 ]
 
 Page = function(options) {
@@ -794,6 +801,13 @@ App({
   },
 
   // 检查是否已绑定伴侣
+  // 是否管理员（User 表文档 _id 即 openid）
+  isAdmin() {
+    const user = this.globalData.currentUser
+    const openid = user?._id || user?._openid
+    return !!openid && ADMIN_OPENIDS.includes(openid)
+  },
+
   isBound() {
     const user = this.globalData.currentUser
     if (user?.bindStatus !== 'bound') return false
